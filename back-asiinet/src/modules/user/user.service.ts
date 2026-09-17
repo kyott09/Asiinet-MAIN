@@ -21,16 +21,14 @@ export const login = async (email: string, password: string) => {
   const user = await userRepository.findByEmail(email);
 
   if (!user) {
-    throw AppError.unauthorized("Credenciales iválidas");
+    throw AppError.unauthorized("Email incorrecto");
   }
-
 
   //Se comparan la constraseña ingresada, con la registrada en la db
   const passwordCompare = await bcrypt.compare(password, user.passwordHash);
 
-
   if (!passwordCompare) {
-    throw AppError.unauthorized("Credenciales iválidas");
+    throw AppError.unauthorized("Contraseña incorrecta");
   }
 
 
