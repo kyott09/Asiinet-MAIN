@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import logoAsiinet from "../assets/brand/logos/logo asiinet.png";
 
 const services = [
   {
@@ -113,7 +114,7 @@ function DashboardSidebar() {
     <aside className="dashboard-sidebar" aria-label="Navegación principal">
       <Link className="sidebar-brand" to="/home">
         <span className="sidebar-brand-mark" aria-hidden="true">
-          <i className="fa-solid fa-play"></i>
+          <img src={logoAsiinet} alt="Asiinet logo" />
         </span>
         <span>Asiinet</span>
       </Link>

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logoAsiinet from "../assets/brand/images/logo-login-sinfondo.png";
+import AuthLayout from "../components/auth/AuthLayout";
+import PasswordField from "../components/auth/PasswordField";
+import TextField from "../components/auth/TextField";
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -8,8 +10,6 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -40,7 +40,6 @@ function Register() {
         throw new Error(data.message || "Error al registrarse");
       }
 
-      // El registro no devuelve token, así que mandamos al usuario a loguearse
       navigate("/login", { viewTransition: true });
     } catch (err) {
       setError(err.message);
@@ -50,103 +49,67 @@ function Register() {
   };
 
   return (
-    <div className="auth-page">
-      <section className="auth-card" aria-labelledby="register-title">
-        <div className="auth-brand-wrap">
-          <img src={logoAsiinet} alt="Asiinet" className="auth-brand-logo" />
-        </div>
-
-        <div className="auth-card-header">
-          <h1 id="register-title">Crear cuenta</h1>
-          <p className="auth-subtitle">Completá tus datos para registrarte</p>
-        </div>
-
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label className="auth-field">
-            <span className="sr-only">Usuario</span>
-            <input
-              type="text"
-              placeholder="Usuario"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </label>
-
-          <label className="auth-field">
-            <span className="sr-only">Nombre completo</span>
-            <input
-              type="text"
-              placeholder="Nombre completo"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
-          </label>
-
-          <label className="auth-field">
-            <span className="sr-only">Email</span>
-            <input
-              type="email"
-              placeholder="Correo electrónico"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </label>
-
-          <label className="auth-field auth-field-password">
-            <span className="sr-only">Contraseña</span>
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-            <button
-              className="password-toggle"
-              type="button"
-              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              onClick={() => setShowPassword((isVisible) => !isVisible)}
-            >
-              <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`} aria-hidden="true"></i>
-            </button>
-          </label>
-
-          <label className="auth-field auth-field-password">
-            <span className="sr-only">Confirmar contraseña</span>
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirmar contraseña"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-            <button
-              className="password-toggle"
-              type="button"
-              aria-label={showConfirmPassword ? "Ocultar confirmación de contraseña" : "Mostrar confirmación de contraseña"}
-              onClick={() => setShowConfirmPassword((isVisible) => !isVisible)}
-            >
-              <i className={`fa-solid ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`} aria-hidden="true"></i>
-            </button>
-          </label>
-
-          {error && <p className="auth-error">{error}</p>}
-
-          <button className="auth-submit" type="submit" disabled={loading}>
-            {loading ? "Creando cuenta..." : "Registrarme"}
-          </button>
-        </form>
-
-        <p className="auth-footer">
+    <AuthLayout
+      title="Crear cuenta"
+      subtitle="Completá tus datos para registrarte"
+      titleId="register-title"
+      footer={
+        <>
           ¿Ya tenés cuenta? <Link to="/login" viewTransition>Iniciá sesión</Link>
-        </p>
-      </section>
-    </div>
+        </>
+      }
+    >
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <TextField
+          id="register-username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Usuario"
+          label="Usuario"
+        />
+
+        <TextField
+          id="register-fullname"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Nombre completo"
+          label="Nombre completo"
+        />
+
+        <TextField
+          id="register-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Correo electrónico"
+          label="Email"
+        />
+
+        <PasswordField
+          id="register-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Contraseña"
+          label="Contraseña"
+          minLength={6}
+        />
+
+        <PasswordField
+          id="register-confirm-password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Confirmar contraseña"
+          label="Confirmar contraseña"
+          minLength={6}
+        />
+
+        {error && <p className="auth-error">{error}</p>}
+
+        <button className="auth-submit" type="submit" disabled={loading}>
+          {loading ? "Creando cuenta..." : "Registrarme"}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }
 
