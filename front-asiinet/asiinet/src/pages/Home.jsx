@@ -159,6 +159,9 @@ function DashboardSidebar() {
 function Home() {
   const navigate = useNavigate();
   const user = getUserSession();
+  const avatarUrl = user?.fotoPerfil || "";
+  const displayName = user?.nombre || user?.email || "Usuario";
+  const initials = displayName.charAt(0).toUpperCase();
 
   const handleLogout = () => {
     sessionStorage.removeItem("user");
@@ -172,10 +175,14 @@ function Home() {
       <main className="dashboard-content">
         <div className="account-actions">
           <p className="profile-container">
-            <a className="profile-button" href="/profile">
-              <i className="fa-solid fa-user" aria-hidden="true"></i>
-              {user?.email || "Usuario"}
-            </a>
+            <Link className="profile-button" to="/profile">
+              {avatarUrl ? (
+                <img className="profile-avatar" src={avatarUrl} alt={displayName} />
+              ) : (
+                <span className="profile-avatar profile-avatar-fallback" aria-hidden="true">{initials}</span>
+              )}
+              <span>{displayName}</span>
+            </Link>
           </p>
           <p className="logout-container">
             <button type="button" className="logout-button" onClick={handleLogout}>

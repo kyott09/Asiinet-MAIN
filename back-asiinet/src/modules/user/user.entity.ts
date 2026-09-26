@@ -7,7 +7,7 @@ export class User {
   id!: number;
 
 
-  @Column({ type: "varchar"})
+  @Column({ type: "varchar", nullable: true, default: "Usuario" })
   nombre!: string;
 
 
@@ -21,6 +21,18 @@ export class User {
 
   @Column({ type: "varchar", default: "user" })
   role!: string;
+
+
+  @Column({ type: "date", nullable: true })
+  fechaNacimiento!: Date | null;
+
+
+  @Column({ type: "varchar", nullable: true })
+  domicilio!: string | null;
+
+
+  @Column({ type: "text", nullable: true })
+  fotoPerfil!: string | null;
 
 
   @CreateDateColumn()
