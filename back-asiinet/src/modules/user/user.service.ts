@@ -3,6 +3,70 @@ import jwt from "jsonwebtoken";
 import * as userRepository from "./user.repository.js";
 import { AppError } from "../../middlewares/errors.js";
 
+const toLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+export const formatUserDate = (value: Date | string | null | undefined): string | null => {
+  if (!value) return null;
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+
+    const date = new Date(trimmed);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return toLocalDateString(date);
+  }
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      return null;
+    }
+
+    return toLocalDateString(value);
+  }
+
+  return null;
+};
+
+export const normalizeDateOnlyValue = (value: Date | string | null | undefined): string | null => {
+  if (!value) return null;
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return toLocalDateString(parsed);
+  }
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      return null;
+    }
+
+    return toLocalDateString(value);
+  }
+
+  return null;
+};
+
 export const register = async (
   email: string,
   password: string,
@@ -31,7 +95,7 @@ export const register = async (
     nombre: created.nombre || "Usuario",
     email: created.email,
     role: created.role || "user",
-    fechaNacimiento: created.fechaNacimiento ? created.fechaNacimiento.toISOString().slice(0, 10) : null,
+    fechaNacimiento: formatUserDate(created.fechaNacimiento),
     domicilio: created.domicilio || null,
     fotoPerfil: created.fotoPerfil || null,
   };
@@ -76,7 +140,7 @@ export const login = async (email: string, password: string) => {
       nombre: user.nombre || "Usuario",
       email: user.email,
       role: user.role || "user",
-      fechaNacimiento: user.fechaNacimiento ? user.fechaNacimiento.toISOString().slice(0, 10) : null,
+      fechaNacimiento: formatUserDate(user.fechaNacimiento),
       domicilio: user.domicilio || null,
       fotoPerfil: user.fotoPerfil || null,
     },
@@ -94,7 +158,7 @@ export const getCurrentUserData = async (userId: number) => {
     nombre: user.nombre || "Usuario",
     email: user.email,
     role: user.role || "user",
-    fechaNacimiento: user.fechaNacimiento ? user.fechaNacimiento.toISOString().slice(0, 10) : null,
+    fechaNacimiento: formatUserDate(user.fechaNacimiento),
     domicilio: user.domicilio || null,
     fotoPerfil: user.fotoPerfil || null,
   };
@@ -118,14 +182,14 @@ export const updateProfile = async (
 
   const nextName = (payload.nombre ?? user.nombre ?? "Usuario").trim() || "Usuario";
   const nextEmail = payload.email ?? user.email;
-  const nextFechaNacimiento = payload.fechaNacimiento ? payload.fechaNacimiento : user.fechaNacimiento ?? null;
+  const nextFechaNacimiento = payload.fechaNacimiento !== undefined ? normalizeDateOnlyValue(payload.fechaNacimiento) : normalizeDateOnlyValue(user.fechaNacimiento);
   const nextDomicilio = payload.domicilio !== undefined ? (payload.domicilio ?? null) : user.domicilio ?? null;
   const nextFotoPerfil = payload.fotoPerfil !== undefined ? (payload.fotoPerfil?.trim() || null) : user.fotoPerfil ?? null;
 
   const updatedUser = await userRepository.updateUser(userId, {
     nombre: nextName,
     email: nextEmail,
-    fechaNacimiento: nextFechaNacimiento ? new Date(nextFechaNacimiento) : null,
+    fechaNacimiento: nextFechaNacimiento,
     domicilio: nextDomicilio,
     fotoPerfil: nextFotoPerfil,
   });
@@ -139,7 +203,7 @@ export const updateProfile = async (
     nombre: updatedUser.nombre || "Usuario",
     email: updatedUser.email,
     role: updatedUser.role || "user",
-    fechaNacimiento: updatedUser.fechaNacimiento ? updatedUser.fechaNacimiento.toISOString().slice(0, 10) : null,
+    fechaNacimiento: formatUserDate(updatedUser.fechaNacimiento),
     domicilio: updatedUser.domicilio || null,
     fotoPerfil: updatedUser.fotoPerfil || null,
   };

@@ -174,22 +174,23 @@ function Home() {
       <DashboardSidebar />
       <main className="dashboard-content">
         <div className="account-actions">
-          <p className="profile-container">
-            <Link className="profile-button" to="/profile">
-              {avatarUrl ? (
-                <img className="profile-avatar" src={avatarUrl} alt={displayName} />
-              ) : (
-                <span className="profile-avatar profile-avatar-fallback" aria-hidden="true">{initials}</span>
-              )}
-              <span>{displayName}</span>
-            </Link>
-          </p>
-          <p className="logout-container">
-            <button type="button" className="logout-button" onClick={handleLogout}>
-              <span aria-hidden="true">➜</span>
-              Cerrar sesión
-            </button>
-          </p>
+          <div className="profile-cluster">
+            <div className="profile-name-stack">
+              <Link className="profile-button" to="/profile">
+                {avatarUrl ? (
+                  <img className="profile-avatar" src={avatarUrl} alt={displayName} />
+                ) : (
+                  <span className="profile-avatar profile-avatar-fallback" aria-hidden="true">{initials}</span>
+                )}
+                <span>{displayName}</span>
+              </Link>
+
+              <button type="button" className="logout-button" onClick={handleLogout}>
+                <span aria-hidden="true">➜</span>
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
         </div>
         <section style={{ maxWidth: "720px", margin: "0 auto", textAlign: "center" }}>
         <h1>Asiinet</h1>
