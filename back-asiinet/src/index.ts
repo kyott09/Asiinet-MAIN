@@ -7,10 +7,11 @@ import cors from "cors";
 import { AppDataSource } from "./database/data-source.js";
 import { User } from "./modules/user/user.entity.js";
 import userRoutes from "./modules/user/user.routes.js";
+import taskRoutes from "./modules/task/task.routes.js";
 import { notFoundHandler, errorHandler } from "./middlewares/errors.js";
 
 const app = express();
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
+const allowedOrigins = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"];
 
 const ensureDefaultAdmin = async () => {
   const repo = AppDataSource.getRepository(User);
@@ -49,6 +50,7 @@ app.use(
 );
 app.use(express.json());
 app.use("/api/users", userRoutes);
+app.use("/api/tasks", taskRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

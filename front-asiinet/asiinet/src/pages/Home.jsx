@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import AccountActions from "../components/dashboard/AccountActions";
 import logoAsiinet from "../assets/brand/logos/logo asiinet.png";
 
 const services = [
@@ -41,32 +42,6 @@ const highlights = [
     title: "Stock y vehículos",
     description:
       "Control de materiales (precintos, tarugos, módems, routers) con alertas de reposición, y seguimiento de cada vehículo: verificación técnica, neumáticos y mantenimiento.",
-  },
-];
-
-const navigationSections = [
-  {
-    title: "Registrar",
-    icon: "fa-file-signature",
-    active: true,
-    expandable: true,
-    items: [
-      { label: "Vehículo", icon: "fa-car", href: "/vehiculos" },
-      { label: "Empleado", icon: "fa-users", href: "/empleados" },
-      { label: "Tarea", icon: "fa-list-check", href: "/tareas" },
-      { label: "Roles", icon: "fa-lock", href: "/roles" },
-    ],
-  },
-  {
-    title: "Otros",
-    items: [
-      { label: "Calendario", icon: "fa-calendar-days", href: "/calendario" },
-      { label: "Galería de Fotos", icon: "fa-image", href: "/galeria" },
-    ],
-  },
-  {
-    title: "Información General",
-    items: [{ label: "Documentación", icon: "fa-file", href: "/documentacion" }],
   },
 ];
 
@@ -157,41 +132,11 @@ function DashboardSidebar() {
 }
 
 function Home() {
-  const navigate = useNavigate();
-  const user = getUserSession();
-  const avatarUrl = user?.fotoPerfil || "";
-  const displayName = user?.nombre || user?.email || "Usuario";
-  const initials = displayName.charAt(0).toUpperCase();
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("user");
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    navigate("/login");
-  };
-
   return (
     <div className="dashboard-layout">
       <DashboardSidebar />
       <main className="dashboard-content">
-        <div className="account-actions">
-          <div className="profile-cluster">
-            <div className="profile-name-stack">
-              <Link className="profile-button" to="/profile">
-                {avatarUrl ? (
-                  <img className="profile-avatar" src={avatarUrl} alt={displayName} />
-                ) : (
-                  <span className="profile-avatar profile-avatar-fallback" aria-hidden="true">{initials}</span>
-                )}
-                <span>{displayName}</span>
-              </Link>
-
-              <button type="button" className="logout-button" onClick={handleLogout}>
-                <span aria-hidden="true">➜</span>
-                Cerrar sesión
-              </button>
-            </div>
-          </div>
-        </div>
+        <AccountActions />
         <section style={{ maxWidth: "720px", margin: "0 auto", textAlign: "center" }}>
         <h1>Asiinet</h1>
         <p style={{ fontSize: "18px", lineHeight: 1.6 }}>

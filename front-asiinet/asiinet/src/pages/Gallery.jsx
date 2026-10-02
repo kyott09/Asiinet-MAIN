@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AccountActions from "../components/dashboard/AccountActions";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 
 import gallery1 from "../assets/foto1.jpg";
@@ -134,6 +135,7 @@ function Gallery() {
       <DashboardSidebar />
 
       <main className="dashboard-content gallery-page">
+        <AccountActions />
         <h1>Galería de Fotos</h1>
 
         <div className="gallery-container">

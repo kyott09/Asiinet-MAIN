@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AccountActions from "../components/dashboard/AccountActions";
+import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 
 function getUserSession() {
   try {
@@ -10,37 +12,28 @@ function getUserSession() {
   }
 }
 
+function toProfileForm(payload) {
+  return {
+    nombre: payload?.nombre || "",
+    email: payload?.email || "",
+    fechaNacimiento: payload?.fechaNacimiento || "",
+    domicilio: payload?.domicilio || "",
+    fotoPerfil: payload?.fotoPerfil || "",
+  };
+}
+
 function Profile() {
   const navigate = useNavigate();
-  const user = getUserSession();
 
-  const [form, setForm] = useState({
-    nombre: "",
-    email: "",
-    fechaNacimiento: "",
-    domicilio: "",
-    fotoPerfil: "",
-  });
+  const [form, setForm] = useState(() => toProfileForm(getUserSession()));
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  const applyUserToForm = (payload) => {
-    setForm({
-      nombre: payload?.nombre || "",
-      email: payload?.email || "",
-      fechaNacimiento: payload?.fechaNacimiento || "",
-      domicilio: payload?.domicilio || "",
-      fotoPerfil: payload?.fotoPerfil || "",
-    });
-  };
-
   useEffect(() => {
-    if (!user) {
+    if (!getUserSession()) {
       navigate("/login");
       return;
     }
-
-    applyUserToForm(user);
 
     const fetchFreshUser = async () => {
       try {
@@ -49,12 +42,18 @@ function Profile() {
           credentials: "include",
         });
 
+        if (response.status === 401) {
+          sessionStorage.removeItem("user");
+          navigate("/login", { replace: true });
+          return;
+        }
         if (!response.ok) return;
 
         const data = await response.json();
         if (data?.user) {
           sessionStorage.setItem("user", JSON.stringify(data.user));
-          applyUserToForm(data.user);
+          window.dispatchEvent(new Event("asiinet:user-updated"));
+          setForm(toProfileForm(data.user));
         }
       } catch {
         // Se mantiene la sesión actual si no puede cargar desde el back.
@@ -104,12 +103,18 @@ function Profile() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          sessionStorage.removeItem("user");
+          navigate("/login", { replace: true });
+          return;
+        }
         throw new Error(data.message || "No se pudo actualizar el perfil");
       }
 
       sessionStorage.setItem("user", JSON.stringify(data.user));
+      window.dispatchEvent(new Event("asiinet:user-updated"));
       setMessage({ type: "success", text: "Perfil actualizado correctamente" });
-      applyUserToForm(data.user);
+      setForm(toProfileForm(data.user));
     } catch (error) {
       setMessage({ type: "error", text: error.message || "Error al guardar" });
     } finally {
@@ -118,8 +123,12 @@ function Profile() {
   };
 
   return (
-    <div className="profile-page">
-      <section className="profile-card" aria-labelledby="profile-title">
+    <div className="dashboard-layout">
+      <DashboardSidebar />
+      <main className="dashboard-content profile-content">
+        <AccountActions />
+        <div className="profile-page">
+          <section className="profile-card" aria-labelledby="profile-title">
         <div className="profile-header">
           <div>
             <p className="profile-kicker">Cuenta</p>
@@ -202,15 +211,14 @@ function Profile() {
           )}
 
           <div className="profile-actions">
-            <button type="button" className="profile-secondary-button" onClick={() => navigate(-1)}>
-              Volver
-            </button>
             <button type="submit" className="auth-submit" disabled={loading}>
               {loading ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>
         </form>
-      </section>
+          </section>
+        </div>
+      </main>
     </div>
   );
 }

@@ -208,3 +208,15 @@ export const updateProfile = async (
     fotoPerfil: updatedUser.fotoPerfil || null,
   };
 };
+
+export const getAssignableUsers = async () => {
+  const [clients, employees] = await Promise.all([
+    userRepository.findByRole("cliente"),
+    userRepository.findByRole("empleado"),
+  ]);
+
+  return {
+    clients: clients.map((user) => ({ id: user.id, nombre: user.nombre || "Usuario", email: user.email })),
+    employees: employees.map((user) => ({ id: user.id, nombre: user.nombre || "Usuario", email: user.email })),
+  };
+};

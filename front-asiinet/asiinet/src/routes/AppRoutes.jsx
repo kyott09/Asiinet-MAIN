@@ -6,6 +6,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Profile from "../pages/Profile";
 import Gallery from "../pages/Gallery";
+import Tareas from "../pages/Tareas";
 
 function getUserSession() {
   try {
@@ -65,7 +66,22 @@ function AppRoutes() {
           }
         />
 
-        <Route path="/galeria" element={<Gallery />} />
+        <Route
+          path="/galeria"
+          element={
+            <ProtectedRoute>
+              <Gallery />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tareas"
+          element={
+            <ProtectedRoute>
+              <Tareas />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

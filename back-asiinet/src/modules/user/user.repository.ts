@@ -9,6 +9,9 @@ export const findByEmail = async (email: string) =>
 export const findById = async (id: number) =>
   repo().findOneBy({ id });
 
+export const findByRole = async (role: string) =>
+  repo().find({ where: { role }, order: { nombre: "ASC" } });
+
 export const createUser = async (data: Partial<User>) =>
   repo().save(repo().create(data));
 
