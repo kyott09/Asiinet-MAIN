@@ -1,4 +1,7 @@
 import UserList from "../components/UserList";
+import AccountActions from "../components/dashboard/AccountActions";
+import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import "./Users.css";
 
 
 function Users() {
@@ -31,30 +34,21 @@ function Users() {
 
 
   return (
-    <div
-      style={{
-        maxWidth: "900px",
-        margin: "40px auto",
-        padding: "20px",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <h1>Users</h1>
-      <p>Listado estático de usuarios.</p>
+    <div className="dashboard-layout">
+      <DashboardSidebar />
+      <main className="dashboard-content users-content">
+        <AccountActions />
+        <div className="users-page">
+          <h1>Usuarios</h1>
+          <p>Listado estático de usuarios.</p>
 
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          marginTop: "30px",
-        }}
-      >
-        {users.map((user) => (
-          <UserList key={user.id} user={user}/>
-        ))}
-      </div>
+          <div className="users-list">
+            {users.map((user) => (
+              <UserList key={user.id} user={user} />
+            ))}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

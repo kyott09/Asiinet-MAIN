@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import logoAsiinet from "../assets/brand/logos/logo asiinet.png";
+import AccountActions from "../components/dashboard/AccountActions";
+import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 
 const services = [
   {
@@ -44,146 +43,12 @@ const highlights = [
   },
 ];
 
-const navigationSections = [
-  {
-    title: "Registrar",
-    icon: "fa-file-signature",
-    active: true,
-    expandable: true,
-    items: [
-      { label: "Vehículo", icon: "fa-car", href: "/vehiculos" },
-      { label: "Empleado", icon: "fa-users", href: "/empleados" },
-      { label: "Tarea", icon: "fa-list-check", href: "/tareas" },
-      { label: "Roles", icon: "fa-lock", href: "/roles" },
-    ],
-  },
-  {
-    title: "Otros",
-    items: [
-      { label: "Calendario", icon: "fa-calendar-days", href: "/calendario" },
-      { label: "Galería de Fotos", icon: "fa-image", href: "/galeria" },
-    ],
-  },
-  {
-    title: "Información General",
-    items: [{ label: "Documentación", icon: "fa-file", href: "/documentacion" }],
-  },
-];
-
-function getUserSession() {
-  try {
-    const raw = sessionStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function DashboardSidebar() {
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const user = useMemo(() => getUserSession(), []);
-  const isAdmin = user?.role === "admin";
-
-  const navigationSections = [
-    {
-      title: "Registrar",
-      icon: "fa-file-signature",
-      active: true,
-      expandable: true,
-      items: [
-        { label: "Vehículo", icon: "fa-car", href: "/vehiculos" },
-        { label: "Empleado", icon: "fa-users", href: "/empleados" },
-        { label: "Tarea", icon: "fa-list-check", href: "/tareas" },
-        ...(isAdmin ? [{ label: "Roles", icon: "fa-lock", href: "/roles" }] : []),
-      ],
-    },
-    {
-      title: "Otros",
-      items: [
-        { label: "Calendario", icon: "fa-calendar-days", href: "/calendario" },
-        { label: "Galería de Fotos", icon: "fa-image", href: "/galeria" },
-      ],
-    },
-    {
-      title: "Información General",
-      items: [{ label: "Documentación", icon: "fa-file", href: "/documentacion" }],
-    },
-  ];
-
-  return (
-    <aside className="dashboard-sidebar" aria-label="Navegación principal">
-      <Link className="sidebar-brand" to="/home">
-        <span className="sidebar-brand-mark" aria-hidden="true">
-          <img src={logoAsiinet} alt="Asiinet logo" />
-        </span>
-        <span>Asiinet</span>
-      </Link>
-      <br></br>
-      <nav className="sidebar-navigation">
-        {navigationSections.map((section) => (
-          <div className="sidebar-section" key={section.title}>
-            {section.expandable ? (
-              <button
-                className={`sidebar-section-heading sidebar-section-button${section.active ? " is-active" : ""}`}
-                type="button"
-                aria-expanded={isRegisterOpen}
-                onClick={() => setIsRegisterOpen((isOpen) => !isOpen)}
-              >
-                <i className={`fa-solid ${section.icon}`} aria-hidden="true"></i>
-                <span>{section.title}</span>
-                <i
-                  className={`fa-solid fa-chevron-down sidebar-chevron${isRegisterOpen ? " is-open" : ""}`}
-                  aria-hidden="true"
-                ></i>
-              </button>
-            ) : (
-              <div className="sidebar-section-heading">
-                <span>{section.title}</span>
-              </div>
-            )}
-            {(!section.expandable || isRegisterOpen) && <div className="sidebar-section-items">
-              {section.items.map((item) => (
-                <Link className="sidebar-link" to={item.href} key={item.label}>
-                  <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </div>}
-          </div>
-        ))}
-      </nav>
-    </aside>
-  );
-}
-
 function Home() {
-  const navigate = useNavigate();
-  const user = getUserSession();
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("user");
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    navigate("/login");
-  };
-
   return (
     <div className="dashboard-layout">
       <DashboardSidebar />
       <main className="dashboard-content">
-        <div className="account-actions">
-          <p className="profile-container">
-            <a className="profile-button" href="/profile">
-              <i className="fa-solid fa-user" aria-hidden="true"></i>
-              {user?.email || "Usuario"}
-            </a>
-          </p>
-          <p className="logout-container">
-            <button type="button" className="logout-button" onClick={handleLogout}>
-              <span aria-hidden="true">➜</span>
-              Cerrar sesión
-            </button>
-          </p>
-        </div>
+        <AccountActions />
         <section style={{ maxWidth: "720px", margin: "0 auto", textAlign: "center" }}>
         <h1>Asiinet</h1>
         <p style={{ fontSize: "18px", lineHeight: 1.6 }}>

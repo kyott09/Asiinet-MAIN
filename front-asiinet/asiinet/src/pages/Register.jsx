@@ -31,7 +31,12 @@ function Register() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role: "user" }),
+        body: JSON.stringify({
+          nombre: fullName || username || "Usuario",
+          email,
+          password,
+          role: "user",
+        }),
       });
 
       const data = await response.json();
