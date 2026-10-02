@@ -5,6 +5,7 @@ import Users from "../pages/Users";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Profile from "../pages/Profile";
+import Gallery from "../pages/Gallery";
 
 function getUserSession() {
   try {
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
         <Route
           path="/home"
           element={
@@ -44,6 +46,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/profile"
           element={
@@ -52,6 +55,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/users"
           element={
@@ -60,6 +64,8 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/galeria" element={<Gallery />} />
       </Routes>
     </BrowserRouter>
   );
