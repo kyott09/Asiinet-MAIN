@@ -2,6 +2,9 @@ import "dotenv/config";
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { User } from "../modules/user/user.entity.js";
+import { Brand } from "../modules/brand/brand.entity.js";
+import { VehicleModel } from "../modules/vehicle-model/vehicle-model.entity.js";
+import { Vehicle } from "../modules/vehicle/vehicle.entity.js";
 
 
 console.log({
@@ -21,5 +24,5 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   synchronize: true,
-  entities: [User],
+  entities: [User, Brand, VehicleModel, Vehicle],
 });

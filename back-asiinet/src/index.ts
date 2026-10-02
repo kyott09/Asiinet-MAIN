@@ -7,10 +7,17 @@ import cors from "cors";
 import { AppDataSource } from "./database/data-source.js";
 import { User } from "./modules/user/user.entity.js";
 import userRoutes from "./modules/user/user.routes.js";
+import { Brand } from "./modules/brand/brand.entity.js";
+import brandRoutes from "./modules/brand/brand.routes.js";
+import { VehicleModel } from "./modules/vehicle-model/vehicle-model.entity.js";
+import vehicleModelRoutes from "./modules/vehicle-model/vehicle-model.routes.js";
+import { Vehicle } from "./modules/vehicle/vehicle.entity.js";
+import vehicleRoutes from "./modules/vehicle/vehicle.routes.js";
 import { notFoundHandler, errorHandler } from "./middlewares/errors.js";
 
 const app = express();
 const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
+
 
 const ensureDefaultAdmin = async () => {
   const repo = AppDataSource.getRepository(User);
@@ -50,8 +57,14 @@ app.use(
 app.use(express.json());
 app.use("/api/users", userRoutes);
 
+app.use("/api/brands", brandRoutes);
+app.use("/api/vehicle-models", vehicleModelRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+
 
 AppDataSource.initialize()
   .then(async () => {
