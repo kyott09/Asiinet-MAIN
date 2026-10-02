@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AccountActions from "../components/dashboard/AccountActions";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import "./Profile.css";
+import "../components/ui/ActionButton.css";
 
 function getUserSession() {
   try {

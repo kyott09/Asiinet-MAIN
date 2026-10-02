@@ -1,6 +1,7 @@
 import UserList from "../components/UserList";
 import AccountActions from "../components/dashboard/AccountActions";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import "./Users.css";
 
 
 function Users() {

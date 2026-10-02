@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AccountActions from "../components/dashboard/AccountActions";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import "./Gallery.css";
 
 import gallery1 from "../assets/foto1.jpg";
 import gallery2 from "../assets/foto2.jpg";

@@ -1,8 +1,20 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import logoAsiinet from "../../assets/brand/logos/logo asiinet.png";
+import "./DashboardSidebar.css";
 
-function DashboardSidebar({ user }) {
+function getUserSession() {
+  try {
+    const raw = sessionStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function DashboardSidebar() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const user = useMemo(() => getUserSession(), []);
   const isAdmin = useMemo(() => user?.role === "admin", [user]);
 
   const navigationSections = [
@@ -35,7 +47,7 @@ function DashboardSidebar({ user }) {
     <aside className="dashboard-sidebar" aria-label="Navegación principal">
       <Link className="sidebar-brand" to="/home">
         <span className="sidebar-brand-mark" aria-hidden="true">
-          <i className="fa-solid fa-play"></i>
+          <img src={logoAsiinet} alt="Asiinet logo" />
         </span>
         <span>Asiinet</span>
       </Link>

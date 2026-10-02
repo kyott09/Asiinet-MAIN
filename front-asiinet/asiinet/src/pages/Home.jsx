@@ -1,7 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import AccountActions from "../components/dashboard/AccountActions";
-import logoAsiinet from "../assets/brand/logos/logo asiinet.png";
+import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 
 const services = [
   {
@@ -44,92 +42,6 @@ const highlights = [
       "Control de materiales (precintos, tarugos, módems, routers) con alertas de reposición, y seguimiento de cada vehículo: verificación técnica, neumáticos y mantenimiento.",
   },
 ];
-
-function getUserSession() {
-  try {
-    const raw = sessionStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function DashboardSidebar() {
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const user = useMemo(() => getUserSession(), []);
-  const isAdmin = user?.role === "admin";
-
-  const navigationSections = [
-    {
-      title: "Registrar",
-      icon: "fa-file-signature",
-      active: true,
-      expandable: true,
-      items: [
-        { label: "Vehículo", icon: "fa-car", href: "/vehiculos" },
-        { label: "Empleado", icon: "fa-users", href: "/empleados" },
-        { label: "Tarea", icon: "fa-list-check", href: "/tareas" },
-        ...(isAdmin ? [{ label: "Roles", icon: "fa-lock", href: "/roles" }] : []),
-      ],
-    },
-    {
-      title: "Otros",
-      items: [
-        { label: "Calendario", icon: "fa-calendar-days", href: "/calendario" },
-        { label: "Galería de Fotos", icon: "fa-image", href: "/galeria" },
-      ],
-    },
-    {
-      title: "Información General",
-      items: [{ label: "Documentación", icon: "fa-file", href: "/documentacion" }],
-    },
-  ];
-
-  return (
-    <aside className="dashboard-sidebar" aria-label="Navegación principal">
-      <Link className="sidebar-brand" to="/home">
-        <span className="sidebar-brand-mark" aria-hidden="true">
-          <img src={logoAsiinet} alt="Asiinet logo" />
-        </span>
-        <span>Asiinet</span>
-      </Link>
-      <br></br>
-      <nav className="sidebar-navigation">
-        {navigationSections.map((section) => (
-          <div className="sidebar-section" key={section.title}>
-            {section.expandable ? (
-              <button
-                className={`sidebar-section-heading sidebar-section-button${section.active ? " is-active" : ""}`}
-                type="button"
-                aria-expanded={isRegisterOpen}
-                onClick={() => setIsRegisterOpen((isOpen) => !isOpen)}
-              >
-                <i className={`fa-solid ${section.icon}`} aria-hidden="true"></i>
-                <span>{section.title}</span>
-                <i
-                  className={`fa-solid fa-chevron-down sidebar-chevron${isRegisterOpen ? " is-open" : ""}`}
-                  aria-hidden="true"
-                ></i>
-              </button>
-            ) : (
-              <div className="sidebar-section-heading">
-                <span>{section.title}</span>
-              </div>
-            )}
-            {(!section.expandable || isRegisterOpen) && <div className="sidebar-section-items">
-              {section.items.map((item) => (
-                <Link className="sidebar-link" to={item.href} key={item.label}>
-                  <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </div>}
-          </div>
-        ))}
-      </nav>
-    </aside>
-  );
-}
 
 function Home() {
   return (

@@ -1,0 +1,17 @@
+.users-content {
+  align-items: stretch;
+}
+
+.users-page {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 24px 0;
+  text-align: left;
+}
+
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
