@@ -7,6 +7,7 @@ import Register from "../pages/Register";
 import Profile from "../pages/Profile";
 import Gallery from "../pages/Gallery";
 import Tareas from "../pages/Tareas";
+import NotFound from "../pages/NotFound";
 
 function getUserSession() {
   try {
@@ -34,6 +35,9 @@ function ProtectedRoute({ children, requireAdmin = false }) {
 function AppRoutes() {
   return (
     <BrowserRouter>
+      <a className="skip-link" href="#main-content">
+        Saltar al contenido principal
+      </a>
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -82,6 +86,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

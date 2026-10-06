@@ -75,7 +75,7 @@ function GalleryCarousel({ photos }) {
 
   return (
     <>
-      <div className="gallery-container">
+      <div className="gallery-container" role="region" aria-label="Carrusel de fotos">
         <GalleryArrows
           onPrevious={previousPhoto}
           onNext={nextPhoto}

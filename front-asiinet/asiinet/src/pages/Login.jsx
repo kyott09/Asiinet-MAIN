@@ -54,7 +54,7 @@ function Login() {
         isLeaving={isLeaving}
         footer={
           <>
-            ¿Es nuevo en Asiinet? <Link to="/register" viewTransition>Crear una cuenta</Link>
+            ¿Todavía no tenés cuenta? <Link to="/register" viewTransition>Creá una cuenta</Link>
           </>
         }
       >
@@ -76,7 +76,7 @@ function Login() {
             label="Contraseña"
           />
 
-          {error && <p className="auth-error">{error}</p>}
+          {error && <p className="auth-error" role="alert">{error}</p>}
 
           <button className="auth-submit" type="submit" disabled={loading}>
             {loading ? "Ingresando..." : "Siguiente"}

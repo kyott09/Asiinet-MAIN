@@ -51,7 +51,7 @@ function AccountActions() {
 
   return (
     <header className="account-actions">
-      <Link className="profile-button" to="/profile">
+      <Link className="profile-button" to="/profile" aria-label="Ir a mi perfil">
         {user?.fotoPerfil ? (
           <img className="profile-avatar" src={user.fotoPerfil} alt="" />
         ) : (
@@ -65,7 +65,12 @@ function AccountActions() {
         </span>
       </Link>
 
-      <button type="button" className="logout-button" onClick={handleLogout}>
+      <button
+        type="button"
+        className="logout-button"
+        onClick={handleLogout}
+        aria-label="Cerrar sesión"
+      >
         <i className="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
         <span>Cerrar sesión</span>
       </button>

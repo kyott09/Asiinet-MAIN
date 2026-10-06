@@ -422,15 +422,15 @@ function Tareas() {
   return (
     <div className="dashboard-layout">
       <DashboardSidebar />
-      <main className="dashboard-content tasks-content">
+      <main id="main-content" tabIndex="-1" className="dashboard-content tasks-content">
         <AccountActions />
         <div className="tasks-page">
       <header className="tasks-header">
         <h1>{pageTitle}</h1>
         <p>
           {isClient
-            ? "Consulta y gestiona tus solicitudes de servicio."
-            : "Registra y administra las tareas solicitadas por los clientes."}
+            ? "Consultá y gestioná tus solicitudes de servicio."
+            : "Registrá y administrá las tareas solicitadas por los clientes."}
         </p>
       </header>
 
@@ -687,7 +687,7 @@ function Tareas() {
 
             <div className="tasks-actions">
               <button className="tasks-button" type="submit" disabled={saving}>
-                {saving ? "Guardando..." : editingId !== null ? (isEmployee ? "Guardar cambios" : "Guardar solicitud") : (isClient ? "Solicitar" : "Registrar tarea")}
+                {saving ? "Guardando..." : editingId !== null ? (isEmployee ? "Guardá cambios" : "Guardá solicitud") : (isClient ? "Solicitar" : "Registrá tarea")}
               </button>
               <button
                 className="tasks-button tasks-button-secondary"
@@ -700,7 +700,7 @@ function Tareas() {
           </form>
         </section>
       ) : (
-        <section className="tasks-panel" aria-labelledby="task-list-title">
+        <section className="tasks-panel" aria-labelledby="task-list-title" aria-busy={loading}>
           <div className="tasks-list-header">
             <h2 id="task-list-title">Listado de {pageTitle.toLowerCase()}</h2>
             {canCreateRequest && (
@@ -715,24 +715,24 @@ function Tareas() {
             )}
           </div>
 
-          <div className="tasks-filter-bar" style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "16px", alignItems: "end" }}>
-            <label style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: "220px", color: "#2c3e50", fontWeight: 600 }}>
+          <div className="tasks-filter-bar">
+            <label className="tasks-filter-field">
               Buscar
               <input
+                className="tasks-filter-control"
                 type="text"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder={isClient ? "Buscar por servicio, descripción o estado" : "Buscar por cliente, servicio o estado"}
-                style={{ padding: "10px 12px", border: "1px solid #d7dfe8", borderRadius: "10px", fontSize: "0.95rem" }}
               />
             </label>
 
-            <label style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: "180px", color: "#2c3e50", fontWeight: 600 }}>
+            <label className="tasks-filter-field tasks-filter-field-status">
               Estado
               <select
+                className="tasks-filter-control"
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
-                style={{ padding: "10px 12px", border: "1px solid #d7dfe8", borderRadius: "10px", fontSize: "0.95rem" }}
               >
                 <option value="todos">Todos</option>
                 {isClient ? (
@@ -755,10 +755,29 @@ function Tareas() {
           </div>
 
           {loading ? (
-            <p className="tasks-empty" role="status">Cargando tareas...</p>
+            <div className="tasks-skeleton" role="status" aria-label="Cargando tareas">
+              <div className="tasks-skeleton-table" aria-hidden="true">
+                {Array.from({ length: 3 }, (_, row) => (
+                  <div className="tasks-skeleton-row" key={row}>
+                    {Array.from({ length: 7 }, (_, column) => (
+                      <span className="tasks-skeleton-bar" key={column}></span>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div className="tasks-skeleton-cards" aria-hidden="true">
+                {Array.from({ length: 3 }, (_, card) => (
+                  <div className="tasks-skeleton-card" key={card}>
+                    <span className="tasks-skeleton-bar tasks-skeleton-bar-short"></span>
+                    <span className="tasks-skeleton-bar"></span>
+                    <span className="tasks-skeleton-bar tasks-skeleton-bar-medium"></span>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : error ? null : filteredTasks.length === 0 ? (
             <p className="tasks-empty">
-              {isClient ? "Todavía no tienes solicitudes registradas." : "Todavía no hay tareas registradas."}
+              {isClient ? "Todavía no tenés solicitudes registradas." : "Todavía no hay tareas registradas."}
             </p>
           ) : (
             <>

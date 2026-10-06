@@ -18,6 +18,7 @@ function GalleryIndicators({ photos, currentIndex, onSelect }) {
           className={`gallery-indicator ${
             index === indicatorIndex ? "active" : ""
           }`}
+          aria-current={index === indicatorIndex ? "true" : undefined}
           onClick={() => onSelect(index)}
           aria-label={`Ir a la foto ${index + 1}`}
         />

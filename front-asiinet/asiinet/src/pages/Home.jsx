@@ -75,7 +75,7 @@ function Home() {
   return (
     <div className="dashboard-layout">
       <DashboardSidebar />
-      <main className="dashboard-content home-content">
+      <main id="main-content" tabIndex="-1" className="dashboard-content home-content">
         <AccountActions />
 
         <section className="home-hero" aria-labelledby="home-title">

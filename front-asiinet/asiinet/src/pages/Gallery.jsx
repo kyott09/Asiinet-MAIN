@@ -30,9 +30,9 @@ function Gallery() {
     <div className="dashboard-layout">
       <DashboardSidebar />
 
-      <main className="dashboard-content gallery-page">
+      <main id="main-content" tabIndex="-1" className="dashboard-content gallery-page">
         <AccountActions />
-        <h1>Galería de Fotos</h1>
+        <h1>Galería de fotos</h1>
 
         <GalleryCarousel photos={photos} />
       </main>
