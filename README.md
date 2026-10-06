@@ -1,154 +1,307 @@
-# Asiinet Project 🔌
+# Asiinet
 
-Proyecto fullstack con una arquitectura modular para un sistema de gestión de usuarios y autenticación, desarrollada con **Node.js + Express** en el backend y **React + Vite** en el frontend.
+Asiinet es un proyecto fullstack de gestión de servicios y tareas para un negocio de conectividad e internet por cable. El repositorio incluye una API REST en Node.js + Express y una interfaz web en React + Vite para gestionar usuarios, perfiles, solicitudes de servicio y tareas asignadas.
 
-## 📋 Descripción General
+## Características
 
-Este monorepo incluye dos aplicaciones principales:
+- Registro e inicio de sesión de usuarios.
+- Autenticación con JWT almacenado en cookie HTTP-only.
+- Gestión de perfil del usuario autenticado.
+- Panel de tareas y solicitudes según el rol del usuario.
+- Creación de solicitudes por parte de clientes con validación de servicio y descripción.
+- Asignación de tareas a empleados operativos.
+- Actualización de estado y fecha de finalización por parte del personal operativo.
+- Restricción de acceso por roles y permisos.
+- Vista de galería y navegación protegida por sesión.
+- Configuración de base de datos MySQL con TypeORM.
 
-- **Backend**: API REST desarrollada con Express, TypeScript, TypeORM, JWT y validación con Zod.
-- **Frontend**: Aplicación web en React con Vite, enrutamiento con React Router y estructura de páginas y componentes para la interfaz de usuario.
+## Tecnologías utilizadas
 
-## 🏗️ Estructura del Proyecto
+### Frontend
 
-```bash
+- React 19
+- Vite 8
+- React Router DOM 7
+- @fortawesome/react-fontawesome
+- CSS plano en componentes y páginas
+- ESLint
+
+### Backend
+
+- Node.js
+- Express 5
+- TypeScript
+- TypeORM
+- MySQL (driver mysql2)
+- JWT
+- bcrypt
+- Zod
+- CORS
+- dotenv
+- nodemon
+- tsx
+
+### Base de datos
+
+- MySQL
+- TypeORM con `synchronize: true`
+- Entidades de la aplicación: `User` y `Task`
+
+### Herramientas de desarrollo
+
+- npm
+- Git
+- VS Code
+- TypeScript
+- ESLint
+
+## Estructura del proyecto
+
+```text
 Asiinet-MAIN/
-├── back-asiinet/                  # Backend API
+├── back-asiinet/
 │   ├── src/
+│   │   ├── database/
+│   │   ├── middlewares/
+│   │   ├── modules/
+│   │   ├── utils/
+│   │   └── index.ts
 │   ├── .env
 │   ├── .env_example
 │   ├── package.json
 │   ├── tsconfig.json
-│   └── README.md
-├── front-asiinet/                # Frontend app
-│   ├── asiinet/
-│   │   ├── src/
-│   │   ├── public/
-│   │   ├── package.json
-│   │   ├── vite.config.js
-│   │   ├── eslint.config.js
-│   │   └── README.md
-│   └── (README-no listo).md
+│   ├── README.md
+│   └── package-lock.json
+├── front-asiinet/
+│   └── asiinet/
+│       ├── src/
+│       ├── public/
+│       ├── package.json
+│       ├── vite.config.js
+│       ├── eslint.config.js
+│       ├── README.md
+│       └── package-lock.json
+├── CLAUDE_FRONTEND_BRIEF.md
+├── README.md
 ├── package-lock.json
-└── README.md                     # Este archivo
+├── skills-lock.json
+└── .git/
 ```
 
-## 🚀 Inicio Rápido
+### Descripción de las carpetas principales
+
+- `back-asiinet/src/`: código principal del backend.
+- `back-asiinet/src/modules/`: módulos de usuarios y tareas.
+- `back-asiinet/src/middlewares/`: autenticación, permisos y manejo de errores.
+- `back-asiinet/src/database/`: configuración de la conexión a MySQL.
+- `front-asiinet/asiinet/src/`: código de la aplicación React.
+- `front-asiinet/asiinet/src/pages/`: páginas principales de la app.
+- `front-asiinet/asiinet/src/components/`: componentes reutilizables.
+- `front-asiinet/asiinet/src/routes/`: definición de rutas protegidas y públicas.
+
+## Requisitos
+
+Para ejecutar el proyecto, se necesita:
+
+- Node.js con npm instalado.
+- Un servidor MySQL disponible.
+- Git para clonar el repositorio.
+- Un navegador para usar la interfaz web.
+
+## Instalación
+
+### 1) Clonar el repositorio
+
+```bash
+git clone <url-del-repositorio>
+cd Asiinet-MAIN
+```
+
+### 2) Instalar dependencias del backend
+
+```bash
+cd back-asiinet
+npm install
+```
+
+### 3) Instalar dependencias del frontend
+
+```bash
+cd ../front-asiinet/asiinet
+npm install
+```
+
+## Configuración
+
+### Backend
+
+El backend usa variables de entorno para la conexión a MySQL y la firma del JWT. El archivo real disponible es `back-asiinet/.env_example`.
+
+```env
+PORT=8080
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=empresa_db
+DB_USER=root
+DB_PASS=tu_password
+JWT_SECRET=tu_clave_secreta
+```
+
+Se recomienda crear un archivo `.env` dentro de `back-asiinet` con esos valores antes de levantar la API.
+
+> El proyecto crea un usuario administrador inicial si no existe uno en la base de datos, pero no se incluye un valor fijo en el README por seguridad.
+
+### Frontend
+
+La aplicación frontend usa `VITE_API_URL` si está definido; si no, en la página de tareas el valor por defecto es `http://localhost:8080`.
+
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+## Ejecución
 
 ### Backend
 
 ```bash
 cd back-asiinet
-cp .env_example .env
-npm install
 npm run dev
 ```
 
-O, si prefieres iniciar directamente:
+El servidor corre por defecto en:
 
-```bash
-npm start
+```text
+http://localhost:8080
 ```
 
-**Puerto por defecto**: `8080` (configurable desde `.env`)
+También está disponible:
+
+```bash
+cd back-asiinet
+npm start
+```
 
 ### Frontend
 
 ```bash
 cd front-asiinet/asiinet
-npm install
 npm run dev
 ```
 
-**URL por defecto**: `http://localhost:5173`
+La interfaz se ejecuta por defecto en:
 
-## 📦 Tecnologías Principales
-
-### Backend
-- **Node.js** - Entorno de ejecución del servidor
-- **Express** - Framework web para APIs
-- **TypeScript** - Tipado estático para JavaScript
-- **TypeORM** - ORM para conexión con bases de datos relacionales
-- **MySQL** - Base de datos principal
-- **JWT** - Autenticación basada en tokens
-- **Zod** - Validación de datos y esquemas
-- **CORS** - Control de acceso entre dominios
-- **Nodemon** - Reinicio automático en desarrollo
-
-### Frontend
-- **React 19** - Biblioteca para interfaces de usuario
-- **Vite** - Herramienta rápida de desarrollo y build
-- **React Router DOM** - Enrutamiento de la aplicación
-- **ESLint** - Linting del código
-- **Font Awesome** - Iconografía
-- **CSS modular / estilos básicos** - Personalización visual de la interfaz
-
-## 🔧 Configuración de Variables de Entorno
-
-Se debe crear un archivo `.env` a partir de `.env_example` dentro de `back-asiinet`.
-
-```env
-PORT=8080
-SECRET_KEY=mi_clave_secreta
-
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=empresa_db
-DB_USER=root
-DB_PASS=
-
-JWT_SECRET=1234
-JWT_EXPIRES_IN=1h
+```text
+http://localhost:5174
 ```
 
-## 📖 Documentación
+### Scripts disponibles
 
-- [Backend README](./back-asiinet/README.md)
-- [Frontend README](./front-asiinet/asiinet/README.md)
+#### Backend
 
-## 🧩 Funcionalidades
+```bash
+npm run dev
+npm start
+npm test
+npm run typecheck
+```
 
-- Registro y gestión de usuarios
-- Autenticación con JWT
-- Conexión a base de datos relacional con TypeORM
-- Estructura modular en rutas, servicios y entidades
-- Interfaz de usuario con páginas para autenticación y administración
+#### Frontend
 
-## 🔐 Seguridad
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run preview
+```
 
-- ✅ Autenticación basada en JWT
-- ✅ Validación de entradas con Zod
-- ✅ CORS habilitado para llamadas HTTP desde el frontend
-- ✅ Variables de entorno protegidas
-- ✅ Uso de contraseñas con hash mediante bcrypt en el backend
+## Funcionalidades actuales
 
-## 📝 Scripts Disponibles
+### Autenticación y usuarios
 
-### Backend
-- `npm run dev` - Inicia la API en modo desarrollo con nodemon
-- `npm start` - Ejecuta la aplicación con TypeScript directo
+- Registro de usuario.
+- Inicio de sesión con email y contraseña.
+- Generación de token JWT y almacenamiento en cookie.
+- Cierre de sesión.
+- Recuperación del usuario autenticado desde `/api/users/me`.
+- Edición del perfil del usuario.
+- Validación de roles al acceder a rutas protegidas.
 
-### Frontend
-- `npm run dev` - Levanta el servidor de desarrollo de Vite
-- `npm run build` - Genera la build de producción
-- `npm run preview` - Previsualiza la aplicación compilada
-- `npm run lint` - Ejecuta ESLint para revisar el código
+### Gestión de tareas y solicitudes
 
-## 🤝 Contribuir
+- Listado de tareas según el usuario autenticado.
+- Clientes pueden crear solicitudes de servicio.
+- Operadores pueden ver tareas asignadas.
+- Los empleados pueden actualizar `dueDate` y `status` de sus tareas.
+- Los clientes pueden editar solo la descripción de sus propias solicitudes.
+- La API valida que no se cree más de una solicitud activa del mismo tipo para un cliente cuando el estado no está finalizado.
 
-1. Crear una rama para la funcionalidad: `git checkout -b feature/nombre`
-2. Realizar los cambios y confirmar con commit: `git commit -m "feat: descripción"`
-3. Subir la rama: `git push origin feature/nombre`
-4. Abrir un Pull Request para revisión
+### Rutas principales del backend
 
-## 📄 Licencia
+```text
+POST /api/users/register
+POST /api/users/login
+POST /api/users/logout
+GET /api/users/me
+PUT /api/users/me
+GET /api/users/assignables
+GET /api/tasks
+POST /api/tasks
+PUT /api/tasks/:id
+DELETE /api/tasks/:id
+```
 
-ISC
+## Roles y permisos
 
-## 👤 Autor
+El proyecto define roles en la capa de autenticación y validación de permisos.
 
-Tobía - 2026
+| Rol | Uso principal |
+| --- | --- |
+| `admin` | acceso administrativo general |
+| `supervisor` | supervisión y gestión de tareas |
+| `operador` | tareas asignadas a empleados |
+| `cliente` | solicitudes de servicio propias |
 
----
+La lógica actual normaliza aliases como `user`, `empleado`, `client` y `employee` hacia los nombres principales del sistema.
 
-Última actualización: 01 de Septiembre de 2026
+## Flujo general del sistema
+
+1. El usuario crea una cuenta o inicia sesión en la aplicación frontend.
+2. El backend valida credenciales, genera un JWT y lo devuelve mediante una cookie HTTP-only.
+3. El frontend guarda la sesión del usuario en `sessionStorage` y protege rutas.
+4. Las páginas de tareas y perfil consumen la API REST del backend.
+5. El backend usa TypeORM para interactuar con MySQL.
+6. Las entidades principales son `User` y `Task`, con relaciones entre cliente, empleado y tareas.
+7. El middleware de autenticación valida permisos y acceso a cada tarea según el rol.
+
+## Desarrollo
+
+El repositorio está preparado para trabajar en dos partes separadas:
+
+- `back-asiinet`: API y lógica de negocio.
+- `front-asiinet/asiinet`: cliente web de React.
+
+Durante el desarrollo, se usan estos comandos reales:
+
+```bash
+cd back-asiinet
+npm run dev
+npm test
+npm run typecheck
+```
+
+```bash
+cd front-asiinet/asiinet
+npm run dev
+npm run build
+npm run lint
+```
+
+La base de datos se sincroniza automáticamente con `synchronize: true`, por lo que la estructura se crea localmente durante la inicialización del backend si la base está disponible.
+
+## Capturas de pantalla
+
+No se incluye una carpeta de assets o capturas de pantalla dentro del repositorio que pueda documentarse de forma confiable en este README. Por esa razón no se agregan imágenes inventadas.
+
+## Nota sobre el repositorio
+
+Este README se basa exclusivamente en la estructura y el código vigente del proyecto. No se agregan funcionalidades ni comandos que no estén presentes en `package.json`, en los archivos de configuración o en la implementación actual del sistema.
