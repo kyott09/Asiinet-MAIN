@@ -5,22 +5,23 @@
 .profile-page {
   display: grid;
   width: 100%;
-  padding: 2px 0 32px;
+  padding: var(--space-1) 0 var(--space-8);
   place-items: start center;
 }
 
 .profile-card {
   width: min(100%, 760px);
-  padding: clamp(22px, 4vw, 38px);
+  padding: clamp(var(--space-5), 4vw, 38px);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--surface);
   color: var(--ink);
+  box-shadow: var(--shadow-soft);
 }
 
 .profile-header {
-  margin-bottom: 28px;
-  padding-bottom: 22px;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
   border-bottom: 1px solid var(--line);
 }
 
@@ -40,13 +41,13 @@
 .profile-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 .profile-field-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .profile-field-row.two-columns {
@@ -59,8 +60,8 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 7px;
-  color: #405756;
+  gap: var(--space-2);
+  color: var(--graphite);
   font-size: 13px;
   font-weight: 650;
 }
@@ -69,28 +70,31 @@
   width: 100%;
   min-height: 45px;
   padding: 0 12px;
-  border: 1px solid #cbd7d1;
-  border-radius: 6px;
-  background: #fbfcfa;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
   color: var(--ink);
   font: inherit;
   font-weight: 450;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
-.profile-field input:focus {
-  border-color: var(--network);
-  outline: 3px solid rgba(39, 120, 108, 0.12);
+.profile-field input:focus-visible {
+  border-color: var(--orange-dark);
+  outline: 0;
   outline-offset: 0;
+  box-shadow: var(--focus-ring);
+  background: var(--surface);
 }
 
 .profile-photo-upload {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
   padding: 13px;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: #fbfcfa;
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
 }
 
 .profile-photo-preview,
@@ -98,7 +102,7 @@
   flex: 0 0 58px;
   width: 58px;
   height: 58px;
-  border-radius: 50%;
+  border-radius: var(--radius-md);
 }
 
 .profile-photo-preview {
@@ -108,7 +112,7 @@
 .profile-photo-placeholder {
   display: grid;
   place-items: center;
-  background: #e6efea;
+  background: var(--canvas);
   color: var(--text-muted);
   font-size: 10px;
   font-weight: 650;
@@ -134,13 +138,17 @@
 }
 
 .profile-message.success {
-  background: #e9f4ef;
-  color: #245b4f;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--orange);
+  background: var(--surface-soft);
+  color: var(--graphite);
 }
 
 .profile-message.error {
-  background: #fff0ed;
-  color: #8d2c23;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--orange-dark);
+  background: var(--surface-soft);
+  color: var(--graphite);
 }
 
 @media (max-width: 560px) {

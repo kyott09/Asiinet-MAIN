@@ -3,14 +3,14 @@
   min-height: 46px;
   padding: 0 18px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--orange-dark);
   color: #fff;
   font: inherit;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 150ms ease;
+  transition: background-color var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
 }
 
 .auth-submit-light {
@@ -18,11 +18,15 @@
 }
 
 .auth-submit:hover:not(:disabled) {
-  background: #7f260b;
+  background: var(--orange);
 }
 
 .auth-submit-light:hover:not(:disabled) {
-  background: #7f260b;
+  background: var(--orange);
+}
+
+.auth-submit:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
 }
 
 .auth-submit:disabled {
@@ -31,12 +35,18 @@
 }
 
 .auth-submit:focus-visible {
-  outline: 3px solid rgba(246, 92, 23, 0.38);
+  outline: 2px solid var(--orange);
   outline-offset: 3px;
 }
 
 @media (max-width: 560px) {
   .profile-actions .auth-submit {
     width: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-submit {
+      transition: none;
+    }
   }
 }

@@ -1,9 +1,8 @@
 .gallery-page {
-  min-height: 100vh;
+  min-height: 100%;
   width: min(100%, 1180px);
   margin: 0 auto;
-  padding: 28px clamp(20px, 3vw, 48px) 48px;
-  background: linear-gradient(180deg, rgba(246, 92, 23, 0.04), transparent 22%);
+  padding: 0 0 var(--space-12);
   text-align: left;
 }
 
@@ -12,7 +11,7 @@
   color: var(--ink);
   font-size: clamp(2.1rem, 3vw, 2.9rem);
   font-weight: 700;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.04em;
 }
 
 .gallery-container {
@@ -21,10 +20,10 @@
   height: clamp(300px, 56vw, 620px);
   margin: 0 auto;
   overflow: hidden;
-  border: 1px solid rgba(25, 52, 58, 0.08);
-  border-radius: 18px;
-  background: var(--ink);
-  box-shadow: 0 24px 52px rgba(25, 52, 58, 0.15);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--warm-black);
+  box-shadow: var(--shadow-raised);
 }
 
 .gallery-track {
@@ -60,17 +59,27 @@
   transform: translateY(-50%);
   border: none;
   border-radius: 50%;
-  background: rgba(25, 52, 58, 0.74);
+  background: rgba(19, 17, 15, 0.78);
   color: #fff;
   font-size: 19px;
   cursor: pointer;
   opacity: 1;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background var(--transition-fast), transform var(--transition-fast);
 }
 
 .gallery-arrow:hover {
-  background: var(--orange);
+  background: var(--orange-dark);
   transform: translateY(-50%) scale(1.04);
+}
+
+.gallery-arrow:active {
+  transform: translateY(-50%) scale(0.97);
+}
+
+.gallery-arrow:focus-visible,
+.gallery-indicator:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
 }
 
 .gallery-arrow-left {
@@ -95,22 +104,25 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: #bfd0cb;
+  background: rgba(48, 40, 36, 0.28);
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .gallery-indicator.active {
   background: var(--orange);
-  box-shadow: 0 0 0 4px rgba(246, 92, 23, 0.14);
+  box-shadow: 0 0 0 4px rgba(246, 92, 23, 0.2);
   transform: scale(1.25);
+}
+
+.gallery-indicator:active {
+  transform: scale(0.92);
 }
 
 @media (max-width: 760px) {
   .gallery-page {
-    min-height: auto;
     width: 100%;
-    padding: 20px 18px 40px;
+    padding-bottom: var(--space-10);
   }
 
   .gallery-container {
@@ -125,6 +137,16 @@
 
   .gallery-indicators {
     justify-content: flex-start;
-    margin-top: 14px;
+    margin-top: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-track,
+  .gallery-image,
+  .gallery-arrow,
+  .gallery-indicator {
+    animation: none;
+    transition: none;
   }
 }
