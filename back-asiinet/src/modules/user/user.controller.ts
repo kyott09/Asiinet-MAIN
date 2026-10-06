@@ -6,8 +6,8 @@ import { AuthenticatedRequest } from "../../middlewares/auth.js";
 export const createRegisterHandler = (
   registerUser: typeof userService.register = userService.register
 ) => async (req: Request, res: Response) => {
-  const { email, password, role, nombre } = req.body;
-  const user = await registerUser(email, password, role, nombre);
+  const { email, password, nombre } = req.body;
+  const user = await registerUser(email, password, "cliente", nombre);
   res.status(201).json(user);
 };
 
