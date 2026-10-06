@@ -3,11 +3,15 @@ import * as userService from "./user.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { AuthenticatedRequest } from "../../middlewares/auth.js";
 
-export const register = asyncHandler(async (req: Request, res: Response) => {
+export const createRegisterHandler = (
+  registerUser: typeof userService.register = userService.register
+) => async (req: Request, res: Response) => {
   const { email, password, role, nombre } = req.body;
-  const user = await userService.register(email, password, role, nombre);
+  const user = await registerUser(email, password, role, nombre);
   res.status(201).json(user);
-});
+};
+
+export const register = asyncHandler(createRegisterHandler());
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
