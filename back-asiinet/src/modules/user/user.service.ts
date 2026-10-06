@@ -68,7 +68,7 @@ export const normalizeDateOnlyValue = (value: Date | string | null | undefined):
   return null;
 };
 
-const parseDateOnlyToDate = (value: string | null | undefined): Date | null => {
+export const parseDateOnlyToDate = (value: string | null | undefined): Date | null => {
   if (!value) {
     return null;
   }
@@ -78,7 +78,12 @@ const parseDateOnlyToDate = (value: string | null | undefined): Date | null => {
     return null;
   }
 
-  const parsed = new Date(`${trimmed}T00:00:00.000Z`);
+  const [year, month, day] = trimmed.split("-").map(Number);
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const parsed = new Date(year, month - 1, day);
   if (Number.isNaN(parsed.getTime())) {
     return null;
   }

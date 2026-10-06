@@ -65,7 +65,7 @@ const emptyForm = {
   dueDate: "",
   description: "",
   service: "",
-  priority: "Media",
+  priority: "Baja",
   status: "Vista",
 };
 
@@ -99,6 +99,40 @@ function isFinalizedStatus(status) {
   return ["terminada", "finalizada", "finalizado"].includes(String(status ?? "").trim().toLowerCase());
 }
 
+function getTaskStatusLabel(status) {
+  const normalized = String(status ?? "").trim().toLowerCase();
+
+  const labels = {
+    vista: "Recibido",
+    "en proceso": "En proceso",
+    terminada: "Terminada",
+    finalizada: "Terminada",
+    finalizado: "Terminada",
+    "no terminada": "Cancelación",
+    cancelada: "Cancelación",
+    cancelado: "Cancelación",
+  };
+
+  return labels[normalized] ?? String(status ?? "Sin estado");
+}
+
+function canClientEditTask(task) {
+  const normalized = String(task?.status ?? "").trim().toLowerCase();
+  return !["en proceso", "terminada", "finalizada", "finalizado", "no terminada", "cancelada", "cancelado"].includes(normalized);
+}
+
+function normalizeTaskStatusValue(status) {
+  const normalized = String(status ?? "").trim().toLowerCase();
+
+  if (normalized === "vista") return "vista";
+  if (normalized === "en proceso") return "en_proceso";
+  if (["terminada", "finalizada", "finalizado"].includes(normalized)) return "terminada";
+  if (["no terminada", "no_terminada"].includes(normalized)) return "cancelacion";
+  if (["cancelada", "cancelado"].includes(normalized)) return "cancelacion";
+
+  return normalized;
+}
+
 function isAssignedTaskForUser(task, user) {
   const taskEmployeeIds = [task?.employeeId, task?.employeeUser?.id, task?.employeeUserId]
     .filter((value) => value !== null && value !== undefined && value !== "");
@@ -127,6 +161,8 @@ function Tareas() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("todos");
   const deleteDialogRef = useRef(null);
   const deleteTriggerRef = useRef(null);
   const newTaskButtonRef = useRef(null);
@@ -174,10 +210,40 @@ function Tareas() {
     };
   }, [navigate, isClient, isEmployee]);
 
-  const filteredTasks = tasks.filter((task) => {
+  const roleFilteredTasks = tasks.filter((task) => {
     if (isClient) return Number(task.clientId) === Number(user?.id);
     if (isEmployee) return isAssignedTaskForUser(task, user);
     return true;
+  });
+
+  const filteredTasks = roleFilteredTasks.filter((task) => {
+    const searchValue = searchTerm.trim().toLowerCase();
+    const taskStatus = String(task.status ?? "").trim();
+    const translatedStatus = getTaskStatusLabel(taskStatus);
+    const normalizedStatus = normalizeTaskStatusValue(taskStatus);
+
+    const matchesSearch =
+      searchValue.length === 0 ||
+      [
+        task.number,
+        task.client,
+        task.employee,
+        task.service,
+        task.description,
+        taskStatus,
+        translatedStatus,
+        task.createdAt,
+        task.dueDate,
+        task.priority,
+      ]
+        .filter((value) => value !== null && value !== undefined)
+        .join(" ")
+        .toLowerCase()
+        .includes(searchValue);
+
+    const matchesStatus = statusFilter === "todos" || statusFilter === normalizedStatus;
+
+    return matchesSearch && matchesStatus;
   });
 
   const nextTaskNumber =
@@ -269,6 +335,11 @@ function Tareas() {
   }
 
   function handleEdit(task) {
+    if (isClient && !canClientEditTask(task)) {
+      setError("Esta solicitud ya está cerrada y no puede modificarse.");
+      return;
+    }
+
     if (isEmployee) {
       setForm({
         clientId: task.clientId ? String(task.clientId) : "",
@@ -340,7 +411,7 @@ function Tareas() {
         clientId: String(user?.id ?? ""),
         employeeId: "",
         dueDate: "",
-        priority: "",
+        priority: "Baja",
         status: "Vista",
       }));
     }
@@ -529,17 +600,27 @@ function Tareas() {
 
             {isClient ? (
               editingId !== null ? (
-                <label>
-                  Descripción
-                  <textarea
-                    name="description"
-                    value={form.description}
-                    onChange={handleChange}
-                    placeholder="Describe el trabajo solicitado"
-                    rows={4}
-                    required
-                  />
-                </label>
+                <>
+                  <label>
+                    Estado
+                    <input
+                      value={getTaskStatusLabel(form.status)}
+                      readOnly
+                    />
+                  </label>
+
+                  <label>
+                    Descripción
+                    <textarea
+                      name="description"
+                      value={form.description}
+                      onChange={handleChange}
+                      placeholder="Describe el trabajo solicitado"
+                      rows={4}
+                      required
+                    />
+                  </label>
+                </>
               ) : (
                 <>
                   <div className="tasks-form-row">
@@ -634,6 +715,45 @@ function Tareas() {
             )}
           </div>
 
+          <div className="tasks-filter-bar" style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "16px", alignItems: "end" }}>
+            <label style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: "220px", color: "#2c3e50", fontWeight: 600 }}>
+              Buscar
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder={isClient ? "Buscar por servicio, descripción o estado" : "Buscar por cliente, servicio o estado"}
+                style={{ padding: "10px 12px", border: "1px solid #d7dfe8", borderRadius: "10px", fontSize: "0.95rem" }}
+              />
+            </label>
+
+            <label style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: "180px", color: "#2c3e50", fontWeight: 600 }}>
+              Estado
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                style={{ padding: "10px 12px", border: "1px solid #d7dfe8", borderRadius: "10px", fontSize: "0.95rem" }}
+              >
+                <option value="todos">Todos</option>
+                {isClient ? (
+                  <>
+                    <option value="vista">Recibido</option>
+                    <option value="en_proceso">En proceso</option>
+                    <option value="terminada">Terminada</option>
+                    <option value="cancelacion">Cancelación</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="vista">Vista</option>
+                    <option value="en_proceso">En proceso</option>
+                    <option value="terminada">Terminada</option>
+                    <option value="cancelacion">No terminada</option>
+                  </>
+                )}
+              </select>
+            </label>
+          </div>
+
           {loading ? (
             <p className="tasks-empty" role="status">Cargando tareas...</p>
           ) : error ? null : filteredTasks.length === 0 ? (
@@ -653,7 +773,7 @@ function Tareas() {
                     {!isClient && <th scope="col">Finalización</th>}
                     <th scope="col">Servicio</th>
                     {!isClient && <th scope="col">Prioridad</th>}
-                    {!isClient && <th scope="col">Estado</th>}
+                    <th scope="col">Estado</th>
                     <th scope="col">Descripción</th>
                     <th scope="col">Acciones</th>
                   </tr>
@@ -674,17 +794,24 @@ function Tareas() {
                           </span>
                         </td>
                       )}
-                      {!isClient && (
-                        <td>
-                          <span className={`tasks-status tasks-status-${task.status.toLowerCase().replaceAll(" ", "-")}`}>
-                            {task.status}
-                          </span>
-                        </td>
-                      )}
+                      <td>
+                        <span className={`tasks-status tasks-status-${String(task.status ?? "").toLowerCase().replaceAll(" ", "-")}`}>
+                          {isClient ? getTaskStatusLabel(task.status) : task.status}
+                        </span>
+                      </td>
                       <td>{task.description}</td>
                       <td>
                         <div className="tasks-actions">
-                          {(isClient || !isClient) && (
+                          {isClient && canClientEditTask(task) && (
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(task)}
+                              aria-label={`Editar tarea número ${task.number}`}
+                            >
+                              Editar
+                            </button>
+                          )}
+                          {!isClient && (
                             <button
                               type="button"
                               onClick={() => handleEdit(task)}
@@ -722,7 +849,11 @@ function Tareas() {
                         </p>
                         <h3>{task.client}</h3>
                       </div>
-                      {!isClient && (
+                      {isClient ? (
+                        <span className={`tasks-status tasks-status-${String(task.status ?? "").toLowerCase().replaceAll(" ", "-")}`}>
+                          {getTaskStatusLabel(task.status)}
+                        </span>
+                      ) : (
                         <span className={`tasks-status tasks-status-${task.status.toLowerCase().replaceAll(" ", "-")}`}>
                           {task.status}
                         </span>
@@ -758,6 +889,10 @@ function Tareas() {
                           <dd>{task.createdAt}</dd>
                         </div>
                         <div>
+                          <dt>Estado</dt>
+                          <dd>{isClient ? getTaskStatusLabel(task.status) : task.status}</dd>
+                        </div>
+                        <div>
                           <dt>Descripción</dt>
                           <dd>{task.description}</dd>
                         </div>
@@ -765,13 +900,15 @@ function Tareas() {
                     </details>
 
                     <div className="tasks-actions tasks-mobile-actions">
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(task)}
-                        aria-label={`Editar tarea número ${task.number}`}
-                      >
-                        Editar
-                      </button>
+                      {(isClient ? canClientEditTask(task) : true) && (
+                        <button
+                          type="button"
+                          onClick={() => handleEdit(task)}
+                          aria-label={`Editar tarea número ${task.number}`}
+                        >
+                          Editar
+                        </button>
+                      )}
                       {canDeleteTask && (
                         <button
                           className="tasks-delete"

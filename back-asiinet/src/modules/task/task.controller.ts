@@ -10,6 +10,33 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }, "La fecha no es válida");
 
+const normalizePriorityValue = (value: unknown) => {
+  if (typeof value !== "string") return value;
+
+  const trimmed = value.trim();
+  const normalized = trimmed.toLowerCase();
+
+  if (normalized === "baja") return "Baja";
+  if (normalized === "media") return "Media";
+  if (normalized === "alta") return "Alta";
+
+  return trimmed;
+};
+
+const normalizeStatusValue = (value: unknown) => {
+  if (typeof value !== "string") return value;
+
+  const trimmed = value.trim();
+  const normalized = trimmed.toLowerCase();
+
+  if (normalized === "vista") return "Vista";
+  if (normalized === "en proceso") return "En proceso";
+  if (normalized === "terminada" || normalized === "finalizada" || normalized === "finalizado") return "Terminada";
+  if (normalized === "no terminada" || normalized === "no_terminada") return "No terminada";
+
+  return trimmed;
+};
+
 const taskSchema = z.object({
   clientId: z.coerce.number().int().positive().optional(),
   employeeId: z.coerce.number().int().positive().optional(),
@@ -31,8 +58,17 @@ export type ClientTaskRequest = z.infer<typeof clientRequestSchema>;
 const getTodayDate = () => new Date().toLocaleDateString("en-CA");
 
 export const parseTaskCreateInput = (body: unknown, role?: string | null): TaskInput | ClientTaskRequest => {
+  const normalizedBody =
+    typeof body === "object" && body !== null
+      ? {
+          ...body,
+          priority: normalizePriorityValue((body as Record<string, unknown>).priority),
+          status: normalizeStatusValue((body as Record<string, unknown>).status),
+        }
+      : body;
+
   const schema = normalizeRole(role) === "cliente" ? clientRequestSchema : taskSchema;
-  const result = schema.safeParse(body);
+  const result = schema.safeParse(normalizedBody);
 
   if (!result.success) {
     throw AppError.badRequest(result.error.issues[0]?.message ?? "Datos de tarea no válidos");
@@ -50,7 +86,7 @@ export const parseTaskCreateInput = (body: unknown, role?: string | null): TaskI
   return {
     ...parsed,
     dueDate: parsed.dueDate ?? getTodayDate(),
-    priority: parsed.priority ?? "Media",
+    priority: parsed.priority ?? "Baja",
     status: parsed.status ?? "Vista",
   } as TaskInput;
 };

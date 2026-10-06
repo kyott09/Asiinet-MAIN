@@ -141,7 +141,7 @@ export const create = async (
       clientId,
       employeeId: null,
       dueDate: input.dueDate ?? null,
-      priority: input.priority ?? null,
+      priority: input.priority ?? "Baja",
       createdAt,
       client: client.nombre || client.email,
       employee: null,
