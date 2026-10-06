@@ -15,5 +15,7 @@ test("cliente can create a request with only service and description", () => {
   assert.equal(payload.service, "Instalación");
   assert.equal(payload.description, "Necesito internet en casa");
   assert.equal(payload.status, "Vista");
-  assert.ok(payload.dueDate);
+  assert.equal("dueDate" in payload, false);
+  assert.equal("priority" in payload, false);
+  assert.equal("employeeId" in payload, false);
 });

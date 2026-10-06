@@ -38,10 +38,10 @@ const serializeTask = (task: Task) => ({
   employee: task.employeeUser?.nombre || task.employee || "",
   employeeId: task.employeeUser?.id ?? task.employeeId,
   createdAt: formatDate(task.createdAt),
-  dueDate: formatDate(task.dueDate),
+  dueDate: task.dueDate ? formatDate(task.dueDate) : "",
   description: task.description,
   service: task.service,
-  priority: task.priority,
+  priority: task.priority ?? "",
   status: task.status,
 });
 
@@ -117,21 +117,49 @@ export const create = async (
   actor?: { id: number; role?: string } | null
 ) => {
   const createdAt = today();
-  if (input.dueDate < createdAt) {
-    throw AppError.badRequest("La fecha de finalización no puede ser anterior a la fecha de creación.");
-  }
 
   const role = normalizeRole(actor?.role);
   const clientId = role === "cliente" ? actor!.id : input.clientId;
-  const employeeId = role === "cliente"
-    ? (input.employeeId ?? (await getDefaultEmployee()).id)
-    : input.employeeId;
+
+  if (role !== "cliente" && input.dueDate && input.dueDate < createdAt) {
+    throw AppError.badRequest("La fecha de finalización no puede ser anterior a la fecha de creación.");
+  }
 
   if (role === "cliente") {
     const alreadyHasActiveRequest = await hasActiveServiceRequest(clientId, input.service);
     if (alreadyHasActiveRequest) {
       throw AppError.badRequest("Ya tienes una solicitud activa para este tipo de servicio.");
     }
+
+    const client = await userRepository.findById(clientId);
+    if (!client || normalizeRole(client.role) !== "cliente") {
+      throw AppError.badRequest("Selecciona un cliente registrado con rol cliente.");
+    }
+
+    const task = await taskRepository.create({
+      ...input,
+      clientId,
+      employeeId: null,
+      dueDate: input.dueDate ?? null,
+      priority: input.priority ?? null,
+      createdAt,
+      client: client.nombre || client.email,
+      employee: null,
+      clientUser: client,
+      employeeUser: null,
+      status: input.status ?? "Vista",
+    });
+
+    return serializeTask(task);
+  }
+
+  const employeeId = input.employeeId;
+  if (!employeeId) {
+    throw AppError.badRequest("Selecciona un empleado para asignar la tarea.");
+  }
+
+  if (input.dueDate && input.dueDate < createdAt) {
+    throw AppError.badRequest("La fecha de finalización no puede ser anterior a la fecha de creación.");
   }
 
   const { client, employee } = await getAssignees(clientId, employeeId);

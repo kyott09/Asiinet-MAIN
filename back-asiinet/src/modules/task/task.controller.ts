@@ -43,8 +43,6 @@ export const parseTaskCreateInput = (body: unknown, role?: string | null): TaskI
   if (normalizeRole(role) === "cliente") {
     return {
       ...parsed,
-      dueDate: getTodayDate(),
-      priority: "Media",
       status: "Vista",
     } satisfies TaskInput & ClientTaskRequest;
   }

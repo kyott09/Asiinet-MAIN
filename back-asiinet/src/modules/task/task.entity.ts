@@ -36,8 +36,8 @@ export class Task {
   @Column({ type: "date" })
   createdAt!: string;
 
-  @Column({ type: "date" })
-  dueDate!: string;
+  @Column({ type: "date", nullable: true })
+  dueDate!: string | null;
 
   @Column({ type: "text" })
   description!: string;
@@ -45,8 +45,8 @@ export class Task {
   @Column({ type: "varchar", length: 80 })
   service!: string;
 
-  @Column({ type: "varchar", length: 20 })
-  priority!: string;
+  @Column({ type: "varchar", length: 20, nullable: true })
+  priority!: string | null;
 
   @Column({ type: "varchar", length: 40 })
   status!: string;

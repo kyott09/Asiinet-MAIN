@@ -338,7 +338,9 @@ function Tareas() {
       setForm((current) => ({
         ...current,
         clientId: String(user?.id ?? ""),
-        employeeId: employees[0]?.id ? String(employees[0].id) : "",
+        employeeId: "",
+        dueDate: "",
+        priority: "",
         status: "Vista",
       }));
     }
@@ -667,8 +669,8 @@ function Tareas() {
                       <td>{task.service}</td>
                       {!isClient && (
                         <td>
-                          <span className={`tasks-priority tasks-priority-${task.priority.toLowerCase()}`}>
-                            {task.priority}
+                          <span className={`tasks-priority tasks-priority-${String(task.priority ?? "").toLowerCase()}`}>
+                            {task.priority || "Sin asignar"}
                           </span>
                         </td>
                       )}
@@ -732,8 +734,8 @@ function Tareas() {
                         <div>
                           <dt>Prioridad</dt>
                           <dd>
-                            <span className={`tasks-priority tasks-priority-${task.priority.toLowerCase()}`}>
-                              {task.priority}
+                            <span className={`tasks-priority tasks-priority-${String(task.priority ?? "").toLowerCase()}`}>
+                              {task.priority || "Sin asignar"}
                             </span>
                           </dd>
                         </div>

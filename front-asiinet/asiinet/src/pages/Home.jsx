@@ -56,7 +56,22 @@ function NetworkDiagram() {
   );
 }
 
+function getUserSession() {
+  try {
+    const raw = sessionStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 function Home() {
+  const user = getUserSession();
+  const userRole = String(user?.role ?? "cliente").trim().toLowerCase();
+  const isClient = userRole === "cliente" || userRole === "user" || userRole === "client";
+  const primaryActionLabel = isClient ? "Solicitar servicio" : "Ver tareas";
+  const secondaryActionLabel = isClient ? "Solicitar servicio" : "Ir a tareas";
+
   return (
     <div className="dashboard-layout">
       <DashboardSidebar />
@@ -73,7 +88,7 @@ function Home() {
             </p>
             <Link className="home-primary-action" to="/tareas">
               <i className="fa-solid fa-list-check" aria-hidden="true"></i>
-              Ver tareas
+              {primaryActionLabel}
             </Link>
           </div>
           <div className="home-network">
@@ -91,7 +106,9 @@ function Home() {
               <h2 id="services-title">Tipos de servicio</h2>
               <p>Las solicitudes que organiza el equipo.</p>
             </div>
-            <Link to="/tareas" className="home-text-link">Ir a tareas</Link>
+            {!isClient && (
+              <Link to="/tareas" className="home-text-link">{secondaryActionLabel}</Link>
+            )}
           </div>
           <div className="service-list">
             {services.map((service) => (
