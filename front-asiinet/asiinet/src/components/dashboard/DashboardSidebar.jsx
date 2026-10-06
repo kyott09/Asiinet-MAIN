@@ -1,5 +1,5 @@
 import { NavLink, Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import logoAsiinet from "../../assets/brand/logos/logo asiinet.png";
 import "./DashboardSidebar.css";
 
@@ -14,6 +14,7 @@ function getUserSession() {
 
 function DashboardSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const menuToggleRef = useRef(null);
   const user = getUserSession();
   const role = (user?.role ?? "cliente").toLowerCase();
   const isAdmin = role === "admin";
@@ -33,6 +34,25 @@ function DashboardSidebar() {
     { label: "Documentación", icon: "fa-file-lines" },
   ];
 
+  useEffect(() => {
+    if (!isMobileMenuOpen) return undefined;
+
+    function handleKeyDown(event) {
+      if (
+        event.key !== "Escape" ||
+        !window.matchMedia("(max-width: 760px)").matches
+      ) {
+        return;
+      }
+
+      setIsMobileMenuOpen(false);
+      menuToggleRef.current?.focus();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isMobileMenuOpen]);
+
   return (
     <aside className={`dashboard-sidebar${isMobileMenuOpen ? " mobile-menu-open" : ""}`}>
       <Link className="sidebar-brand" to="/home" aria-label="Asiinet, ir al inicio">
@@ -45,6 +65,7 @@ function DashboardSidebar() {
       <button
         type="button"
         className="sidebar-mobile-toggle"
+        ref={menuToggleRef}
         aria-expanded={isMobileMenuOpen}
         aria-controls="sidebar-navigation"
         onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
