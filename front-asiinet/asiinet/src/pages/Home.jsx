@@ -1,122 +1,118 @@
+import { Link } from "react-router-dom";
 import AccountActions from "../components/dashboard/AccountActions";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import "./Home.css";
 
 const services = [
   {
     title: "Instalación",
     description: "Altas de servicio para clientes residenciales y comerciales.",
+    icon: "fa-plug",
   },
   {
     title: "Reconexión",
-    description: "Restablecimiento rápido del servicio ante cortes o bajas temporales.",
+    description: "Restablecimiento del servicio ante cortes o bajas temporales.",
+    icon: "fa-rotate",
   },
   {
-    title: "Service técnico",
-    description: "Mantenimiento y resolución de fallas en la conexión del cliente.",
+    title: "Servicio técnico",
+    description: "Mantenimiento y resolución de fallas de conexión.",
+    icon: "fa-screwdriver-wrench",
   },
   {
     title: "Desconexión",
-    description: "Bajas de servicio gestionadas de forma prolija y trazable.",
+    description: "Bajas de servicio gestionadas de forma trazable.",
+    icon: "fa-link-slash",
   },
 ];
 
-const highlights = [
-  {
-    title: "Órdenes de trabajo",
-    description:
-      "Cada pedido genera una orden con número único, fecha, móvil asignado y el detalle de las tareas realizadas, siguiendo el flujo: nueva → vista → en proceso → terminada / no terminada.",
-  },
-  {
-    title: "Móviles y equipos",
-    description:
-      "Los trabajos se asignan a móviles formados por 2 o 3 empleados y un vehículo, con integrantes que pueden rotar según disponibilidad del personal.",
-  },
-  {
-    title: "Ranking de rendimiento",
-    description:
-      "Los empleados eligen su próxima tarea dentro de su pool asignado. El sistema mide la productividad semanal y prioriza técnicos destacados para clientes premium.",
-  },
-  {
-    title: "Stock y vehículos",
-    description:
-      "Control de materiales (precintos, tarugos, módems, routers) con alertas de reposición, y seguimiento de cada vehículo: verificación técnica, neumáticos y mantenimiento.",
-  },
-];
+function NetworkDiagram() {
+  return (
+    <svg
+      className="network-diagram"
+      viewBox="0 0 540 300"
+      role="img"
+      aria-labelledby="network-title network-description"
+    >
+      <title id="network-title">Esquema de conexión de Asiinet</title>
+      <desc id="network-description">
+        Una línea troncal conecta un nodo central con distintos puntos de servicio.
+      </desc>
+      <path className="network-line network-line-muted" d="M28 150H512M270 25V275M92 55L448 245M92 245L448 55" />
+      <path className="network-line network-line-main" d="M28 150H270V62M270 150V238M270 150H454" />
+      <circle className="network-node network-node-main" cx="270" cy="150" r="18" />
+      <circle className="network-node network-node-point" cx="270" cy="62" r="10" />
+      <circle className="network-node network-node-point" cx="270" cy="238" r="10" />
+      <circle className="network-node network-node-point" cx="454" cy="150" r="10" />
+      <circle className="network-node network-node-point" cx="92" cy="55" r="7" />
+      <circle className="network-node network-node-point" cx="92" cy="245" r="7" />
+      <circle className="network-node network-node-point" cx="448" cy="55" r="7" />
+      <circle className="network-node network-node-point" cx="448" cy="245" r="7" />
+      <circle className="network-pulse" cx="28" cy="150" r="5" />
+      <text className="network-label" x="270" y="37" textAnchor="middle">NODO</text>
+      <text className="network-label" x="480" y="155">CLIENTE</text>
+      <text className="network-label" x="270" y="280" textAnchor="middle">RED DE SERVICIO</text>
+    </svg>
+  );
+}
 
 function Home() {
   return (
     <div className="dashboard-layout">
       <DashboardSidebar />
-      <main className="dashboard-content">
+      <main className="dashboard-content home-content">
         <AccountActions />
-        <section style={{ maxWidth: "720px", margin: "0 auto", textAlign: "center" }}>
-        <h1>Asiinet</h1>
-        <p style={{ fontSize: "18px", lineHeight: 1.6 }}>
-          Asiinet es una contratista dedicada a brindar servicio de internet por cable a clientes
-          residenciales y comerciales. Este panel centraliza la recepción de pedidos, la
-          planificación de trabajos, el control de stock y vehículos, y la gestión de personal, para
-          reemplazar los procesos en papel por un sistema con trazabilidad completa.
-        </p>
+
+        <section className="home-hero" aria-labelledby="home-title">
+          <div className="home-hero-copy">
+            <p className="home-intro">Operaciones de Asiinet</p>
+            <h1 id="home-title">Cada conexión,<br />bien coordinada.</h1>
+            <p className="home-lede">
+              Un espacio para organizar los pedidos de servicio y acompañar
+              cada trabajo desde el primer contacto hasta su resolución.
+            </p>
+            <Link className="home-primary-action" to="/tareas">
+              <i className="fa-solid fa-list-check" aria-hidden="true"></i>
+              Ver tareas
+            </Link>
+          </div>
+          <div className="home-network">
+            <div className="network-caption">
+              <span className="network-live-dot" aria-hidden="true"></span>
+              Así se conecta el trabajo
+            </div>
+            <NetworkDiagram />
+          </div>
         </section>
 
-      <section style={{ maxWidth: "900px", margin: "48px auto 0" }}>
-        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Qué gestiona el sistema</h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: "16px",
-          }}
-        >
-          {highlights.map((item) => (
-            <div
-              key={item.title}
-              style={{
-                border: "1px solid #13110F",
-                borderRadius: "12px",
-                padding: "18px",
-                textAlign: "left",
-                background: "linear-gradient(180deg, #fff 0%, rgba(246, 92, 23, 0.06) 100%)",
-                boxShadow: "0 10px 22px rgba(19, 17, 15, 0.04)",
-              }}
-            >
-              <h3 style={{ margin: "0 0 8px", fontSize: "17px", color: "var(--text-h, #08060d)" }}>
-                {item.title}
-              </h3>
-              <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.5 }}>{item.description}</p>
+        <section className="home-services" aria-labelledby="services-title">
+          <div className="home-section-heading">
+            <div>
+              <h2 id="services-title">Tipos de servicio</h2>
+              <p>Las solicitudes que organiza el equipo.</p>
             </div>
-          ))}
-        </div>
-      </section>
+            <Link to="/tareas" className="home-text-link">Ir a tareas</Link>
+          </div>
+          <div className="service-list">
+            {services.map((service) => (
+              <article className="service-row" key={service.title}>
+                <span className="service-icon" aria-hidden="true">
+                  <i className={`fa-solid ${service.icon}`}></i>
+                </span>
+                <div>
+                  <h3>{service.title}</h3>
+                  <p>{service.description}</p>
+                </div>
+                <i className="fa-solid fa-arrow-up-right-from-square service-arrow" aria-hidden="true"></i>
+              </article>
+            ))}
+          </div>
+        </section>
 
-      <section style={{ maxWidth: "900px", margin: "48px auto 0" }}>
-        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Tipos de trabajo</h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: "16px",
-          }}
-        >
-          {services.map((service) => (
-            <div
-              key={service.title}
-              style={{
-                background: "linear-gradient(135deg, rgba(246, 92, 23, 0.12) 0%, #fff 100%)",
-                border: "1px solid #13110F",
-                borderRadius: "12px",
-                padding: "16px",
-                boxShadow: "0 8px 18px rgba(246, 92, 23, 0.08)",
-              }}
-            >
-              <h3 style={{ margin: "0 0 6px", fontSize: "16px", color: "var(--text-h, #08060d)" }}>
-                {service.title}
-              </h3>
-              <p style={{ margin: 0, fontSize: "14px", lineHeight: 1.5 }}>{service.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+        <p className="home-footnote">
+          El panel centraliza tareas y solicitudes. La gestión de vehículos,
+          materiales y cuadrillas está prevista para futuras etapas.
+        </p>
       </main>
     </div>
   );

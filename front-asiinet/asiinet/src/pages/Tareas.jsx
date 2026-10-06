@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AccountActions from "../components/dashboard/AccountActions";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
@@ -49,7 +49,12 @@ function handleTaskRequestError(requestError, navigate, setError) {
     return;
   }
 
-  setError(requestError.message);
+  if (requestError instanceof TypeError) {
+    setError("No se pudo conectar con el servidor. Revisá la conexión y probá de nuevo.");
+    return;
+  }
+
+  setError(requestError.message || "No se pudo completar la operación.");
 }
 
 const today = () => new Date().toLocaleDateString("en-CA");
@@ -77,6 +82,18 @@ function Tareas() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const deleteDialogRef = useRef(null);
+  const deleteTriggerRef = useRef(null);
+  const newTaskButtonRef = useRef(null);
+
+  useEffect(() => {
+    const dialog = deleteDialogRef.current;
+    if (taskToDelete && dialog) {
+      dialog.showModal();
+      return () => dialog.close();
+    }
+  }, [taskToDelete]);
 
   useEffect(() => {
     let isActive = true;
@@ -176,20 +193,33 @@ function Tareas() {
     setShowForm(true);
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(task) {
     setError("");
     setMessage("");
-    setDeletingId(id);
+    setDeletingId(task.id);
 
     try {
-      await requestTasks(`/${id}`, { method: "DELETE" });
-      setTasks((current) => current.filter((task) => task.id !== id));
+      await requestTasks(`/${task.id}`, { method: "DELETE" });
+      setTasks((current) => current.filter((currentTask) => currentTask.id !== task.id));
       setMessage("Tarea eliminada.");
+      setTaskToDelete(null);
+      window.requestAnimationFrame(() => newTaskButtonRef.current?.focus());
     } catch (requestError) {
       handleTaskRequestError(requestError, navigate, setError);
     } finally {
       setDeletingId(null);
     }
+  }
+
+  function requestDelete(task, event) {
+    deleteTriggerRef.current = event.currentTarget;
+    setTaskToDelete(task);
+  }
+
+  function cancelDelete() {
+    setTaskToDelete(null);
+    setError("");
+    window.requestAnimationFrame(() => deleteTriggerRef.current?.focus());
   }
 
   function handleCancel() {
@@ -386,18 +416,24 @@ function Tareas() {
         <section className="tasks-panel" aria-labelledby="task-list-title">
           <div className="tasks-list-header">
             <h2 id="task-list-title">Listado de tareas</h2>
-            <button className="tasks-button" type="button" onClick={handleNewTask}>
+            <button
+              className="tasks-button"
+              type="button"
+              onClick={handleNewTask}
+              ref={newTaskButtonRef}
+            >
               Nueva tarea
             </button>
           </div>
 
           {loading ? (
             <p className="tasks-empty" role="status">Cargando tareas...</p>
-          ) : tasks.length === 0 ? (
+          ) : error ? null : tasks.length === 0 ? (
             <p className="tasks-empty">Todavía no hay tareas registradas.</p>
           ) : (
-            <div className="tasks-table-wrap">
-              <table className="tasks-table">
+            <>
+              <div className="tasks-table-wrap" role="region" aria-label="Listado de tareas" tabIndex="0">
+                <table className="tasks-table">
                 <thead>
                   <tr>
                     <th scope="col">N.º</th>
@@ -434,26 +470,142 @@ function Tareas() {
                       <td>{task.description}</td>
                       <td>
                         <div className="tasks-actions">
-                          <button type="button" onClick={() => handleEdit(task)}>
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(task)}
+                            aria-label={`Editar tarea número ${task.number}`}
+                          >
                             Editar
                           </button>
                           <button
                             className="tasks-delete"
                             type="button"
-                            onClick={() => handleDelete(task.id)}
+                            onClick={(event) => requestDelete(task, event)}
                             disabled={deletingId === task.id}
+                            aria-label={`Eliminar tarea número ${task.number}`}
                           >
-                            {deletingId === task.id ? "Eliminando..." : "Eliminar"}
+                            Eliminar
                           </button>
                         </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+                </table>
+              </div>
+
+              <div className="tasks-mobile-list" aria-label="Listado de tareas">
+                {tasks.map((task) => (
+                  <article className="tasks-mobile-item" key={task.id}>
+                    <div className="tasks-mobile-heading">
+                      <div>
+                        <p className="tasks-mobile-service">
+                          Tarea n.º {task.number} · {task.service}
+                        </p>
+                        <h3>{task.client}</h3>
+                      </div>
+                      <span className={`tasks-status tasks-status-${task.status.toLowerCase().replaceAll(" ", "-")}`}>
+                        {task.status}
+                      </span>
+                    </div>
+
+                    <dl className="tasks-mobile-summary">
+                      <div>
+                        <dt>Prioridad</dt>
+                        <dd>
+                          <span className={`tasks-priority tasks-priority-${task.priority.toLowerCase()}`}>
+                            {task.priority}
+                          </span>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Finalización</dt>
+                        <dd>{task.dueDate}</dd>
+                      </div>
+                      <div>
+                        <dt>Empleado asignado</dt>
+                        <dd>{task.employee || "Sin asignar"}</dd>
+                      </div>
+                    </dl>
+
+                    <details className="tasks-mobile-details">
+                      <summary>Detalles de la tarea</summary>
+                      <dl>
+                        <div>
+                          <dt>Fecha de creación</dt>
+                          <dd>{task.createdAt}</dd>
+                        </div>
+                        <div>
+                          <dt>Descripción</dt>
+                          <dd>{task.description}</dd>
+                        </div>
+                      </dl>
+                    </details>
+
+                    <div className="tasks-actions tasks-mobile-actions">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(task)}
+                        aria-label={`Editar tarea número ${task.number}`}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="tasks-delete"
+                        type="button"
+                        onClick={(event) => requestDelete(task, event)}
+                        disabled={deletingId === task.id}
+                        aria-label={`Eliminar tarea número ${task.number}`}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
           )}
         </section>
+      )}
+
+      {taskToDelete && (
+        <dialog
+          className="tasks-delete-dialog"
+          ref={deleteDialogRef}
+          aria-labelledby="delete-task-title"
+          aria-describedby="delete-task-description"
+          onCancel={(event) => {
+            event.preventDefault();
+            if (deletingId === null) cancelDelete();
+          }}
+        >
+          <h2 id="delete-task-title">¿Eliminar esta tarea?</h2>
+          <p id="delete-task-description">
+            Se eliminará la tarea n.º {taskToDelete.number} de {taskToDelete.client}. Esta acción no se puede deshacer.
+          </p>
+          {error && (
+            <p className="tasks-message tasks-message-error" role="alert">{error}</p>
+          )}
+          <div className="tasks-actions">
+            <button
+              className="tasks-button tasks-button-secondary"
+              type="button"
+              onClick={cancelDelete}
+              disabled={deletingId !== null}
+              autoFocus
+            >
+              Conservar tarea
+            </button>
+            <button
+              className="tasks-button tasks-delete"
+              type="button"
+              onClick={() => handleDelete(taskToDelete)}
+              disabled={deletingId !== null}
+            >
+              {deletingId !== null ? "Eliminando..." : "Eliminar tarea"}
+            </button>
+          </div>
+        </dialog>
       )}
         </div>
       </main>

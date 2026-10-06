@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import logoAsiinet from "../../assets/brand/logos/logo asiinet.png";
 import "./DashboardSidebar.css";
 
@@ -13,80 +12,43 @@ function getUserSession() {
 }
 
 function DashboardSidebar() {
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const user = useMemo(() => getUserSession(), []);
-  const isAdmin = useMemo(() => user?.role === "admin", [user]);
+  const user = getUserSession();
+  const isAdmin = user?.role === "admin";
 
-  const navigationSections = [
-    {
-      title: "Registrar",
-      icon: "fa-file-signature",
-      active: true,
-      expandable: true,
-      items: [
-        { label: "Vehículo", icon: "fa-car", href: "/vehiculos" },
-        { label: "Empleado", icon: "fa-users", href: "/empleados" },
-        { label: "Tarea", icon: "fa-list-check", href: "/tareas" },
-        ...(isAdmin ? [{ label: "Roles", icon: "fa-lock", href: "/roles" }] : []),
-      ],
-    },
-    {
-      title: "Otros",
-      items: [
-        { label: "Calendario", icon: "fa-calendar-days", href: "/calendario" },
-        { label: "Galería de Fotos", icon: "fa-image", href: "/galeria" },
-      ],
-    },
-    {
-      title: "Información General",
-      items: [{ label: "Documentación", icon: "fa-file", href: "/documentacion" }],
-    },
+  const links = [
+    { label: "Inicio", icon: "fa-house", href: "/home" },
+    { label: "Tareas", icon: "fa-list-check", href: "/tareas" },
+    { label: "Galería", icon: "fa-images", href: "/galeria" },
+    ...(isAdmin ? [{ label: "Usuarios", icon: "fa-users", href: "/users" }] : []),
   ];
 
   return (
     <aside className="dashboard-sidebar" aria-label="Navegación principal">
-      <Link className="sidebar-brand" to="/home">
+      <Link className="sidebar-brand" to="/home" aria-label="Asiinet, ir al inicio">
         <span className="sidebar-brand-mark" aria-hidden="true">
-          <img src={logoAsiinet} alt="Asiinet logo" />
+          <img src={logoAsiinet} alt="" />
         </span>
-        <span>Asiinet</span>
+        <span>asiinet</span>
       </Link>
-      <br />
+
+      <p className="sidebar-caption">Operaciones</p>
       <nav className="sidebar-navigation">
-        {navigationSections.map((section) => (
-          <div className="sidebar-section" key={section.title}>
-            {section.expandable ? (
-              <button
-                className={`sidebar-section-heading sidebar-section-button${section.active ? " is-active" : ""}`}
-                type="button"
-                aria-expanded={isRegisterOpen}
-                onClick={() => setIsRegisterOpen((isOpen) => !isOpen)}
-              >
-                <i className={`fa-solid ${section.icon}`} aria-hidden="true"></i>
-                <span>{section.title}</span>
-                <i
-                  className={`fa-solid fa-chevron-down sidebar-chevron${isRegisterOpen ? " is-open" : ""}`}
-                  aria-hidden="true"
-                ></i>
-              </button>
-            ) : (
-              <div className="sidebar-section-heading">
-                <span>{section.title}</span>
-              </div>
-            )}
-            {(!section.expandable || isRegisterOpen) && (
-              <div className="sidebar-section-items">
-                {section.items.map((item) => (
-                  <Link className="sidebar-link" to={item.href} key={item.label}>
-                    <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+        {links.map((item) => (
+          <NavLink
+            className={({ isActive }) => `sidebar-link${isActive ? " is-active" : ""}`}
+            to={item.href}
+            key={item.href}
+          >
+            <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
+            <span>{item.label}</span>
+          </NavLink>
         ))}
       </nav>
+
+      <div className="sidebar-footer">
+        <span className="sidebar-footer-mark" aria-hidden="true"></span>
+        <span>Gestión de servicios</span>
+      </div>
     </aside>
   );
 }

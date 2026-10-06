@@ -3,15 +3,53 @@
 }
 
 .users-page {
-  width: min(100%, 900px);
+  width: min(100%, 980px);
   margin: 0 auto;
-  padding: 24px 0;
+  padding: 4px 0 30px;
   text-align: left;
 }
 
-.users-list {
+.users-page h1 {
+  margin: 0 0 25px;
+}
+
+.users-unavailable {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 24px;
+  align-items: flex-start;
+  gap: 17px;
+  max-width: 720px;
+  padding: 23px 24px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--orange);
+  background: var(--surface);
+}
+
+.users-unavailable-icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 8px;
+  background: #fff0e7;
+  color: var(--orange-dark);
+}
+
+.users-unavailable h2 {
+  margin: 2px 0 7px;
+  font-size: 16px;
+}
+
+.users-unavailable p {
+  max-width: 560px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (max-width: 520px) {
+  .users-unavailable {
+    padding: 18px;
+  }
 }

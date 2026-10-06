@@ -18,6 +18,11 @@ function AccountActions() {
   const [user, setUser] = useState(getUserSession);
   const displayName = user?.nombre || user?.email || "Usuario";
   const initials = displayName.trim().charAt(0).toUpperCase();
+  const roleName = {
+    admin: "Administración",
+    empleado: "Equipo técnico",
+    cliente: "Cliente",
+  }[user?.role] || "Cuenta";
 
   useEffect(() => {
     const syncUser = () => setUser(getUserSession());
@@ -45,27 +50,26 @@ function AccountActions() {
   }
 
   return (
-    <div className="account-actions">
-      <div className="profile-cluster">
-        <div className="profile-name-stack">
-          <Link className="profile-button" to="/profile">
-            {user?.fotoPerfil ? (
-              <img className="profile-avatar" src={user.fotoPerfil} alt={displayName} />
-            ) : (
-              <span className="profile-avatar profile-avatar-fallback" aria-hidden="true">
-                {initials}
-              </span>
-            )}
-            <span>{displayName}</span>
-          </Link>
+    <header className="account-actions">
+      <Link className="profile-button" to="/profile">
+        {user?.fotoPerfil ? (
+          <img className="profile-avatar" src={user.fotoPerfil} alt="" />
+        ) : (
+          <span className="profile-avatar profile-avatar-fallback" aria-hidden="true">
+            {initials}
+          </span>
+        )}
+        <span className="profile-copy">
+          <strong>{displayName}</strong>
+          <small>{roleName}</small>
+        </span>
+      </Link>
 
-          <button type="button" className="logout-button" onClick={handleLogout}>
-            <i className="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
-    </div>
+      <button type="button" className="logout-button" onClick={handleLogout}>
+        <i className="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+        <span>Cerrar sesión</span>
+      </button>
+    </header>
   );
 }
 
