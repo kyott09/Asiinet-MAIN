@@ -50,6 +50,8 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   cliente: [
     "users:read",
     "tasks:read",
+    "tasks:create",
+    "tasks:update",
     "gallery:read",
   ],
 };
@@ -106,7 +108,7 @@ export const canAccessTask = (
       return task.clientId === user.id;
     }
 
-    return false;
+    return task.clientId === user.id;
   }
 
   return false;

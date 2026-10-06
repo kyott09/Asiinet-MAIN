@@ -18,6 +18,8 @@ test("admin has every permission and cliente is restricted", () => {
   assert.equal(hasPermission("admin", "tasks:delete"), true);
   assert.equal(hasPermission("cliente", "tasks:delete"), false);
   assert.equal(hasPermission("cliente", "gallery:read"), true);
+  assert.equal(hasPermission("cliente", "tasks:create"), true);
+  assert.equal(hasPermission("cliente", "tasks:update"), true);
 });
 
 test("requirePermission denies unauthenticated requests", () => {
@@ -44,4 +46,6 @@ test("operador can only access their assigned task and not a foreign one", () =>
   const clientUser = { id: 2, role: "cliente" };
   assert.equal(canAccessTask(clientUser, myTask, "read"), true);
   assert.equal(canAccessTask(clientUser, otherTask, "read"), false);
+  assert.equal(canAccessTask(clientUser, myTask, "update"), true);
+  assert.equal(canAccessTask(clientUser, otherTask, "update"), false);
 });

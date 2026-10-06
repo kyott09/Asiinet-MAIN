@@ -13,11 +13,13 @@ function getUserSession() {
 
 function DashboardSidebar() {
   const user = getUserSession();
-  const isAdmin = user?.role === "admin";
+  const role = (user?.role ?? "cliente").toLowerCase();
+  const isAdmin = role === "admin";
+  const isClient = role === "cliente";
 
   const links = [
     { label: "Inicio", icon: "fa-house", href: "/home" },
-    { label: "Tareas", icon: "fa-list-check", href: "/tareas" },
+    { label: isClient ? "Solicitudes" : "Tareas", icon: "fa-list-check", href: "/tareas" },
     { label: "Galería", icon: "fa-images", href: "/galeria" },
     ...(isAdmin ? [{ label: "Usuarios", icon: "fa-users", href: "/users" }] : []),
   ];
