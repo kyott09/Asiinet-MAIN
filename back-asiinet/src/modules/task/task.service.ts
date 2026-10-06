@@ -1,3 +1,4 @@
+import { normalizeRole } from "../../middlewares/auth.js";
 import { AppError } from "../../middlewares/errors.js";
 import * as userRepository from "../user/user.repository.js";
 import * as taskRepository from "./task.repository.js";
@@ -37,8 +38,33 @@ const serializeTask = (task: Task) => ({
   status: task.status,
 });
 
-export const getAll = async () =>
-  (await taskRepository.findAll()).map(serializeTask);
+export const getAll = async (user?: { id: number; role?: string } | null) => {
+  const tasks = await taskRepository.findAll();
+
+  if (!user) {
+    return tasks.map(serializeTask);
+  }
+
+  const role = normalizeRole(user.role);
+
+  if (role === "admin" || role === "supervisor") {
+    return tasks.map(serializeTask);
+  }
+
+  if (role === "operador") {
+    return tasks
+      .filter((task) => task.employeeId === user.id || task.clientId === user.id)
+      .map(serializeTask);
+  }
+
+  if (role === "cliente") {
+    return tasks
+      .filter((task) => task.clientId === user.id)
+      .map(serializeTask);
+  }
+
+  return [];
+};
 
 const getAssignees = async (clientId: number, employeeId: number) => {
   const [client, employee] = await Promise.all([
@@ -46,12 +72,12 @@ const getAssignees = async (clientId: number, employeeId: number) => {
     userRepository.findById(employeeId),
   ]);
 
-  if (!client || client.role !== "cliente") {
+  if (!client || normalizeRole(client.role) !== "cliente") {
     throw AppError.badRequest("Selecciona un cliente registrado con rol cliente.");
   }
 
-  if (!employee || employee.role !== "empleado") {
-    throw AppError.badRequest("Selecciona un empleado registrado con rol empleado.");
+  if (!employee || normalizeRole(employee.role) !== "operador") {
+    throw AppError.badRequest("Selecciona un operador registrado con rol operador.");
   }
 
   return { client, employee };

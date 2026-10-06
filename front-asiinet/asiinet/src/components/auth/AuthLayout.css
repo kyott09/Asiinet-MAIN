@@ -3,7 +3,7 @@
   min-height: 100svh;
   padding: 32px;
   place-items: center;
-  background: #dfe8e2;
+  background: linear-gradient(135deg, #f7f1ea 0%, #eef2ee 100%);
 }
 
 .auth-page.is-leaving {
@@ -17,10 +17,10 @@
   width: min(100%, 980px);
   min-height: 610px;
   overflow: hidden;
-  border: 1px solid rgba(25, 52, 58, 0.1);
-  border-radius: 14px;
+  border: 1px solid rgba(25, 52, 58, 0.08);
+  border-radius: 18px;
   background: var(--surface);
-  box-shadow: 0 22px 60px rgba(25, 52, 58, 0.12);
+  box-shadow: 0 26px 70px rgba(25, 52, 58, 0.12);
   animation: auth-card-enter 360ms ease-out both;
 }
 
@@ -30,8 +30,8 @@
   flex-direction: column;
   padding: 32px;
   overflow: hidden;
-  background: var(--ink);
-  color: #edf4f0;
+  background: linear-gradient(180deg, var(--orange) 0%, #6d2e13 100%);
+  color: #fff8f4;
 }
 
 .auth-brand-wrap {
@@ -47,6 +47,7 @@
   max-height: 48px;
   object-fit: contain;
   object-position: left center;
+  filter: brightness(0) invert(1);
 }
 
 .auth-story-copy {
@@ -59,16 +60,18 @@
 
 .auth-story-copy > p {
   margin-bottom: 18px;
-  color: #b9d0c7;
+  color: rgba(255, 255, 255, 0.82);
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .auth-story-copy h2 {
   margin: 0 0 17px;
   color: #fff;
   font-size: clamp(2.3rem, 4vw, 3.35rem);
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: -0.06em;
   line-height: 1.03;
 }
@@ -76,7 +79,7 @@
 .auth-story-copy > span {
   display: block;
   max-width: 315px;
-  color: #c4d3cd;
+  color: rgba(255, 255, 255, 0.83);
   font-size: 14px;
   line-height: 1.7;
 }
@@ -95,14 +98,14 @@
   flex: 0 0 9px;
   width: 9px;
   height: 9px;
-  border: 2px solid #f7a16c;
+  border: 2px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
 }
 
 .auth-route-line {
   width: 27%;
   height: 1px;
-  background: #6a9b8b;
+  background: rgba(255, 255, 255, 0.42);
 }
 
 .auth-route-node {
@@ -111,10 +114,10 @@
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid rgba(119, 192, 169, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
-  background: var(--ink);
-  color: #9dd1bb;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
   font-size: 13px;
 }
 
@@ -122,7 +125,7 @@
   position: relative;
   z-index: 1;
   margin: 0;
-  color: #a9c0b8;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 12px;
 }
 
@@ -142,7 +145,7 @@
   margin: 0;
   color: var(--ink);
   font-size: clamp(1.9rem, 3vw, 2.35rem);
-  font-weight: 680;
+  font-weight: 700;
   letter-spacing: -0.055em;
 }
 
@@ -189,10 +192,10 @@
 }
 
 .auth-field input:focus {
-  border-color: var(--network);
+  border-color: var(--orange);
   outline: none;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(39, 120, 108, 0.12);
+  box-shadow: 0 0 0 3px rgba(246, 92, 23, 0.12);
 }
 
 .auth-field-password {

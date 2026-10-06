@@ -28,7 +28,7 @@ function DashboardSidebar() {
         <span className="sidebar-brand-mark" aria-hidden="true">
           <img src={logoAsiinet} alt="" />
         </span>
-        <span>asiinet</span>
+        <span>Asiinet</span>
       </Link>
 
       <p className="sidebar-caption">Operaciones</p>

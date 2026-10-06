@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { z } from "zod";
 import { AppError } from "../../middlewares/errors.js";
+import { AuthenticatedRequest } from "../../middlewares/auth.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import * as taskService from "./task.service.js";
 
@@ -43,8 +44,9 @@ const parseTaskId = (rawId: string | string[]) => {
   return id;
 };
 
-export const getAll = asyncHandler(async (_req: Request, res: Response) => {
-  res.status(200).json({ tasks: await taskService.getAll() });
+export const getAll = asyncHandler(async (req: Request, res: Response) => {
+  const user = (req as AuthenticatedRequest).user;
+  res.status(200).json({ tasks: await taskService.getAll(user) });
 });
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
