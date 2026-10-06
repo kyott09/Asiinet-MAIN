@@ -149,7 +149,17 @@ JWT_SECRET=tu_clave_secreta
 
 Se recomienda crear un archivo `.env` dentro de `back-asiinet` con esos valores antes de levantar la API.
 
-> El proyecto crea un usuario administrador inicial si no existe uno en la base de datos, pero no se incluye un valor fijo en el README por seguridad.
+> Al iniciar el backend se crean, si todavía no existen, una cuenta de administración, dos cuentas demo de cliente y dos de empleado. Las cuentas demo usan direcciones `@asiinet.com`; clientes reciben el rol `cliente` y empleados el rol canónico `operador` (alias de `empleado`). La contraseña inicial local para las cinco cuentas es `123456`; cambiar `INITIAL_ACCOUNTS_PASSWORD` en `back-asiinet/.env` si querés usar otra.
+
+| Cuenta | Email | Rol |
+| --- | --- | --- |
+| Admin | `admin@asiinet.com` | `admin` |
+| Cliente de prueba 1 | `cliente1.demo@asiinet.com` | `cliente` |
+| Cliente de prueba 2 | `cliente2.demo@asiinet.com` | `cliente` |
+| Empleado de prueba 1 | `empleado1.demo@asiinet.com` | `operador` |
+| Empleado de prueba 2 | `empleado2.demo@asiinet.com` | `operador` |
+
+Las cuentas se crean al iniciar **el backend** una vez que puede conectarse a MySQL; abrir solamente el frontend no puede escribir en la base de datos. El sembrado es idempotente: no duplica usuarios ni restablece las contraseñas existentes; si un rol demo se cambió manualmente, se corrige al reiniciar. `123456` es solo para desarrollo. En `NODE_ENV=production`, el backend requiere `INITIAL_ACCOUNTS_PASSWORD` con un valor distinto antes de arrancar.
 
 ### Frontend
 

@@ -6,6 +6,7 @@ import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./database/data-source.js";
 import { User } from "./modules/user/user.entity.js";
+import { ensureDefaultUsers } from "./database/seed-default-users.js";
 import userRoutes from "./modules/user/user.routes.js";
 import taskRoutes from "./modules/task/task.routes.js";
 import { notFoundHandler, errorHandler } from "./middlewares/errors.js";
@@ -18,7 +19,7 @@ const ensureDefaultAdmin = async () => {
   const existingAdmin = await repo.findOneBy({ email: "admin@asiinet.com" });
 
   if (!existingAdmin) {
-    const passwordHash = await bcrypt.hash("123456", 10);
+    const passwordHash = await bcrypt.hash(getInitialAccountsPassword(), 10);
 
     await repo.save(
       repo.create({
@@ -31,6 +32,28 @@ const ensureDefaultAdmin = async () => {
 
     console.log("Usuario administrador inicial creado");
   }
+};
+
+const getInitialAccountsPassword = () => {
+  const password = process.env.INITIAL_ACCOUNTS_PASSWORD?.trim();
+
+  if (process.env.NODE_ENV === "production" && (!password || password === "123456")) {
+    throw new Error(
+      "Configura INITIAL_ACCOUNTS_PASSWORD con una contraseña segura antes de iniciar en producción"
+    );
+  }
+
+  return password || "123456";
+};
+
+const ensureDefaultDemoUsers = async () => {
+  const repo = AppDataSource.getRepository(User);
+
+  await ensureDefaultUsers(
+    (email) => repo.findOneBy({ email }),
+    (user) => repo.save(repo.create(user)),
+    getInitialAccountsPassword()
+  );
 };
 
 app.use(
@@ -59,6 +82,7 @@ AppDataSource.initialize()
   .then(async () => {
     console.log("Base de datos conectada");
     await ensureDefaultAdmin();
+    await ensureDefaultDemoUsers();
     app.listen(process.env.PORT || 8080, () => {
       console.log(`Servidor en puerto ${process.env.PORT || 8080}`);
     });

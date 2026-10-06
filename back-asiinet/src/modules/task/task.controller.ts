@@ -91,7 +91,7 @@ export const parseTaskCreateInput = (body: unknown, role?: string | null): TaskI
   } as TaskInput;
 };
 
-const parseTaskUpdateInput = (body: unknown, role?: string | null) => {
+export const parseTaskUpdateInput = (body: unknown, role?: string | null) => {
   if (normalizeRole(role) === "cliente") {
     const updateSchema = z.object({
       description: z.string().trim().min(1),
@@ -160,7 +160,7 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
   const user = (req as AuthenticatedRequest).user;
 
   if (user && normalizeRole(user.role) === "operador") {
-    const payload = parseTaskUpdateInput(req.body);
+    const payload = parseTaskUpdateInput(req.body, user.role);
     const task = await taskService.update(parseTaskId(req.params.id), payload, user);
     return res.status(200).json({ task });
   }
