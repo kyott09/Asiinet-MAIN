@@ -715,24 +715,24 @@ function Tareas() {
             )}
           </div>
 
-          <div className="tasks-filter-bar" style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "16px", alignItems: "end" }}>
-            <label style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: "220px", color: "#2c3e50", fontWeight: 600 }}>
+          <div className="tasks-filter-bar">
+            <label className="tasks-filter-field">
               Buscar
               <input
+                className="tasks-filter-control"
                 type="text"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder={isClient ? "Buscar por servicio, descripción o estado" : "Buscar por cliente, servicio o estado"}
-                style={{ padding: "10px 12px", border: "1px solid #d7dfe8", borderRadius: "10px", fontSize: "0.95rem" }}
               />
             </label>
 
-            <label style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: "180px", color: "#2c3e50", fontWeight: 600 }}>
+            <label className="tasks-filter-field tasks-filter-field-status">
               Estado
               <select
+                className="tasks-filter-control"
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
-                style={{ padding: "10px 12px", border: "1px solid #d7dfe8", borderRadius: "10px", fontSize: "0.95rem" }}
               >
                 <option value="todos">Todos</option>
                 {isClient ? (
