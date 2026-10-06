@@ -29,7 +29,7 @@ const ensureDefaultAdmin = async () => {
       })
     );
 
-    console.log("Usuario administrador creado: admin@asiinet.com / 123456");
+    console.log("Usuario administrador inicial creado");
   }
 };
 

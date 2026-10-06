@@ -5,6 +5,8 @@ import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 import "./Profile.css";
 import "../components/ui/ActionButton.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+
 function getUserSession() {
   try {
     const raw = sessionStorage.getItem("user");
@@ -39,7 +41,7 @@ function Profile() {
 
     const fetchFreshUser = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/users/me", {
+        const response = await fetch(`${API_BASE_URL}/api/users/me`, {
           method: "GET",
           credentials: "include",
         });
@@ -49,7 +51,9 @@ function Profile() {
           navigate("/login", { replace: true });
           return;
         }
-        if (!response.ok) return;
+        if (!response.ok) {
+          throw new Error("No se pudieron actualizar los datos del perfil.");
+        }
 
         const data = await response.json();
         if (data?.user) {
@@ -57,8 +61,13 @@ function Profile() {
           window.dispatchEvent(new Event("asiinet:user-updated"));
           setForm(toProfileForm(data.user));
         }
-      } catch {
-        // Se mantiene la sesión actual si no puede cargar desde el back.
+      } catch (error) {
+        setMessage({
+          type: "error",
+          text: error instanceof TypeError
+            ? "No se pudo conectar con el servidor. Revisá la conexión y probá de nuevo."
+            : error.message || "No se pudieron cargar los datos del perfil.",
+        });
       }
     };
 
@@ -87,7 +96,7 @@ function Profile() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/users/me", {
+      const response = await fetch(`${API_BASE_URL}/api/users/me`, {
         method: "PUT",
         credentials: "include",
         headers: {

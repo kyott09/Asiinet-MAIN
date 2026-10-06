@@ -11,17 +11,17 @@ const photos = [
   {
     id: 1,
     src: gallery1,
-    alt: "Foto 1 de Asiinet",
+    alt: "Equipo de Asiinet durante una jornada de trabajo",
   },
   {
     id: 2,
     src: gallery2,
-    alt: "Foto 2 de Asiinet",
+    alt: "Instalación de un servicio de conectividad",
   },
   {
     id: 3,
     src: gallery3,
-    alt: "Foto 3 de Asiinet",
+    alt: "Personal técnico de Asiinet",
   },
 ];
 

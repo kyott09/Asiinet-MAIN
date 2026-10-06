@@ -4,8 +4,9 @@ import AuthLayout from "../components/auth/AuthLayout";
 import PasswordField from "../components/auth/PasswordField";
 import TextField from "../components/auth/TextField";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+
 function Register() {
-  const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,12 +28,12 @@ function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/users/register", {
+      const response = await fetch(`${API_BASE_URL}/api/users/register`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nombre: fullName || username || "Usuario",
+          nombre: fullName,
           email,
           password,
           role: "user",
@@ -65,14 +66,6 @@ function Register() {
       }
     >
       <form className="auth-form" onSubmit={handleSubmit}>
-        <TextField
-          id="register-username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Usuario"
-          label="Usuario"
-        />
-
         <TextField
           id="register-fullname"
           value={fullName}

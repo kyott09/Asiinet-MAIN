@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
 import PasswordField from "../components/auth/PasswordField";
-import RememberMe from "../components/auth/RememberMe";
 import TextField from "../components/auth/TextField";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -20,7 +21,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/users/login", {
+      const response = await fetch(`${API_BASE_URL}/api/users/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -46,11 +47,11 @@ function Login() {
   };
 
   return (
-    <div className={isLeaving ? "auth-page is-leaving" : "auth-page"}>
       <AuthLayout
         title="Iniciar sesión"
         subtitle="Usá tu cuenta de Asiinet"
         titleId="login-title"
+        isLeaving={isLeaving}
         footer={
           <>
             ¿Es nuevo en Asiinet? <Link to="/register" viewTransition>Crear una cuenta</Link>
@@ -75,8 +76,6 @@ function Login() {
             label="Contraseña"
           />
 
-          <RememberMe />
-
           {error && <p className="auth-error">{error}</p>}
 
           <button className="auth-submit" type="submit" disabled={loading}>
@@ -84,7 +83,6 @@ function Login() {
           </button>
         </form>
       </AuthLayout>
-    </div>
   );
 }
 
