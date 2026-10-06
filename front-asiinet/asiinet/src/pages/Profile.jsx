@@ -31,6 +31,7 @@ function Profile() {
 
   const [form, setForm] = useState(() => toProfileForm(getUserSession()));
   const [loading, setLoading] = useState(false);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [message, setMessage] = useState({ type: "", text: "" });
 
   useEffect(() => {
@@ -68,6 +69,8 @@ function Profile() {
             ? "No se pudo conectar con el servidor. Revisá la conexión y probá de nuevo."
             : error.message || "No se pudieron cargar los datos del perfil.",
         });
+      } finally {
+        setIsProfileLoading(false);
       }
     };
 
@@ -124,7 +127,7 @@ function Profile() {
 
       sessionStorage.setItem("user", JSON.stringify(data.user));
       window.dispatchEvent(new Event("asiinet:user-updated"));
-      setMessage({ type: "success", text: "Perfil actualizado correctamente" });
+      setMessage({ type: "success", text: "Perfil actualizado." });
       setForm(toProfileForm(data.user));
     } catch (error) {
       setMessage({ type: "error", text: error.message || "Error al guardar" });
@@ -136,7 +139,7 @@ function Profile() {
   return (
     <div className="dashboard-layout">
       <DashboardSidebar />
-      <main className="dashboard-content profile-content">
+      <main id="main-content" tabIndex="-1" className="dashboard-content profile-content">
         <AccountActions />
         <div className="profile-page">
           <section className="profile-card" aria-labelledby="profile-title">
@@ -147,6 +150,15 @@ function Profile() {
           </div>
         </div>
 
+        {isProfileLoading ? (
+          <div className="profile-skeleton" role="status" aria-label="Cargando datos del perfil">
+            <span className="profile-skeleton-line profile-skeleton-line-short" aria-hidden="true"></span>
+            <span className="profile-skeleton-line" aria-hidden="true"></span>
+            <span className="profile-skeleton-line" aria-hidden="true"></span>
+            <span className="profile-skeleton-line profile-skeleton-line-tall" aria-hidden="true"></span>
+            <span className="profile-skeleton-line" aria-hidden="true"></span>
+          </div>
+        ) : (
         <form className="profile-form" onSubmit={handleSubmit}>
           <div className="profile-field-row">
             <label className="profile-field">
@@ -156,7 +168,7 @@ function Profile() {
                 type="text"
                 value={form.nombre}
                 onChange={handleChange}
-                placeholder="Ingrese su nombre"
+                placeholder="Ingresá tu nombre"
               />
             </label>
           </div>
@@ -216,17 +228,21 @@ function Profile() {
           </div>
 
           {message.text && (
-            <p className={message.type === "success" ? "profile-message success" : "profile-message error"}>
+            <p
+              className={message.type === "success" ? "profile-message success" : "profile-message error"}
+              role={message.type === "success" ? "status" : "alert"}
+            >
               {message.text}
             </p>
           )}
 
           <div className="profile-actions">
             <button type="submit" className="auth-submit" disabled={loading}>
-              {loading ? "Guardando..." : "Guardar cambios"}
+              {loading ? "Guardando..." : "Guardá cambios"}
             </button>
           </div>
         </form>
+        )}
           </section>
         </div>
       </main>

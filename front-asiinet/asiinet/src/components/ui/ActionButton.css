@@ -19,10 +19,12 @@
 
 .auth-submit:hover:not(:disabled) {
   background: var(--orange);
+  color: var(--warm-black);
 }
 
 .auth-submit-light:hover:not(:disabled) {
   background: var(--orange);
+  color: var(--warm-black);
 }
 
 .auth-submit:active:not(:disabled) {

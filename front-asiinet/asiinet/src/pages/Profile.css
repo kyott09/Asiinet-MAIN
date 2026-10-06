@@ -44,6 +44,26 @@
   gap: var(--space-5);
 }
 
+.profile-skeleton {
+  display: grid;
+  gap: var(--space-5);
+  padding-top: var(--space-2);
+}
+
+.profile-skeleton-line {
+  width: 100%;
+  height: 46px;
+}
+
+.profile-skeleton-line-short {
+  width: 42%;
+  height: 24px;
+}
+
+.profile-skeleton-line-tall {
+  height: 76px;
+}
+
 .profile-field-row {
   display: flex;
   flex-direction: column;
@@ -154,5 +174,11 @@
 @media (max-width: 560px) {
   .profile-field-row.two-columns {
     grid-template-columns: 1fr;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .profile-skeleton-line {
+      animation: none;
+    }
   }
 }

@@ -12,7 +12,7 @@ function AuthLayout({
   isLeaving = false,
 }) {
   return (
-    <div className={`auth-page${isLeaving ? " is-leaving" : ""}`}>
+    <main id="main-content" tabIndex="-1" className={`auth-page${isLeaving ? " is-leaving" : ""}`}>
       <div className="auth-layout">
         <aside className="auth-story">
           <Link className="auth-brand-wrap" to="/login" aria-label="Asiinet, ir al inicio de sesión">
@@ -47,7 +47,7 @@ function AuthLayout({
           {footer && <p className="auth-footer">{footer}</p>}
         </section>
       </div>
-    </div>
+    </main>
   );
 }
 

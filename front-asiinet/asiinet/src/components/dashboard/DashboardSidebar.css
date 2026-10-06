@@ -127,12 +127,16 @@
 }
 
 .sidebar-link-disabled {
+  display: grid;
+  grid-template-columns: 19px minmax(0, 1fr);
+  row-gap: 0;
   cursor: not-allowed;
   opacity: 0.68;
 }
 
 .sidebar-link-disabled small {
-  margin-left: auto;
+  grid-column: 2;
+  margin-left: 0;
   color: var(--text-muted);
   font-size: 10px;
   font-weight: 600;

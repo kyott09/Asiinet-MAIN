@@ -140,9 +140,33 @@ h3 {
   width: 100%;
 }
 
+.skip-link {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: var(--z-overlay);
+  padding: var(--space-3) var(--space-4);
+  transform: translateY(calc(-100% - var(--space-6)));
+  border-radius: var(--radius-sm);
+  background: var(--warm-black);
+  color: var(--surface);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  color: var(--surface);
+}
+
 p {
   max-width: 65ch;
   text-wrap: pretty;
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+  }
 }
 
 ::selection {

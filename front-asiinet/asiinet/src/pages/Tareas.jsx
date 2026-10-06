@@ -422,15 +422,15 @@ function Tareas() {
   return (
     <div className="dashboard-layout">
       <DashboardSidebar />
-      <main className="dashboard-content tasks-content">
+      <main id="main-content" tabIndex="-1" className="dashboard-content tasks-content">
         <AccountActions />
         <div className="tasks-page">
       <header className="tasks-header">
         <h1>{pageTitle}</h1>
         <p>
           {isClient
-            ? "Consulta y gestiona tus solicitudes de servicio."
-            : "Registra y administra las tareas solicitadas por los clientes."}
+            ? "Consultá y gestioná tus solicitudes de servicio."
+            : "Registrá y administrá las tareas solicitadas por los clientes."}
         </p>
       </header>
 
@@ -687,7 +687,7 @@ function Tareas() {
 
             <div className="tasks-actions">
               <button className="tasks-button" type="submit" disabled={saving}>
-                {saving ? "Guardando..." : editingId !== null ? (isEmployee ? "Guardar cambios" : "Guardar solicitud") : (isClient ? "Solicitar" : "Registrar tarea")}
+                {saving ? "Guardando..." : editingId !== null ? (isEmployee ? "Guardá cambios" : "Guardá solicitud") : (isClient ? "Solicitar" : "Registrá tarea")}
               </button>
               <button
                 className="tasks-button tasks-button-secondary"
@@ -700,7 +700,7 @@ function Tareas() {
           </form>
         </section>
       ) : (
-        <section className="tasks-panel" aria-labelledby="task-list-title">
+        <section className="tasks-panel" aria-labelledby="task-list-title" aria-busy={loading}>
           <div className="tasks-list-header">
             <h2 id="task-list-title">Listado de {pageTitle.toLowerCase()}</h2>
             {canCreateRequest && (
@@ -755,10 +755,29 @@ function Tareas() {
           </div>
 
           {loading ? (
-            <p className="tasks-empty" role="status">Cargando tareas...</p>
+            <div className="tasks-skeleton" role="status" aria-label="Cargando tareas">
+              <div className="tasks-skeleton-table" aria-hidden="true">
+                {Array.from({ length: 3 }, (_, row) => (
+                  <div className="tasks-skeleton-row" key={row}>
+                    {Array.from({ length: 7 }, (_, column) => (
+                      <span className="tasks-skeleton-bar" key={column}></span>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div className="tasks-skeleton-cards" aria-hidden="true">
+                {Array.from({ length: 3 }, (_, card) => (
+                  <div className="tasks-skeleton-card" key={card}>
+                    <span className="tasks-skeleton-bar tasks-skeleton-bar-short"></span>
+                    <span className="tasks-skeleton-bar"></span>
+                    <span className="tasks-skeleton-bar tasks-skeleton-bar-medium"></span>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : error ? null : filteredTasks.length === 0 ? (
             <p className="tasks-empty">
-              {isClient ? "Todavía no tienes solicitudes registradas." : "Todavía no hay tareas registradas."}
+              {isClient ? "Todavía no tenés solicitudes registradas." : "Todavía no hay tareas registradas."}
             </p>
           ) : (
             <>

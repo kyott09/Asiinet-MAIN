@@ -101,7 +101,7 @@ function Register() {
           minLength={6}
         />
 
-        {error && <p className="auth-error">{error}</p>}
+        {error && <p className="auth-error" role="alert">{error}</p>}
 
         <button className="auth-submit" type="submit" disabled={loading}>
           {loading ? "Creando cuenta..." : "Registrarme"}

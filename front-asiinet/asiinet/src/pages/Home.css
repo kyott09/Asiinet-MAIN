@@ -53,7 +53,7 @@
   padding: 0 16px;
   border-radius: var(--radius-sm);
   background: var(--orange);
-  color: #fff;
+  color: var(--warm-black);
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -62,7 +62,7 @@
 
 .home-primary-action:hover {
   background: var(--orange-dark);
-  color: #fff;
+  color: var(--surface);
   transform: translateY(-1px);
 }
 

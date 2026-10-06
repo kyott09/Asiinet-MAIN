@@ -6,7 +6,7 @@ function Users() {
   return (
     <div className="dashboard-layout">
       <DashboardSidebar />
-      <main className="dashboard-content users-content">
+      <main id="main-content" tabIndex="-1" className="dashboard-content users-content">
         <AccountActions />
         <section className="users-page" aria-labelledby="users-title">
           <h1 id="users-title">Usuarios</h1>
