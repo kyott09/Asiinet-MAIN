@@ -9,6 +9,7 @@
 
   --orange: #F65C17;
   --orange-dark: #A5350F;
+  /* El blanco sobre #F65C17 tiene 3,25:1 y no alcanza WCAG AA; usar grafito sobre ese naranja y reservar el blanco para #A5350F. */
   --white: #fff;
   --white-warm: #fff8f4;
   --graphite: #302824;
