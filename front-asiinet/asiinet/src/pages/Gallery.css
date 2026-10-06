@@ -60,7 +60,7 @@
   border: none;
   border-radius: 50%;
   background: rgba(19, 17, 15, 0.78);
-  color: #fff;
+  color: var(--white);
   font-size: 19px;
   cursor: pointer;
   opacity: 1;

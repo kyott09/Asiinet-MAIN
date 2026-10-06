@@ -35,7 +35,7 @@
   background:
     radial-gradient(ellipse at 100% 100%, rgba(246, 92, 23, 0.28), transparent 52%),
     var(--warm-black);
-  color: #fff8f4;
+  color: var(--white-warm);
 }
 
 .auth-brand-wrap {
@@ -73,7 +73,7 @@
 
 .auth-story-copy h2 {
   margin: 0 0 17px;
-  color: #fff;
+  color: var(--white);
   font-size: clamp(2.3rem, 4vw, 3.35rem);
   font-weight: 700;
   letter-spacing: -0.06em;
@@ -121,7 +121,7 @@
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  color: var(--white);
   font-size: 13px;
 }
 
@@ -198,7 +198,7 @@
 .auth-field input:focus {
   border-color: var(--orange);
   outline: none;
-  background: #fff;
+  background: var(--white);
   box-shadow: var(--focus-ring);
 }
 
