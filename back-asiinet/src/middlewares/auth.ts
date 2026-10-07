@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { findById as findTaskById } from "../modules/task/task.repository.js";
+import * as userRepository from "../modules/user/user.repository.js";
 import { AppError } from "./errors.js";
 
 export interface AuthenticatedUser {
@@ -8,6 +9,8 @@ export interface AuthenticatedUser {
   email: string;
   role: string;
 }
+
+type CurrentUserIdentity = Pick<AuthenticatedUser, "id" | "email" | "role">;
 
 export interface AuthenticatedRequest extends Request {
   user?: AuthenticatedUser;
@@ -127,30 +130,46 @@ const getTokenFromCookies = (req: Request) => {
   return cookies.token ?? null;
 };
 
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+export const createRequireAuth = (
+  findUserById: (id: number) => Promise<CurrentUserIdentity | null> =
+    (id) => userRepository.findById(id),
+  jwtSecret: string | undefined = process.env.JWT_SECRET?.trim()
+) => async (req: Request, _res: Response, next: NextFunction) => {
   const token = getTokenFromCookies(req);
 
   if (!token) {
     return next(AppError.unauthorized("Token no proporcionado"));
   }
 
-  const jwtSecret = process.env.JWT_SECRET?.trim();
   if (!jwtSecret) {
     return next(AppError.internal("JWT_SECRET no está definido"));
   }
 
+  let decoded: jwt.JwtPayload;
   try {
-    const decoded = jwt.verify(token, jwtSecret) as AuthenticatedUser;
-
-    (req as AuthenticatedRequest).user = {
-      ...decoded,
-      role: normalizeRole(decoded.role),
-    };
-    return next();
+    const verified = jwt.verify(token, jwtSecret);
+    if (typeof verified === "string" || typeof verified.id !== "number" || !Number.isSafeInteger(verified.id)) {
+      return next(AppError.unauthorized("Token inválido o expirado"));
+    }
+    decoded = verified;
   } catch {
     return next(AppError.unauthorized("Token inválido o expirado"));
   }
+
+  const currentUser = await findUserById(decoded.id);
+  if (!currentUser) {
+    return next(AppError.unauthorized("No autenticado"));
+  }
+
+  (req as AuthenticatedRequest).user = {
+    id: currentUser.id,
+    email: currentUser.email,
+    role: normalizeRole(currentUser.role),
+  };
+  return next();
 };
+
+export const requireAuth = createRequireAuth();
 
 export const requireRole = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {

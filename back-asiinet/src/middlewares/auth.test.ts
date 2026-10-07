@@ -25,7 +25,7 @@ test("admin has every permission and cliente is restricted", () => {
 });
 
 test("requirePermission denies unauthenticated requests", () => {
-  let nextCalledWith: unknown = null;
+  let nextCalledWith: unknown;
   const req = {} as any;
   const res = {} as any;
   const next = (err?: unknown) => {
@@ -61,7 +61,7 @@ test("requireAuth uses the current database role instead of the JWT role", async
   const req = {
     headers: { cookie: `token=${token}` },
   } as any;
-  let nextCalledWith: unknown = null;
+  let nextCalledWith: unknown;
   const middleware = createRequireAuth(async (id) => ({
     id,
     email: "current@example.invalid",
@@ -72,7 +72,7 @@ test("requireAuth uses the current database role instead of the JWT role", async
     nextCalledWith = error;
   });
 
-  assert.equal(nextCalledWith, null);
+  assert.equal(nextCalledWith, undefined);
   assert.deepEqual(req.user, {
     id: 17,
     email: "current@example.invalid",
