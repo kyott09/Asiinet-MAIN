@@ -239,3 +239,4 @@ Frontend: no hay script de tests en `package.json`; validar cambios con `npm run
 5. Manejar errores y sesiones vencidas de forma explícita; no convertir fallos de API en respuestas de éxito ni datos de ejemplo.
 6. No imprimir, copiar ni versionar `.env`, cookies, tokens, contraseñas o datos personales. El `.env` real queda fuera de la documentación.
 7. Antes de finalizar, ejecutar la validación más pequeña relevante y resumir archivos modificados, decisiones y comandos/resultado de pruebas.
+8. Los mensajes de commit se escriben en español, con prefijo convencional (feat, fix, test, docs, style) y sin trailers Co-authored-by.
