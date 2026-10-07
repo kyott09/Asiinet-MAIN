@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import jwt from "jsonwebtoken";
 
 import {
   canAccessTask,
+  createRequireAuth,
   hasPermission,
   normalizeRole,
   requirePermission,
@@ -23,7 +25,7 @@ test("admin has every permission and cliente is restricted", () => {
 });
 
 test("requirePermission denies unauthenticated requests", () => {
-  let nextCalledWith: unknown = null;
+  let nextCalledWith: unknown;
   const req = {} as any;
   const res = {} as any;
   const next = (err?: unknown) => {
@@ -34,6 +36,83 @@ test("requirePermission denies unauthenticated requests", () => {
 
   assert.ok(nextCalledWith);
   assert.equal((nextCalledWith as any)?.statusCode, 401);
+});
+
+test("users:write denies supervisor, operador, cliente, and unauthenticated requests", () => {
+  for (const role of ["supervisor", "operador", "cliente", undefined]) {
+    let nextCalledWith: unknown = null;
+    const req = role ? { user: { id: 1, email: "user@example.invalid", role } } as any : {} as any;
+
+    requirePermission("users:write")(req, {} as any, (error?: unknown) => {
+      nextCalledWith = error;
+    });
+
+    assert.equal((nextCalledWith as any)?.statusCode, role ? 403 : 401);
+  }
+});
+
+test("requireAuth uses the current database role instead of the JWT role", async () => {
+  const secret = "auth-test-secret";
+  const token = jwt.sign(
+    { id: 17, email: "old@example.invalid", role: "admin" },
+    secret,
+    { expiresIn: "1h" }
+  );
+  const req = {
+    headers: { cookie: `token=${token}` },
+  } as any;
+  let nextCalledWith: unknown;
+  const middleware = createRequireAuth(async (id) => ({
+    id,
+    email: "current@example.invalid",
+    role: "cliente",
+  }), secret);
+
+  await middleware(req, {} as any, (error?: unknown) => {
+    nextCalledWith = error;
+  });
+
+  assert.equal(nextCalledWith, undefined);
+  assert.deepEqual(req.user, {
+    id: 17,
+    email: "current@example.invalid",
+    role: "cliente",
+  });
+});
+
+test("requireAuth rejects a valid token when the account no longer exists", async () => {
+  const secret = "auth-test-secret";
+  const token = jwt.sign(
+    { id: 17, email: "deleted@example.invalid", role: "admin" },
+    secret,
+    { expiresIn: "1h" }
+  );
+  const req = {
+    headers: { cookie: `token=${token}` },
+  } as any;
+  let nextCalledWith: unknown = null;
+  const middleware = createRequireAuth(async () => null, secret);
+
+  await middleware(req, {} as any, (error?: unknown) => {
+    nextCalledWith = error;
+  });
+
+  assert.equal((nextCalledWith as any)?.statusCode, 401);
+});
+
+test("users:write allows an administrator", () => {
+  let nextCalled = false;
+
+  requirePermission("users:write")(
+    { user: { id: 1, email: "admin@example.invalid", role: "admin" } } as any,
+    {} as any,
+    (error?: unknown) => {
+      assert.equal(error, undefined);
+      nextCalled = true;
+    }
+  );
+
+  assert.equal(nextCalled, true);
 });
 
 test("operador can only access their assigned task and not a foreign one", () => {
