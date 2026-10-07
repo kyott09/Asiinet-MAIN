@@ -3,11 +3,15 @@ import * as userService from "./user.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { AuthenticatedRequest } from "../../middlewares/auth.js";
 
-export const register = asyncHandler(async (req: Request, res: Response) => {
-  const { email, password, role, nombre } = req.body;
-  const user = await userService.register(email, password, role, nombre);
+export const createRegisterHandler = (
+  registerUser: typeof userService.register = userService.register
+) => async (req: Request, res: Response) => {
+  const { email, password, nombre } = req.body;
+  const user = await registerUser(email, password, "cliente", nombre);
   res.status(201).json(user);
-});
+};
+
+export const register = asyncHandler(createRegisterHandler());
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -24,6 +28,17 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   res.status(201).json(result);
 });
+
+export const logout = (_req: Request, res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
+
+  res.status(200).json({ message: "Sesión cerrada" });
+};
 
 export const getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
   const user = (req as AuthenticatedRequest).user;
@@ -67,4 +82,9 @@ export const adminOnly = asyncHandler(async (req: Request, res: Response) => {
     message: "Acceso de administrador",
     user,
   });
+});
+
+export const getAssignableUsers = asyncHandler(async (_req: Request, res: Response) => {
+  const users = await userService.getAssignableUsers();
+  return res.status(200).json(users);
 });

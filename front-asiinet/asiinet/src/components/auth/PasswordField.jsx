@@ -13,7 +13,7 @@ function PasswordField({
 
   return (
     <label className="auth-field auth-field-password" htmlFor={id}>
-      <span className="sr-only">{label}</span>
+      <span className="auth-field-label">{label}</span>
       <input
         id={id}
         type={showPassword ? "text" : "password"}

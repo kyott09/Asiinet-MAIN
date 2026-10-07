@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AccountActions from "../components/dashboard/AccountActions";
+import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import "./Profile.css";
+import "../components/ui/ActionButton.css";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 function getUserSession() {
   try {
@@ -10,54 +16,61 @@ function getUserSession() {
   }
 }
 
+function toProfileForm(payload) {
+  return {
+    nombre: payload?.nombre || "",
+    email: payload?.email || "",
+    fechaNacimiento: payload?.fechaNacimiento || "",
+    domicilio: payload?.domicilio || "",
+    fotoPerfil: payload?.fotoPerfil || "",
+  };
+}
+
 function Profile() {
   const navigate = useNavigate();
-  const user = getUserSession();
 
-  const [form, setForm] = useState({
-    nombre: "",
-    email: "",
-    fechaNacimiento: "",
-    domicilio: "",
-    fotoPerfil: "",
-  });
+  const [form, setForm] = useState(() => toProfileForm(getUserSession()));
   const [loading, setLoading] = useState(false);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  const applyUserToForm = (payload) => {
-    setForm({
-      nombre: payload?.nombre || "",
-      email: payload?.email || "",
-      fechaNacimiento: payload?.fechaNacimiento || "",
-      domicilio: payload?.domicilio || "",
-      fotoPerfil: payload?.fotoPerfil || "",
-    });
-  };
-
   useEffect(() => {
-    if (!user) {
+    if (!getUserSession()) {
       navigate("/login");
       return;
     }
 
-    applyUserToForm(user);
-
     const fetchFreshUser = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/users/me", {
+        const response = await fetch(`${API_BASE_URL}/api/users/me`, {
           method: "GET",
           credentials: "include",
         });
 
-        if (!response.ok) return;
+        if (response.status === 401) {
+          sessionStorage.removeItem("user");
+          navigate("/login", { replace: true });
+          return;
+        }
+        if (!response.ok) {
+          throw new Error("No se pudieron actualizar los datos del perfil.");
+        }
 
         const data = await response.json();
         if (data?.user) {
           sessionStorage.setItem("user", JSON.stringify(data.user));
-          applyUserToForm(data.user);
+          window.dispatchEvent(new Event("asiinet:user-updated"));
+          setForm(toProfileForm(data.user));
         }
-      } catch {
-        // Se mantiene la sesión actual si no puede cargar desde el back.
+      } catch (error) {
+        setMessage({
+          type: "error",
+          text: error instanceof TypeError
+            ? "No se pudo conectar con el servidor. Revisá la conexión y probá de nuevo."
+            : error.message || "No se pudieron cargar los datos del perfil.",
+        });
+      } finally {
+        setIsProfileLoading(false);
       }
     };
 
@@ -86,7 +99,7 @@ function Profile() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/users/me", {
+      const response = await fetch(`${API_BASE_URL}/api/users/me`, {
         method: "PUT",
         credentials: "include",
         headers: {
@@ -104,12 +117,18 @@ function Profile() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          sessionStorage.removeItem("user");
+          navigate("/login", { replace: true });
+          return;
+        }
         throw new Error(data.message || "No se pudo actualizar el perfil");
       }
 
       sessionStorage.setItem("user", JSON.stringify(data.user));
-      setMessage({ type: "success", text: "Perfil actualizado correctamente" });
-      applyUserToForm(data.user);
+      window.dispatchEvent(new Event("asiinet:user-updated"));
+      setMessage({ type: "success", text: "Perfil actualizado." });
+      setForm(toProfileForm(data.user));
     } catch (error) {
       setMessage({ type: "error", text: error.message || "Error al guardar" });
     } finally {
@@ -118,8 +137,12 @@ function Profile() {
   };
 
   return (
-    <div className="profile-page">
-      <section className="profile-card" aria-labelledby="profile-title">
+    <div className="dashboard-layout">
+      <DashboardSidebar />
+      <main id="main-content" tabIndex="-1" className="dashboard-content profile-content">
+        <AccountActions />
+        <div className="profile-page">
+          <section className="profile-card" aria-labelledby="profile-title">
         <div className="profile-header">
           <div>
             <p className="profile-kicker">Cuenta</p>
@@ -127,6 +150,15 @@ function Profile() {
           </div>
         </div>
 
+        {isProfileLoading ? (
+          <div className="profile-skeleton" role="status" aria-label="Cargando datos del perfil">
+            <span className="profile-skeleton-line profile-skeleton-line-short" aria-hidden="true"></span>
+            <span className="profile-skeleton-line" aria-hidden="true"></span>
+            <span className="profile-skeleton-line" aria-hidden="true"></span>
+            <span className="profile-skeleton-line profile-skeleton-line-tall" aria-hidden="true"></span>
+            <span className="profile-skeleton-line" aria-hidden="true"></span>
+          </div>
+        ) : (
         <form className="profile-form" onSubmit={handleSubmit}>
           <div className="profile-field-row">
             <label className="profile-field">
@@ -136,7 +168,7 @@ function Profile() {
                 type="text"
                 value={form.nombre}
                 onChange={handleChange}
-                placeholder="Ingrese su nombre"
+                placeholder="Ingresá tu nombre"
               />
             </label>
           </div>
@@ -196,21 +228,24 @@ function Profile() {
           </div>
 
           {message.text && (
-            <p className={message.type === "success" ? "profile-message success" : "profile-message error"}>
+            <p
+              className={message.type === "success" ? "profile-message success" : "profile-message error"}
+              role={message.type === "success" ? "status" : "alert"}
+            >
               {message.text}
             </p>
           )}
 
           <div className="profile-actions">
-            <button type="button" className="profile-secondary-button" onClick={() => navigate(-1)}>
-              Volver
-            </button>
             <button type="submit" className="auth-submit" disabled={loading}>
-              {loading ? "Guardando..." : "Guardar cambios"}
+              {loading ? "Guardando..." : "Guardá cambios"}
             </button>
           </div>
         </form>
-      </section>
+        )}
+          </section>
+        </div>
+      </main>
     </div>
   );
 }

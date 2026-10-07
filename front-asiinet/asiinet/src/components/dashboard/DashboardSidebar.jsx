@@ -1,80 +1,107 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import logoAsiinet from "../../assets/brand/logos/logo asiinet.png";
+import "./DashboardSidebar.css";
 
-function DashboardSidebar({ user }) {
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const isAdmin = useMemo(() => user?.role === "admin", [user]);
+function getUserSession() {
+  try {
+    const raw = sessionStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
-  const navigationSections = [
-    {
-      title: "Registrar",
-      icon: "fa-file-signature",
-      active: true,
-      expandable: true,
-      items: [
-        { label: "Vehículo", icon: "fa-car", href: "/vehiculos" },
-        { label: "Empleado", icon: "fa-users", href: "/empleados" },
-        { label: "Tarea", icon: "fa-list-check", href: "/tareas" },
-        ...(isAdmin ? [{ label: "Roles", icon: "fa-lock", href: "/roles" }] : []),
-      ],
-    },
-    {
-      title: "Otros",
-      items: [
-        { label: "Calendario", icon: "fa-calendar-days", href: "/calendario" },
-        { label: "Galería de Fotos", icon: "fa-image", href: "/galeria" },
-      ],
-    },
-    {
-      title: "Información General",
-      items: [{ label: "Documentación", icon: "fa-file", href: "/documentacion" }],
-    },
+function DashboardSidebar() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const menuToggleRef = useRef(null);
+  const user = getUserSession();
+  const role = (user?.role ?? "cliente").toLowerCase();
+  const isAdmin = role === "admin";
+  const isClient = role === "cliente";
+
+  const links = [
+    { label: "Inicio", icon: "fa-house", href: "/home" },
+    { label: isClient ? "Solicitudes" : "Tareas", icon: "fa-list-check", href: "/tareas" },
+    { label: "Galería", icon: "fa-images", href: "/galeria" },
+    ...(isAdmin ? [{ label: "Usuarios", icon: "fa-users", href: "/users" }] : []),
+  ];
+  const upcomingLinks = [
+    { label: "Vehículos", icon: "fa-truck" },
+    { label: "Empleados", icon: "fa-people-group" },
+    { label: "Roles", icon: "fa-user-shield" },
+    { label: "Calendario", icon: "fa-calendar-days" },
+    { label: "Documentación", icon: "fa-file-lines" },
   ];
 
+  useEffect(() => {
+    if (!isMobileMenuOpen) return undefined;
+
+    function handleKeyDown(event) {
+      if (
+        event.key !== "Escape" ||
+        !window.matchMedia("(max-width: 760px)").matches
+      ) {
+        return;
+      }
+
+      setIsMobileMenuOpen(false);
+      menuToggleRef.current?.focus();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isMobileMenuOpen]);
+
   return (
-    <aside className="dashboard-sidebar" aria-label="Navegación principal">
-      <Link className="sidebar-brand" to="/home">
+    <aside className={`dashboard-sidebar${isMobileMenuOpen ? " mobile-menu-open" : ""}`}>
+      <Link className="sidebar-brand" to="/home" aria-label="Asiinet, ir al inicio">
         <span className="sidebar-brand-mark" aria-hidden="true">
-          <i className="fa-solid fa-play"></i>
+          <img src={logoAsiinet} alt="" />
         </span>
         <span>Asiinet</span>
       </Link>
-      <br />
-      <nav className="sidebar-navigation">
-        {navigationSections.map((section) => (
-          <div className="sidebar-section" key={section.title}>
-            {section.expandable ? (
-              <button
-                className={`sidebar-section-heading sidebar-section-button${section.active ? " is-active" : ""}`}
-                type="button"
-                aria-expanded={isRegisterOpen}
-                onClick={() => setIsRegisterOpen((isOpen) => !isOpen)}
-              >
-                <i className={`fa-solid ${section.icon}`} aria-hidden="true"></i>
-                <span>{section.title}</span>
-                <i
-                  className={`fa-solid fa-chevron-down sidebar-chevron${isRegisterOpen ? " is-open" : ""}`}
-                  aria-hidden="true"
-                ></i>
-              </button>
-            ) : (
-              <div className="sidebar-section-heading">
-                <span>{section.title}</span>
-              </div>
-            )}
-            {(!section.expandable || isRegisterOpen) && (
-              <div className="sidebar-section-items">
-                {section.items.map((item) => (
-                  <Link className="sidebar-link" to={item.href} key={item.label}>
-                    <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+
+      <button
+        type="button"
+        className="sidebar-mobile-toggle"
+        ref={menuToggleRef}
+        aria-expanded={isMobileMenuOpen}
+        aria-controls="sidebar-navigation"
+        onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
+      >
+        <i className={`fa-solid ${isMobileMenuOpen ? "fa-xmark" : "fa-bars"}`} aria-hidden="true"></i>
+        <span>{isMobileMenuOpen ? "Cerrar menú" : "Menú"}</span>
+      </button>
+
+      <nav id="sidebar-navigation" className="sidebar-navigation" aria-label="Navegación principal">
+        <p className="sidebar-caption">Operaciones</p>
+        {links.map((item) => (
+          <NavLink
+            className={({ isActive }) => `sidebar-link${isActive ? " is-active" : ""}`}
+            to={item.href}
+            key={item.href}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
+
+        <p className="sidebar-caption sidebar-caption-upcoming">Próximamente</p>
+        {upcomingLinks.map((item) => (
+          <span className="sidebar-link sidebar-link-disabled" aria-disabled="true" key={item.label}>
+            <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
+            <span>{item.label}</span>
+            <small>Próximamente</small>
+          </span>
         ))}
       </nav>
+
+      <div className="sidebar-footer">
+        <span className="sidebar-footer-mark" aria-hidden="true"></span>
+        <span>Gestión de servicios</span>
+      </div>
     </aside>
   );
 }
