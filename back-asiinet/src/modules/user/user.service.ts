@@ -3,6 +3,24 @@ import jwt from "jsonwebtoken";
 import { normalizeRole } from "../../middlewares/auth.js";
 import * as userRepository from "./user.repository.js";
 import { AppError } from "../../middlewares/errors.js";
+import type { User } from "./user.entity.js";
+
+const allowedRegistrationRoles = new Set(["admin", "supervisor", "operador", "cliente"]);
+
+export const normalizeRegistrationRole = (role = "cliente") => {
+  const normalizedRole = normalizeRole(role);
+  return allowedRegistrationRoles.has(normalizedRole) ? normalizedRole : "cliente";
+};
+
+export const toPublicUser = (created: User) => ({
+  id: created.id,
+  nombre: created.nombre || "Usuario",
+  email: created.email,
+  role: normalizeRole(created.role),
+  fechaNacimiento: formatUserDate(created.fechaNacimiento),
+  domicilio: created.domicilio || null,
+  fotoPerfil: created.fotoPerfil || null,
+});
 
 const toLocalDateString = (date: Date): string => {
   const year = date.getFullYear();
@@ -101,9 +119,7 @@ export const register = async (
   const existing = await userRepository.findByEmail(email);
   if (existing) throw AppError.conflict("El usuario ya existe");
 
-  const allowedRoles = new Set(["admin", "supervisor", "operador", "cliente"]);
-  const normalizedRole = normalizeRole(role);
-  const finalRole = allowedRoles.has(normalizedRole) ? normalizedRole : "cliente";
+  const finalRole = normalizeRegistrationRole(role);
   const normalizedName = (nombre ?? "Usuario").trim() || "Usuario";
   const normalizedPhoto = fotoPerfil?.trim() ? fotoPerfil.trim() : null;
   const passwordHash = await bcrypt.hash(password, 10);
@@ -116,15 +132,7 @@ export const register = async (
     fotoPerfil: normalizedPhoto,
   });
 
-  return {
-    id: created.id,
-    nombre: created.nombre || "Usuario",
-    email: created.email,
-    role: normalizeRole(created.role),
-    fechaNacimiento: formatUserDate(created.fechaNacimiento),
-    domicilio: created.domicilio || null,
-    fotoPerfil: created.fotoPerfil || null,
-  };
+  return toPublicUser(created);
 };
 
 export const login = async (email: string, password: string) => {
