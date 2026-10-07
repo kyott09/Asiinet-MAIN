@@ -30,7 +30,6 @@ const makeStore = (
   const users = new Map(initialUsers.map((user) => [user.id, { ...user }]));
   let lock: Promise<void> = Promise.resolve();
 
-  const findById = async (id: number) => users.get(id) ?? null;
   const findByEmail = async (email: string) =>
     [...users.values()].find((user) => user.email === email) ?? null;
   const updateUser = async (id: number, data: Partial<User>) => {
@@ -44,7 +43,6 @@ const makeStore = (
 
   const store: UserManagementStore = {
     findAll: async () => [...users.values()],
-    findById,
     findByEmail,
     create: async (data) => {
       const id = Math.max(0, ...users.keys()) + 1;
@@ -65,7 +63,7 @@ const makeStore = (
         return await operation(
           admins,
           {
-            findById,
+            findByIdForUpdate: async (id) => users.get(id) ?? null,
             findByEmail,
             countTaskAssignments: async (id) => taskAssignments[id] ?? { client: 0, employee: 0 },
             updateUser,
