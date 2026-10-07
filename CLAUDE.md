@@ -103,7 +103,7 @@ El punto de entrada es `src/main.jsx`; monta `App` dentro de `StrictMode`. `App.
 | `/register` | Registro | Pública; envía `role: "user"` para registrar un usuario tipo cliente. |
 | `/home` | Inicio | Requiere usuario en `sessionStorage`. |
 | `/profile` | Perfil | Requiere sesión; carga y actualiza el perfil por API. |
-| `/users` | Usuarios | Protegida en frontend para `role === "admin"`; es un aviso de función no conectada, no un CRUD. |
+| `/users` | Usuarios | Protegida en frontend para `role === "admin"`; permite listar, crear, editar y eliminar cuentas mediante la API. |
 | `/galeria` | Galería | Requiere sesión; muestra imágenes locales. |
 | `/tareas` | Tareas/solicitudes | Requiere sesión; CRUD y vistas dependen del rol. |
 
@@ -112,7 +112,7 @@ No hay ruta catch-all/404 definida. No se debe asumir que otros enlaces implican
 ### Estado de sesión en navegador
 
 - Login hace `POST /api/users/login`, manda `credentials: "include"` y guarda `data.user` en `sessionStorage` con clave `user`.
-- Las rutas protegidas consultan ese valor localmente; por sí solas no validan el JWT contra el servidor.
+- Las rutas protegidas consultan ese valor localmente para renderizar; cada request autenticado del backend valida el JWT y obtiene el rol actual desde la base.
 - Las solicitudes autenticadas deben usar `credentials: "include"` para enviar la cookie.
 - La página de perfil sincroniza el usuario tras leerlo o actualizarlo y emite el evento `asiinet:user-updated`; `AccountActions` escucha ese evento y el evento `storage`.
 - Logout llama `POST /api/users/logout` e igualmente limpia el estado local si la petición falla.
@@ -124,7 +124,7 @@ No hay ruta catch-all/404 definida. No se debe asumir que otros enlaces implican
 - `src/pages/Home.jsx`: introducción y servicios; no es un tablero de métricas de la API.
 - `src/pages/Profile.jsx`: perfil, incluido `fotoPerfil` como Data URL leído en el navegador.
 - `src/pages/Tareas.jsx`: listado, búsqueda/filtro, formularios, confirmación de borrado, tabla y representación para móvil.
-- `src/pages/Users.jsx`: explica que la gestión de usuarios todavía no está conectada.
+- `src/pages/Users.jsx`: gestión administrativa de usuarios, con tabla adaptable, alta, edición de nombre/email/rol y borrado confirmado.
 - `src/pages/Gallery.jsx`: carrusel local con `foto1.jpg`, `foto2.jpg` y `foto3.jpg`; controles y puntos están en `components/gallery/`.
 - `components/dashboard/DashboardSidebar.jsx` y `AccountActions.jsx`: navegación y cuenta compartidas por las páginas del panel.
 - Estilos globales en `src/index.css` y `src/App.css`; estilos específicos junto a páginas/componentes. Mantener los patrones CSS existentes antes de sumar un sistema nuevo.
@@ -152,14 +152,18 @@ Todas las rutas, salvo que se indique, están bajo `/api`. Las rutas de usuarios
 | `PUT /users/me` | Sí | Actualiza `nombre`, `email`, `fechaNacimiento`, `domicilio` y `fotoPerfil`; devuelve `{ message, user }`. |
 | `GET /users/assignables` | Sí + `users:read` | Devuelve `{ clients, employees }`, con elementos `{ id, nombre, email }`. Solo alimenta los selectores de tareas; no es una API general de administración. |
 | `GET /users/admin-only` | Sí + rol admin | Endpoint de comprobación de acceso administrativo. |
+| `GET /users` | Sí + `users:write` | Solo admin. Devuelve `{ users }` con `id`, `nombre`, `email`, `role` y `creadoEn`; nunca incluye `passwordHash`. |
+| `POST /users` | Sí + `users:write` | Alta administrativa con `{ nombre, email, password, role }`; valida rol y contraseña de 8–72 bytes UTF-8, devuelve `{ user }` sin hash. |
+| `PUT /users/:id` | Sí + `users:write` | Actualiza únicamente `nombre`, `email` y/o `role`; devuelve `{ user }` sin hash. Protege al último admin y los roles compatibles con asignaciones de tareas. |
+| `DELETE /users/:id` | Sí + `users:write` | Elimina un usuario sin tareas asociadas; no permite autoeliminación ni eliminar al último admin. Devuelve `{ message }`. |
 | `GET /tasks` | Sí + `tasks:read` | Devuelve `{ tasks }`, filtradas por visibilidad del rol. |
 | `POST /tasks` | Sí + `tasks:create` | Crea tarea/solicitud; devuelve `{ task }` con HTTP 201. |
 | `PUT /tasks/:id` | Sí + `tasks:update` + acceso a esa tarea | Actualiza campos permitidos según rol; devuelve `{ task }`. |
 | `DELETE /tasks/:id` | Sí + `tasks:delete` + acceso | Elimina y devuelve `{ message: "Tarea eliminada" }`. |
 
-La cookie se lee directamente desde `Cookie` por el middleware; el cliente no necesita ni debe mover el token a `localStorage`. El frontend confía en la cookie y guarda localmente solo la representación pública del usuario para renderizar/navegar.
+La cookie se lee directamente desde `Cookie` por el middleware; el cliente no necesita ni debe mover el token a `localStorage`. El frontend guarda localmente solo la representación pública del usuario para renderizar/navegar. `requireAuth` consulta la fila del usuario en cada request autenticado y usa el email/rol actuales de la base; un usuario borrado recibe 401 aunque su JWT aún no haya vencido. El JWT conserva la expiración de una hora y su contrato no cambia.
 
-**Límite importante del registro actual:** el controlador pasa `role` del cuerpo directamente al servicio; el servicio admite los roles canónicos `admin`, `supervisor`, `operador` y `cliente`. El formulario frontend manda siempre `user`, pero esa restricción no se impone en el endpoint backend. No asumir que el registro de API impide por sí mismo solicitar un rol privilegiado.
+El registro público fija siempre `role: "cliente"` en el controlador e ignora el valor enviado por el frontend. El backend del registro público todavía no impone longitud de contraseña; el formulario actual requiere seis caracteres. No se debe asumir que esa validación de interfaz reemplaza una validación de servidor. El alta administrativa impone entre 8 y 72 bytes UTF-8, sin reglas de complejidad.
 
 Aunque el archivo de ejemplo puede contener `JWT_EXPIRES_IN`, el servicio de login firma actualmente el JWT con una expiración fija de una hora; no lee esa variable.
 
@@ -185,11 +189,13 @@ El permiso general no reemplaza las comprobaciones por recurso:
 
 La API de tareas filtra las listas en el servicio; `requireTaskAccess` además comprueba la tarea concreta al actualizar o borrar. No confiar solo en el filtrado de frontend ni debilitar middleware para resolver un problema visual.
 
-Nota de implementación: los permisos de usuario registrados no equivalen a una API CRUD completa. Aunque existen `users:write` y una pantalla `/users`, las rutas actuales no implementan listado general, alta administrativa, cambio de rol ni borrado de usuarios.
+El listado administrativo completo usa `users:write` (solo admin); `users:read` no permite enumerar todas las cuentas. `GET /users/assignables` conserva su permiso y contrato actuales.
+
+Para proteger al último administrador, las operaciones de cambio de rol/borrado ejecutan una transacción que bloquea con `pessimistic_write` las filas de administradores antes de contar. No se puede quitar el propio rol de admin ni eliminar la propia cuenta. El borrado se rechaza si el usuario figura como cliente u operador de una tarea, porque esas relaciones usan `onDelete: SET NULL`; los cambios de rol que contradicen asignaciones existentes también se rechazan. No existe cambio de contraseña propio ni restablecimiento administrativo.
 
 ## Reglas y datos de tareas
 
-Entidad TypeORM `Task` en tabla `tareas`. Campos principales: `id`, texto `client`/`employee`, relaciones opcionales con usuarios a través de `clientId`/`employeeId`, `createdAt`, `dueDate`, `description`, `service`, `priority` y `status`. Si se elimina un usuario relacionado, la relación queda en `NULL` (`onDelete: SET NULL`).
+Entidad TypeORM `Task` en tabla `tareas`. Campos principales: `id`, texto `client`/`employee`, relaciones opcionales con usuarios a través de `clientId`/`employeeId`, `createdAt`, `dueDate`, `description`, `service`, `priority` y `status`. La API administrativa impide eliminar usuarios con referencias a tareas antes de que aplique el `onDelete: SET NULL`.
 
 - Servicios aceptados: `Instalación`, `Reconexión`, `Servicio técnico`, `Desconexión`.
 - Prioridad: `Baja`, `Media`, `Alta`.
@@ -212,12 +218,11 @@ Entidad `User` en tabla `usuarios`: `id`, `nombre`, `email` único, `passwordHas
 
 ## Límites funcionales: no presentar como implementado
 
-- Gestión general de usuarios (CRUD), roles editables y listado administrativo.
 - Vehículos, cuadrillas, empleados como módulo independiente, stock/materiales, mantenimiento, métricas/rendimiento, calendario y documentación.
 - Rutas de frontend distintas a las de la tabla de navegación.
 - Cualquier dato ficticio que se presente como proveniente de API.
 
-La pantalla Inicio describe el dominio y funciones futuras; `/users` informa que no está conectada. La galería usa recursos estáticos, no un endpoint.
+La pantalla Inicio describe el dominio y funciones futuras. La galería usa recursos estáticos, no un endpoint.
 
 ## Pruebas y archivos de pruebas
 

@@ -60,7 +60,7 @@ Las rutas registradas en `src/routes/AppRoutes.jsx` son:
 | `/register` | Crear cuenta | Registro con nombre, email y contraseña. |
 | `/home` | Inicio | Introducción al sistema y conceptos generales. Requiere sesión. |
 | `/profile` | Perfil | Editar nombre, email, foto, fecha de nacimiento y domicilio. Requiere sesión. |
-| `/users` | Usuarios | Protegida para `role === "admin"`; actualmente muestra datos de ejemplo estáticos, no un listado cargado desde API. |
+| `/users` | Usuarios | Protegida para `role === "admin"`; lista usuarios reales y permite alta, edición de nombre/email/rol y eliminación confirmada. |
 | `/galeria` | Galería de fotos | Protegida; utiliza tres fotos locales. |
 | `/tareas` | Tareas | Protegida; CRUD conectado a la API. |
 
@@ -78,6 +78,9 @@ No se ve una ruta catch-all para direcciones desconocidas. Considerar una pantal
 - La navegación protegida redirige a `/login` cuando no encuentra usuario en `sessionStorage`; `/users` requiere rol `admin`.
 - Cierre de sesión: `POST /api/users/logout`, con `credentials: "include"`, y posterior limpieza del usuario local.
 - Las peticiones autenticadas deben conservar `credentials: "include"`.
+- La gestión administrativa usa `GET`/`POST /api/users` y `PUT`/`DELETE /api/users/:id`; el servidor exige `users:write` (solo admin).
+- El alta administrativa requiere contraseña de entre 8 y 72 bytes UTF-8. No hay flujo para cambiar la contraseña propia ni para restablecer la de otro usuario.
+- El middleware vuelve a cargar el rol actual desde la base en cada request autenticado; no cambiar la cookie ni el contrato JWT para implementar gestión de usuarios.
 - Mostrar estados de carga y errores de la API; no reemplazarlos por éxito ficticio.
 
 ### Perfil
@@ -141,7 +144,7 @@ La pantalla de tareas sí permite actualmente registrar y cambiar estado de tare
 - Hay cambios locales preexistentes sin confirmar. Revisar `git status` antes de editar y preservar cualquier trabajo existente.
 - En el árbol inspeccionado, `Gallery.jsx` hace referencia a `AccountActions` y `GalleryCarousel`, pero no aparecen importados en ese archivo. Verificar y corregir este tipo de inconsistencias al reconstruir; no asumir que toda la interfaz actual compila o está terminada.
 - El registro pide “Usuario” y “Nombre completo”, pero el backend solo persiste `nombre`; el nombre de usuario no es un campo del modelo actual.
-- La pantalla `/users` es una muestra estática. El endpoint de usuarios disponible en este momento se limita a datos del usuario actual y usuarios asignables para las tareas; no hay un endpoint general de administración CRUD en las rutas inspeccionadas.
+- `/users/assignables` sigue alimentando los selectores de tareas; no sustituye al listado administrativo, que usa `users:write`.
 - No copiar secretos ni datos de `.env` a código, documentación pública o mensajes.
 
 ## Criterios de aceptación sugeridos
