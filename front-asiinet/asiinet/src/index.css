@@ -1,110 +1,189 @@
 :root {
-  --orange: #F65C17;
-  --orange-dark: #A5350F;
-  --graphite: #302824;
-  --black: #13110F;
-  --metal-gray: #B6BEB5;
-  --light-gray: #EBF1EB;
-  --gray: #83837C;
-
-  --text: var(--graphite);
-  --text-h: var(--black);
-  --bg: #ffffff;
-  --border: var(--black);
-  --code-bg: var(--light-gray);
-  --accent: var(--orange);
-  --accent-dark: var(--orange-dark);
-  --accent-bg: rgba(246, 92, 23, 0.12);
-  --accent-border: rgba(246, 23, 23, 0.5);
-  --social-bg: rgba(246, 92, 23, 0.08);
-  --shadow: rgba(19, 17, 15, 0.12) 0 12px 24px -18px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light;
+  font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
   color: var(--text);
-  background: var(--light-gray);
+  background: var(--canvas);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --orange: #F65C17;
+  --orange-dark: #A5350F;
+  /* El blanco sobre #F65C17 tiene 3,25:1 y no alcanza WCAG AA; usar grafito sobre ese naranja y reservar el blanco para #A5350F. */
+  --white: #fff;
+  --white-warm: #fff8f4;
+  --graphite: #302824;
+  --warm-black: #13110F;
+  --ink: var(--graphite);
+  --text: #403832;
+  --text-muted: #665F58;
+  --surface: #FFFFFF;
+  --surface-soft: #F5F7F4;
+  --canvas: #EBF1EB;
+  --line: rgba(48, 40, 36, 0.16);
+  --black: var(--warm-black);
+  --bg: var(--surface);
+  --action: var(--orange-dark);
+  --action-hover: var(--orange-dark);
+  --sans: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  --heading: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  --mono: "SFMono-Regular", Consolas, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+
+  --shadow-soft: 0 10px 28px -20px rgba(19, 17, 15, 0.3);
+  --shadow-raised: 0 22px 56px -32px rgba(19, 17, 15, 0.38);
+
+  --z-base: 0;
+  --z-sidebar: 10;
+  --z-menu: 20;
+  --z-overlay: 30;
+  --z-dialog: 40;
+
+  --focus-ring: 0 0 0 3px rgba(246, 92, 23, 0.24);
+  --transition-fast: 180ms ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--canvas);
 }
 
 body {
+  min-width: 320px;
+  min-height: 100dvh;
   margin: 0;
-  background: #efefeb;
   color: var(--text);
+  background: var(--canvas);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
 }
 
-#root {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  text-align: center;
-  border-inline: 0;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  background: #efefeb;
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
-#root:has(.dashboard-layout) {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  border-inline: 0;
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: var(--orange-dark);
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
 }
 
 h1,
-h2 {
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--ink);
   font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+  line-height: 1.15;
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: clamp(2rem, 3vw, 2.7rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
 }
+
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
 
+h3 {
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+#root {
+  min-height: 100dvh;
+  width: 100%;
+}
+
+.skip-link {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: var(--z-overlay);
+  padding: var(--space-3) var(--space-4);
+  transform: translateY(calc(-100% - var(--space-6)));
+  border-radius: var(--radius-sm);
+  background: var(--warm-black);
+  color: var(--surface);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  color: var(--surface);
+}
+
+p {
+  max-width: 65ch;
+  text-wrap: pretty;
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
   }
 }
-p {
-  margin: 0;
+
+::selection {
+  color: var(--ink);
+  background: rgba(246, 92, 23, 0.2);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

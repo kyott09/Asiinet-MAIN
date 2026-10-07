@@ -1,7 +1,26 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { normalizeRole } from "../../middlewares/auth.js";
 import * as userRepository from "./user.repository.js";
 import { AppError } from "../../middlewares/errors.js";
+import type { User } from "./user.entity.js";
+
+const allowedRegistrationRoles = new Set(["admin", "supervisor", "operador", "cliente"]);
+
+export const normalizeRegistrationRole = (role = "cliente") => {
+  const normalizedRole = normalizeRole(role);
+  return allowedRegistrationRoles.has(normalizedRole) ? normalizedRole : "cliente";
+};
+
+export const toPublicUser = (created: User) => ({
+  id: created.id,
+  nombre: created.nombre || "Usuario",
+  email: created.email,
+  role: normalizeRole(created.role),
+  fechaNacimiento: formatUserDate(created.fechaNacimiento),
+  domicilio: created.domicilio || null,
+  fotoPerfil: created.fotoPerfil || null,
+});
 
 const toLocalDateString = (date: Date): string => {
   const year = date.getFullYear();
@@ -67,17 +86,40 @@ export const normalizeDateOnlyValue = (value: Date | string | null | undefined):
   return null;
 };
 
+export const parseDateOnlyToDate = (value: string | null | undefined): Date | null => {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return null;
+  }
+
+  const [year, month, day] = trimmed.split("-").map(Number);
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const parsed = new Date(year, month - 1, day);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+};
+
 export const register = async (
   email: string,
   password: string,
-  role: string = "user",
+  role: string = "cliente",
   nombre?: string,
   fotoPerfil?: string | null
 ) => {
   const existing = await userRepository.findByEmail(email);
   if (existing) throw AppError.conflict("El usuario ya existe");
 
-  const normalizedRole = role === "admin" ? "admin" : "user";
+  const finalRole = normalizeRegistrationRole(role);
   const normalizedName = (nombre ?? "Usuario").trim() || "Usuario";
   const normalizedPhoto = fotoPerfil?.trim() ? fotoPerfil.trim() : null;
   const passwordHash = await bcrypt.hash(password, 10);
@@ -86,19 +128,11 @@ export const register = async (
     email,
     nombre: normalizedName,
     passwordHash,
-    role: normalizedRole,
+    role: finalRole,
     fotoPerfil: normalizedPhoto,
   });
 
-  return {
-    id: created.id,
-    nombre: created.nombre || "Usuario",
-    email: created.email,
-    role: created.role || "user",
-    fechaNacimiento: formatUserDate(created.fechaNacimiento),
-    domicilio: created.domicilio || null,
-    fotoPerfil: created.fotoPerfil || null,
-  };
+  return toPublicUser(created);
 };
 
 export const login = async (email: string, password: string) => {
@@ -125,7 +159,7 @@ export const login = async (email: string, password: string) => {
     {
       id: user.id,
       email: user.email,
-      role: user.role || "user",
+      role: normalizeRole(user.role),
     },
     jwtSecret,
     {
@@ -139,7 +173,7 @@ export const login = async (email: string, password: string) => {
       id: user.id,
       nombre: user.nombre || "Usuario",
       email: user.email,
-      role: user.role || "user",
+      role: normalizeRole(user.role),
       fechaNacimiento: formatUserDate(user.fechaNacimiento),
       domicilio: user.domicilio || null,
       fotoPerfil: user.fotoPerfil || null,
@@ -157,7 +191,7 @@ export const getCurrentUserData = async (userId: number) => {
     id: user.id,
     nombre: user.nombre || "Usuario",
     email: user.email,
-    role: user.role || "user",
+    role: normalizeRole(user.role),
     fechaNacimiento: formatUserDate(user.fechaNacimiento),
     domicilio: user.domicilio || null,
     fotoPerfil: user.fotoPerfil || null,
@@ -182,7 +216,11 @@ export const updateProfile = async (
 
   const nextName = (payload.nombre ?? user.nombre ?? "Usuario").trim() || "Usuario";
   const nextEmail = payload.email ?? user.email;
-  const nextFechaNacimiento = payload.fechaNacimiento !== undefined ? normalizeDateOnlyValue(payload.fechaNacimiento) : normalizeDateOnlyValue(user.fechaNacimiento);
+  const nextFechaNacimiento = payload.fechaNacimiento !== undefined
+    ? parseDateOnlyToDate(payload.fechaNacimiento)
+    : user.fechaNacimiento instanceof Date
+      ? user.fechaNacimiento
+      : parseDateOnlyToDate(normalizeDateOnlyValue(user.fechaNacimiento));
   const nextDomicilio = payload.domicilio !== undefined ? (payload.domicilio ?? null) : user.domicilio ?? null;
   const nextFotoPerfil = payload.fotoPerfil !== undefined ? (payload.fotoPerfil?.trim() || null) : user.fotoPerfil ?? null;
 
@@ -202,9 +240,21 @@ export const updateProfile = async (
     id: updatedUser.id,
     nombre: updatedUser.nombre || "Usuario",
     email: updatedUser.email,
-    role: updatedUser.role || "user",
+    role: normalizeRole(updatedUser.role),
     fechaNacimiento: formatUserDate(updatedUser.fechaNacimiento),
     domicilio: updatedUser.domicilio || null,
     fotoPerfil: updatedUser.fotoPerfil || null,
+  };
+};
+
+export const getAssignableUsers = async () => {
+  const [clients, operators] = await Promise.all([
+    userRepository.findByRole("cliente"),
+    userRepository.findByRoles(["operador", "empleado"]),
+  ]);
+
+  return {
+    clients: clients.map((user) => ({ id: user.id, nombre: user.nombre || "Usuario", email: user.email })),
+    employees: operators.map((user) => ({ id: user.id, nombre: user.nombre || "Usuario", email: user.email })),
   };
 };

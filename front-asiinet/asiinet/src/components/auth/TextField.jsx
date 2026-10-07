@@ -10,7 +10,7 @@ function TextField({
 }) {
   return (
     <label className="auth-field" htmlFor={id}>
-      <span className="sr-only">{label}</span>
+      <span className="auth-field-label">{label}</span>
       <input
         id={id}
         type={type}

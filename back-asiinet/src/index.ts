@@ -6,25 +6,23 @@ import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./database/data-source.js";
 import { User } from "./modules/user/user.entity.js";
+import { ensureDefaultUsers } from "./database/seed-default-users.js";
 import userRoutes from "./modules/user/user.routes.js";
-import { Brand } from "./modules/brand/brand.entity.js";
+import taskRoutes from "./modules/task/task.routes.js";
 import brandRoutes from "./modules/brand/brand.routes.js";
-import { VehicleModel } from "./modules/vehicle-model/vehicle-model.entity.js";
 import vehicleModelRoutes from "./modules/vehicle-model/vehicle-model.routes.js";
-import { Vehicle } from "./modules/vehicle/vehicle.entity.js";
 import vehicleRoutes from "./modules/vehicle/vehicle.routes.js";
 import { notFoundHandler, errorHandler } from "./middlewares/errors.js";
 
 const app = express();
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
-
+const allowedOrigins = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"];
 
 const ensureDefaultAdmin = async () => {
   const repo = AppDataSource.getRepository(User);
   const existingAdmin = await repo.findOneBy({ email: "admin@asiinet.com" });
 
   if (!existingAdmin) {
-    const passwordHash = await bcrypt.hash("123456", 10);
+    const passwordHash = await bcrypt.hash(getInitialAccountsPassword(), 10);
 
     await repo.save(
       repo.create({
@@ -35,8 +33,30 @@ const ensureDefaultAdmin = async () => {
       })
     );
 
-    console.log("Usuario administrador creado: admin@asiinet.com / 123456");
+    console.log("Usuario administrador inicial creado");
   }
+};
+
+const getInitialAccountsPassword = () => {
+  const password = process.env.INITIAL_ACCOUNTS_PASSWORD?.trim();
+
+  if (process.env.NODE_ENV === "production" && (!password || password === "123456")) {
+    throw new Error(
+      "Configura INITIAL_ACCOUNTS_PASSWORD con una contraseña segura antes de iniciar en producción"
+    );
+  }
+
+  return password || "123456";
+};
+
+const ensureDefaultDemoUsers = async () => {
+  const repo = AppDataSource.getRepository(User);
+
+  await ensureDefaultUsers(
+    (email) => repo.findOneBy({ email }),
+    (user) => repo.save(repo.create(user)),
+    getInitialAccountsPassword()
+  );
 };
 
 app.use(
@@ -56,7 +76,7 @@ app.use(
 );
 app.use(express.json());
 app.use("/api/users", userRoutes);
-
+app.use("/api/tasks", taskRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/vehicle-models", vehicleModelRoutes);
 app.use("/api/vehicles", vehicleRoutes);
@@ -64,12 +84,11 @@ app.use("/api/vehicles", vehicleRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-
-
 AppDataSource.initialize()
   .then(async () => {
     console.log("Base de datos conectada");
     await ensureDefaultAdmin();
+    await ensureDefaultDemoUsers();
     app.listen(process.env.PORT || 8080, () => {
       console.log(`Servidor en puerto ${process.env.PORT || 8080}`);
     });
