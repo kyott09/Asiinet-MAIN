@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import AccountActions from "../components/dashboard/AccountActions";
 import CalendarHeader from "../components/calendar/CalendarHeader";
 import CalendarGrid from "../components/calendar/CalendarGrid";
 import CalendarEventModal from "../components/calendar/CalendarEventModal";
@@ -107,6 +108,7 @@ function Calendar() {
       <DashboardSidebar />
 
       <main className="dashboard-content calendar-page">
+        <AccountActions />
         <h1>Calendario</h1>
 
         <div className="calendar-container">

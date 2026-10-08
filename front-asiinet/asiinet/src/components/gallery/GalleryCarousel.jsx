@@ -100,6 +100,9 @@ function GalleryCarousel({ photos }) {
                 src={photo.src}
                 alt={photo.alt}
               />
+              <div className="gallery-caption">
+                <p>{photo.alt}</p>
+              </div>
             </div>
           ))}
         </div>

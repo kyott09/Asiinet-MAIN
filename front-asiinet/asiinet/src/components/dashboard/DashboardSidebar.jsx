@@ -24,13 +24,13 @@ function DashboardSidebar() {
     { label: "Inicio", icon: "fa-house", href: "/home" },
     { label: isClient ? "Solicitudes" : "Tareas", icon: "fa-list-check", href: "/tareas" },
     { label: "Galería", icon: "fa-images", href: "/galeria" },
+    { label: "Calendario", icon: "fa-calendar-days", href: "/calendario" },
     ...(isAdmin ? [{ label: "Usuarios", icon: "fa-users", href: "/users" }] : []),
   ];
   const upcomingLinks = [
     { label: "Vehículos", icon: "fa-truck" },
     { label: "Empleados", icon: "fa-people-group" },
     { label: "Roles", icon: "fa-user-shield" },
-    { label: "Calendario", icon: "fa-calendar-days" },
     { label: "Documentación", icon: "fa-file-lines" },
   ];
 
