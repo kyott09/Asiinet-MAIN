@@ -36,6 +36,8 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     "tasks:update",
     "tasks:delete",
     "gallery:read",
+    "calendar:read",
+    "calendar:write",
   ],
   supervisor: [
     "users:read",
@@ -43,12 +45,16 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     "tasks:create",
     "tasks:update",
     "gallery:read",
+    "calendar:read",
+    "calendar:write",
   ],
   operador: [
     "tasks:read",
     "tasks:create",
     "tasks:update",
     "gallery:read",
+    "calendar:read",
+    "calendar:write",
   ],
   cliente: [
     "users:read",
