@@ -63,8 +63,9 @@ Las rutas registradas en `src/routes/AppRoutes.jsx` son:
 | `/users` | Usuarios | Protegida para `role === "admin"`; lista usuarios reales y permite alta, edición de nombre/email/rol y eliminación confirmada. |
 | `/galeria` | Galería de fotos | Protegida; utiliza tres fotos locales. |
 | `/tareas` | Tareas | Protegida; CRUD conectado a la API. |
+| `/calendario` | Calendario | Protegida (`admin`, `supervisor`, `operador`); eventos con persistencia en API. Clientes sin acceso. |
 
-La barra lateral también muestra enlaces a `/vehiculos`, `/empleados`, `/roles`, `/calendario` y `/documentacion`, pero esas rutas no están implementadas en el router actual. No tratarlas como pantallas existentes ni simular que guardan datos reales. Se pueden proponer en una fase futura.
+La barra lateral también muestra enlaces como próximos a `/vehiculos`, `/empleados`, `/roles` y `/documentacion`, pero esas rutas no están implementadas en el router actual. No tratarlas como pantallas existentes ni simular que guardan datos reales. Se pueden proponer en una fase futura.
 
 No se ve una ruta catch-all para direcciones desconocidas. Considerar una pantalla 404 en la reconstrucción, sin cambiar las rutas válidas.
 

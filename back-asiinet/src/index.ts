@@ -12,6 +12,7 @@ import taskRoutes from "./modules/task/task.routes.js";
 import brandRoutes from "./modules/brand/brand.routes.js";
 import vehicleModelRoutes from "./modules/vehicle-model/vehicle-model.routes.js";
 import vehicleRoutes from "./modules/vehicle/vehicle.routes.js";
+import eventRoutes from "./modules/event/event.routes.js";
 import { notFoundHandler, errorHandler } from "./middlewares/errors.js";
 
 const app = express();
@@ -80,6 +81,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/vehicle-models", vehicleModelRoutes);
 app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/events", eventRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

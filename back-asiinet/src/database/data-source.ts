@@ -6,6 +6,7 @@ import { Brand } from "../modules/brand/brand.entity.js";
 import { VehicleModel } from "../modules/vehicle-model/vehicle-model.entity.js";
 import { Vehicle } from "../modules/vehicle/vehicle.entity.js";
 import { Task } from "../modules/task/task.entity.js";
+import { Event } from "../modules/event/event.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -15,5 +16,5 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   synchronize: true,
-  entities: [User, Task, Brand, VehicleModel, Vehicle],
+  entities: [User, Task, Brand, VehicleModel, Vehicle, Event],
 });

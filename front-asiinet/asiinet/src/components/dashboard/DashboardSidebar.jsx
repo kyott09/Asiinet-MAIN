@@ -24,7 +24,7 @@ function DashboardSidebar() {
     { label: "Inicio", icon: "fa-house", href: "/home" },
     { label: isClient ? "Solicitudes" : "Tareas", icon: "fa-list-check", href: "/tareas" },
     { label: "Galería", icon: "fa-images", href: "/galeria" },
-    { label: "Calendario", icon: "fa-calendar-days", href: "/calendario" },
+    ...(!isClient ? [{ label: "Calendario", icon: "fa-calendar-days", href: "/calendario" }] : []),
     ...(isAdmin ? [{ label: "Usuarios", icon: "fa-users", href: "/users" }] : []),
   ];
   const upcomingLinks = [

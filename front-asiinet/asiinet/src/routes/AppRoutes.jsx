@@ -19,7 +19,7 @@ function getUserSession() {
   }
 }
 
-function ProtectedRoute({ children, requireAdmin = false }) {
+function ProtectedRoute({ children, requireAdmin = false, allowedRoles = null }) {
   const user = getUserSession();
 
   if (!user) {
@@ -27,6 +27,10 @@ function ProtectedRoute({ children, requireAdmin = false }) {
   }
 
   if (requireAdmin && user.role !== "admin") {
+    return <Navigate to="/home" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/home" replace />;
   }
 
@@ -90,7 +94,7 @@ function AppRoutes() {
         <Route
           path="/calendario"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["admin", "supervisor", "operador"]}>
               <Calendar />
             </ProtectedRoute>
           }

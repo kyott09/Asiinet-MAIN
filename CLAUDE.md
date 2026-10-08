@@ -106,8 +106,9 @@ El punto de entrada es `src/main.jsx`; monta `App` dentro de `StrictMode`. `App.
 | `/users` | Usuarios | Protegida en frontend para `role === "admin"`; permite listar, crear, editar y eliminar cuentas mediante la API. |
 | `/galeria` | Galería | Requiere sesión; muestra imágenes locales. |
 | `/tareas` | Tareas/solicitudes | Requiere sesión; CRUD y vistas dependen del rol. |
+| `/calendario` | Calendario | Protegida en frontend para `admin`, `supervisor` y `operador`; gestión de eventos con persistencia API. Clientes sin acceso. |
 
-No hay ruta catch-all/404 definida. No se debe asumir que otros enlaces implican pantallas implementadas: vehículos, empleados, roles, calendario y documentación no tienen rutas activas en el router.
+No hay ruta catch-all/404 definida. No se debe asumir que otros enlaces implican pantallas implementadas: vehículos, empleados, roles y documentación no tienen rutas activas en el router.
 
 ### Estado de sesión en navegador
 
@@ -160,6 +161,10 @@ Todas las rutas, salvo que se indique, están bajo `/api`. Las rutas de usuarios
 | `POST /tasks` | Sí + `tasks:create` | Crea tarea/solicitud; devuelve `{ task }` con HTTP 201. |
 | `PUT /tasks/:id` | Sí + `tasks:update` + acceso a esa tarea | Actualiza campos permitidos según rol; devuelve `{ task }`. |
 | `DELETE /tasks/:id` | Sí + `tasks:delete` + acceso | Elimina y devuelve `{ message: "Tarea eliminada" }`. |
+| `GET /events` | Sí + `calendar:read` | Devuelve eventos filtrados opcionalmente por `?month=YYYY-MM`, con indicador `esPropio`. Lectura para `admin`, `supervisor`, `operador`. |
+| `POST /events` | Sí + `calendar:write` | Crea evento con `{ titulo, tipo, fecha, descripcion? }` asignando el usuario creador del JWT. Tipos fijos: `reunion`, `cumpleanos`, `capacitacion`, `licencia`, `otro`. |
+| `PUT /events/:id` | Sí + `calendar:write` | Actualiza un evento existente. Solo el usuario creador puede modificarlo (403 para ajenos, incluidos admins). |
+| `DELETE /events/:id` | Sí + `calendar:write` | Elimina un evento existente. Solo el usuario creador puede eliminarlo (403 para ajenos, incluidos admins). |
 
 La cookie se lee directamente desde `Cookie` por el middleware; el cliente no necesita ni debe mover el token a `localStorage`. El frontend guarda localmente solo la representación pública del usuario para renderizar/navegar. `requireAuth` consulta la fila del usuario en cada request autenticado y usa el email/rol actuales de la base; un usuario borrado recibe 401 aunque su JWT aún no haya vencido. El JWT conserva la expiración de una hora y su contrato no cambia.
 
@@ -167,7 +172,7 @@ El registro público fija siempre `role: "cliente"` en el controlador e ignora e
 
 Aunque el archivo de ejemplo puede contener `JWT_EXPIRES_IN`, el servicio de login firma actualmente el JWT con una expiración fija de una hora; no lee esa variable.
 
-## Roles, permisos y aislamiento de tareas
+## Roles, permisos y aislamiento de tareas y eventos
 
 Roles canónicos: `admin`, `supervisor`, `operador`, `cliente`. Alias normalizados por el backend: `user` y `client` → `cliente`; `empleado` y `employee` → `operador`.
 
@@ -175,10 +180,10 @@ Permisos declarados en `middlewares/auth.ts`:
 
 | Rol | Permisos generales |
 | --- | --- |
-| `admin` | Usuarios leer/escribir; tareas leer/crear/actualizar/eliminar; galería leer. |
-| `supervisor` | Usuarios leer; tareas leer/crear/actualizar; galería leer. |
-| `operador` | Tareas leer/crear/actualizar; galería leer. |
-| `cliente` | Usuarios leer; tareas leer/crear/actualizar; galería leer. |
+| `admin` | Usuarios leer/escribir; tareas leer/crear/actualizar/eliminar; galería leer; calendario leer/escribir. |
+| `supervisor` | Usuarios leer; tareas leer/crear/actualizar; galería leer; calendario leer/escribir. |
+| `operador` | Tareas leer/crear/actualizar; galería leer; calendario leer/escribir. |
+| `cliente` | Usuarios leer; tareas leer/crear/actualizar; galería leer. (Sin acceso a calendario). |
 
 El permiso general no reemplaza las comprobaciones por recurso:
 
@@ -212,13 +217,15 @@ Las validaciones por rol difieren: no agregar campos a los payloads del cliente/
 
 ## Base de datos y modelo de usuario
 
-`database/data-source.ts` conecta a MySQL mediante `mysql2` y registra las entidades `User`/`Task`. `synchronize: true` sincroniza el esquema al iniciar; no hay migraciones TypeORM configuradas en el proyecto. Es conveniente para el entorno actual, pero los cambios de esquema requieren cautela antes de usarse con datos de producción.
+`database/data-source.ts` conecta a MySQL mediante `mysql2` y registra las entidades `User`, `Task` y `Event`. `synchronize: true` sincroniza el esquema al iniciar; no hay migraciones TypeORM configuradas en el proyecto. Es conveniente para el entorno actual, pero los cambios de esquema requieren cautela antes de usarse con datos de producción.
 
 Entidad `User` en tabla `usuarios`: `id`, `nombre`, `email` único, `passwordHash`, `role`, `fechaNacimiento`, `domicilio`, `fotoPerfil` y `creadoEn`. Las contraseñas se guardan con bcrypt; nunca serializar `passwordHash` en respuestas. El perfil permite almacenar una imagen como Data URL en `fotoPerfil`; considerar tamaño/base de datos antes de cambiar este comportamiento.
 
+Entidad `Event` en tabla `eventos`: `id`, `titulo`, `tipo`, `fecha`, `descripcion`, `creadorId` con relación ManyToOne a `User` (`onDelete: CASCADE`), `creadoEn` y `actualizadoEn`. Al eliminar un usuario, sus eventos se eliminan en cascada.
+
 ## Límites funcionales: no presentar como implementado
 
-- Vehículos, cuadrillas, empleados como módulo independiente, stock/materiales, mantenimiento, métricas/rendimiento, calendario y documentación.
+- Vehículos, cuadrillas, empleados como módulo independiente, stock/materiales, mantenimiento, métricas/rendimiento y documentación.
 - Rutas de frontend distintas a las de la tabla de navegación.
 - Cualquier dato ficticio que se presente como proveniente de API.
 
