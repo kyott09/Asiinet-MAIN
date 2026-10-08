@@ -448,7 +448,8 @@ function Users() {
             <p id="users-delete-description">
               ¿Querés eliminar la cuenta de <strong>{selectedUser?.nombre}</strong>?
               Esta acción no se puede deshacer. Si tiene tareas asociadas, el
-              servidor rechazará la eliminación para conservarlas.
+              servidor rechazará la eliminación para conservarlas. También se
+              eliminarán sus eventos del calendario.
             </p>
             {formError && (
               <p className="users-form-error" role="alert" tabIndex="-1" ref={errorRef}>
