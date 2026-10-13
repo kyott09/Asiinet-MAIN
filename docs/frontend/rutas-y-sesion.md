@@ -27,7 +27,7 @@ El estado local del frontend solo controla qué componentes se muestran y a qué
 
 ## Contratos
 
-- Ante una respuesta 401, `Profile.jsx` elimina `user` y redirige a `/login`, tanto al cargar como al guardar el perfil. `Tareas.jsx` elimina `user`; el detalle del destino posterior en todos los caminos 401 queda **No verificado**.
+- Ante una respuesta 401, `Profile.jsx` elimina `user` y redirige a `/login`, tanto al cargar como al guardar el perfil. `handleTaskRequestError` en `Tareas.jsx` también elimina `user` y navega a `/login`.
 - `Users.jsx` y `calendarService.js` convierten respuestas HTTP fallidas en errores de página/solicitud; no se detectó en ellos un tratamiento específico de 401 que borre `sessionStorage`. `Login.jsx` y `Register.jsx` muestran el mensaje de error del servidor.
 - `DashboardSidebar.jsx` lee `user` al renderizar para construir las opciones del menú: Usuarios solo para `admin`, Calendario para todo rol distinto de cliente según esa condición de menú, y tareas/solicitudes con etiqueta dependiente del rol. Esto no determina la política del servidor.
 - `AppRoutes` incluye al final `<Route path="*" element={<NotFound />} />`, que presenta la página 404 para rutas no declaradas.
