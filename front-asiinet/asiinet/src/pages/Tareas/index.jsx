@@ -5,6 +5,7 @@ import DashboardSidebar from "../../components/dashboard/DashboardSidebar";
 import "./Tareas.css";
 import TaskSkeleton from "./components/TaskSkeleton";
 import DeleteConfirm from "./components/DeleteConfirm";
+import TaskFilters from "./components/TaskFilters";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 const TASKS_URL = `${API_BASE_URL}/api/tasks`;
@@ -717,44 +718,7 @@ function Tareas() {
             )}
           </div>
 
-          <div className="tasks-filter-bar">
-            <label className="tasks-filter-field">
-              Buscar
-              <input
-                className="tasks-filter-control"
-                type="text"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder={isClient ? "Buscar por servicio, descripción o estado" : "Buscar por cliente, servicio o estado"}
-              />
-            </label>
-
-            <label className="tasks-filter-field tasks-filter-field-status">
-              Estado
-              <select
-                className="tasks-filter-control"
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-              >
-                <option value="todos">Todos</option>
-                {isClient ? (
-                  <>
-                    <option value="vista">Recibido</option>
-                    <option value="en_proceso">En proceso</option>
-                    <option value="terminada">Terminada</option>
-                    <option value="cancelacion">Cancelación</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="vista">Vista</option>
-                    <option value="en_proceso">En proceso</option>
-                    <option value="terminada">Terminada</option>
-                    <option value="cancelacion">No terminada</option>
-                  </>
-                )}
-              </select>
-            </label>
-          </div>
+          <TaskFilters isClient={isClient} searchTerm={searchTerm} setSearchTerm={setSearchTerm} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
 
           {loading ? (
             <TaskSkeleton />
