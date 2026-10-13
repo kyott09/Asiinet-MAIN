@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AccountActions from "../components/dashboard/AccountActions";
-import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import AccountActions from "../../components/dashboard/AccountActions";
+import DashboardSidebar from "../../components/dashboard/DashboardSidebar";
 import "./Tareas.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
