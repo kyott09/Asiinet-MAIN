@@ -1,0 +1,65 @@
+.not-found-page {
+  display: grid;
+  min-height: 100dvh;
+  align-content: center;
+  justify-items: start;
+  width: min(100% - 40px, 680px);
+  margin: 0 auto;
+  padding: var(--space-12) 0;
+}
+
+.not-found-logo {
+  width: min(220px, 55vw);
+  max-height: 86px;
+  margin-bottom: var(--space-10);
+  object-fit: contain;
+  object-position: left center;
+}
+
+.not-found-code {
+  margin-bottom: var(--space-2);
+  color: var(--orange-dark);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.not-found-page h1 {
+  max-width: 14ch;
+  margin-bottom: var(--space-3);
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+}
+
+.not-found-copy {
+  margin-bottom: var(--space-6);
+  color: var(--text-muted);
+}
+
+.not-found-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--orange-dark);
+  color: var(--surface);
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.not-found-link:hover {
+  background: var(--orange);
+  color: var(--warm-black);
+  transform: translateY(-1px);
+}
+
+.not-found-link:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .not-found-link {
+    transition: none;
+  }
+}
