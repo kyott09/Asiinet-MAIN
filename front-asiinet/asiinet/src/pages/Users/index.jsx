@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import AccountActions from "../components/dashboard/AccountActions";
-import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import AccountActions from "../../components/dashboard/AccountActions";
+import DashboardSidebar from "../../components/dashboard/DashboardSidebar";
 import "./Users.css";
+import UsersTable from "./components/UsersTable";
+import UsersCards from "./components/UsersCards";
+import UsersDialog from "./components/UsersDialog";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 const USERS_URL = `${API_BASE_URL}/api/users`;
@@ -86,62 +89,7 @@ function syncCurrentUser(updatedUser) {
   window.dispatchEvent(new Event("asiinet:user-updated"));
 }
 
-function UserFields({ form, onChange, isCreating, passwordHelpId }) {
-  return (
-    <>
-      <label className="users-field">
-        <span>Nombre completo</span>
-        <input
-          autoComplete="name"
-          name="nombre"
-          value={form.nombre}
-          onChange={onChange}
-          required
-        />
-      </label>
-      <label className="users-field">
-        <span>Email</span>
-        <input
-          autoComplete="email"
-          name="email"
-          type="email"
-          spellCheck="false"
-          value={form.email}
-          onChange={onChange}
-          required
-        />
-      </label>
-      {isCreating && (
-        <label className="users-field">
-          <span>Contraseña inicial</span>
-          <input
-            autoComplete="new-password"
-            name="password"
-            type="password"
-            minLength={8}
-            aria-describedby={passwordHelpId}
-            value={form.password}
-            onChange={onChange}
-            required
-          />
-          <small id={passwordHelpId}>
-            Usá entre 8 y 72 bytes. No hace falta combinar tipos de caracteres.
-          </small>
-        </label>
-      )}
-      <label className="users-field">
-        <span>Rol</span>
-        <select name="role" value={form.role} onChange={onChange} required>
-          {ROLES.map((role) => (
-            <option key={role.value} value={role.value}>
-              {role.label}
-            </option>
-          ))}
-        </select>
-      </label>
-    </>
-  );
-}
+
 
 function Users() {
   const dialogRef = useRef(null);
@@ -385,117 +333,29 @@ function Users() {
 
           {!loading && !loadError && users.length > 0 && (
             <>
-              <div className="users-table-wrap">
-                <table className="users-table">
-                  <caption className="users-sr-only">Cuentas registradas en Asiinet</caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Nombre</th>
-                      <th scope="col">Email</th>
-                      <th scope="col">Rol</th>
-                      <th scope="col">Creado</th>
-                      <th scope="col">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id}>
-                        <td className="users-name-cell">{user.nombre}</td>
-                        <td className="users-email-cell">{user.email}</td>
-                        <td>
-                          <span className="users-role">{ROLES.find((role) => role.value === user.role)?.label ?? user.role}</span>
-                        </td>
-                        <td>{formatDate(user.creadoEn)}</td>
-                        <td>{renderUserActions(user)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <ul className="users-cards" aria-label="Usuarios">
-                {users.map((user) => (
-                  <li className="users-card" key={user.id}>
-                    <div className="users-card-heading">
-                      <h2>{user.nombre}</h2>
-                      <span className="users-role">{ROLES.find((role) => role.value === user.role)?.label ?? user.role}</span>
-                    </div>
-                    <p className="users-email-cell">{user.email}</p>
-                    <p className="users-created">Creado {formatDate(user.creadoEn)}</p>
-                    {renderUserActions(user)}
-                  </li>
-                ))}
-              </ul>
+              <UsersTable users={users} roles={ROLES} formatDate={formatDate} renderUserActions={renderUserActions} />
+              <UsersCards users={users} roles={ROLES} formatDate={formatDate} renderUserActions={renderUserActions} />
             </>
           )}
         </section>
       </main>
 
-      <dialog
-        ref={dialogRef}
-        className="users-dialog"
-        aria-labelledby="users-dialog-title"
-        aria-describedby={dialogMode === "delete" ? "users-delete-description" : undefined}
-        onClose={handleDialogClose}
-        onCancel={(event) => {
-          if (saving) event.preventDefault();
-        }}
-      >
-        {dialogMode === "delete" ? (
-          <div className="users-dialog-content">
-            <h2 id="users-dialog-title" ref={dialogHeadingRef} tabIndex="-1">
-              Eliminar usuario
-            </h2>
-            <p id="users-delete-description">
-              ¿Querés eliminar la cuenta de <strong>{selectedUser?.nombre}</strong>?
-              Esta acción no se puede deshacer. Si tiene tareas asociadas, el
-              servidor rechazará la eliminación para conservarlas. También se
-              eliminarán sus eventos del calendario.
-            </p>
-            {formError && (
-              <p className="users-form-error" role="alert" tabIndex="-1" ref={errorRef}>
-                {formError}
-              </p>
-            )}
-            <div className="users-dialog-actions">
-              <button className="users-button users-button-secondary" type="button" onClick={closeDialog} disabled={saving}>
-                Cancelar
-              </button>
-              <button className="users-button users-button-danger" type="button" onClick={handleDelete} disabled={saving}>
-                {saving ? "Eliminando…" : "Eliminar usuario"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <form className="users-dialog-content users-form" onSubmit={handleSubmit}>
-            <h2 id="users-dialog-title" ref={dialogHeadingRef} tabIndex="-1">
-              {dialogMode === "create" ? "Crear usuario" : "Editar usuario"}
-            </h2>
-            <UserFields
-              form={form}
-              onChange={handleFormChange}
-              isCreating={dialogMode === "create"}
-              passwordHelpId="users-password-help"
-            />
-            {formError && (
-              <p className="users-form-error" role="alert" tabIndex="-1" ref={errorRef}>
-                {formError}
-              </p>
-            )}
-            <div className="users-dialog-actions">
-              <button className="users-button users-button-secondary" type="button" onClick={closeDialog} disabled={saving}>
-                Cancelar
-              </button>
-              <button className="users-button users-button-primary" type="submit" disabled={saving}>
-                {saving
-                  ? "Guardando…"
-                  : dialogMode === "create"
-                    ? "Crear usuario"
-                    : "Guardar cambios"}
-              </button>
-            </div>
-          </form>
-        )}
-      </dialog>
+      <UsersDialog
+        dialogRef={dialogRef}
+        dialogMode={dialogMode}
+        dialogHeadingRef={dialogHeadingRef}
+        selectedUser={selectedUser}
+        formError={formError}
+        errorRef={errorRef}
+        saving={saving}
+        closeDialog={closeDialog}
+        handleDelete={handleDelete}
+        handleDialogClose={handleDialogClose}
+        handleSubmit={handleSubmit}
+        handleFormChange={handleFormChange}
+        form={form}
+        roles={ROLES}
+      />
     </div>
   );
 }
