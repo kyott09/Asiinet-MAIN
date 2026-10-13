@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import AccountActions from "../../components/dashboard/AccountActions";
 import DashboardSidebar from "../../components/dashboard/DashboardSidebar";
 import "./Tareas.css";
+import TaskSkeleton from "./components/TaskSkeleton";
+import DeleteConfirm from "./components/DeleteConfirm";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 const TASKS_URL = `${API_BASE_URL}/api/tasks`;
@@ -755,26 +757,7 @@ function Tareas() {
           </div>
 
           {loading ? (
-            <div className="tasks-skeleton" role="status" aria-label="Cargando tareas">
-              <div className="tasks-skeleton-table" aria-hidden="true">
-                {Array.from({ length: 3 }, (_, row) => (
-                  <div className="tasks-skeleton-row" key={row}>
-                    {Array.from({ length: 7 }, (_, column) => (
-                      <span className="tasks-skeleton-bar" key={column}></span>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              <div className="tasks-skeleton-cards" aria-hidden="true">
-                {Array.from({ length: 3 }, (_, card) => (
-                  <div className="tasks-skeleton-card" key={card}>
-                    <span className="tasks-skeleton-bar tasks-skeleton-bar-short"></span>
-                    <span className="tasks-skeleton-bar"></span>
-                    <span className="tasks-skeleton-bar tasks-skeleton-bar-medium"></span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <TaskSkeleton />
           ) : error ? null : filteredTasks.length === 0 ? (
             <p className="tasks-empty">
               {isClient ? "Todavía no tenés solicitudes registradas." : "Todavía no hay tareas registradas."}
@@ -948,45 +931,7 @@ function Tareas() {
         </section>
       )}
 
-      {taskToDelete && (
-        <dialog
-          className="tasks-delete-dialog"
-          ref={deleteDialogRef}
-          aria-labelledby="delete-task-title"
-          aria-describedby="delete-task-description"
-          onCancel={(event) => {
-            event.preventDefault();
-            if (deletingId === null) cancelDelete();
-          }}
-        >
-          <h2 id="delete-task-title">¿Eliminar esta tarea?</h2>
-          <p id="delete-task-description">
-            Se eliminará la tarea n.º {taskToDelete.number} de {taskToDelete.client}. Esta acción no se puede deshacer.
-          </p>
-          {error && (
-            <p className="tasks-message tasks-message-error" role="alert">{error}</p>
-          )}
-          <div className="tasks-actions">
-            <button
-              className="tasks-button tasks-button-secondary"
-              type="button"
-              onClick={cancelDelete}
-              disabled={deletingId !== null}
-              autoFocus
-            >
-              Conservar tarea
-            </button>
-            <button
-              className="tasks-button tasks-delete"
-              type="button"
-              onClick={() => handleDelete(taskToDelete)}
-              disabled={deletingId !== null}
-            >
-              {deletingId !== null ? "Eliminando..." : "Eliminar tarea"}
-            </button>
-          </div>
-        </dialog>
-      )}
+      <DeleteConfirm taskToDelete={taskToDelete} deleteDialogRef={deleteDialogRef} error={error} deletingId={deletingId} cancelDelete={cancelDelete} handleDelete={handleDelete} />
         </div>
       </main>
     </div>
