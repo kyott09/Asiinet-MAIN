@@ -7,8 +7,9 @@ import {
   parseVehicleModelUpdateInput,
 } from "../vehicle/vehicle.validation.js";
 
-function parseId(raw: string, field = "id"): number {
-  const id = Number(raw);
+function parseId(raw: unknown, field = "id"): number {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const id = Number(value);
   if (!Number.isSafeInteger(id) || id <= 0) {
     throw AppError.badRequest(`El ${field} debe ser un número entero positivo`);
   }

@@ -4,10 +4,11 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { AppError } from "../../middlewares/errors.js";
 import { parseBrandInput } from "../vehicle/vehicle.validation.js";
 
-function parseId(raw: string): number {
-  const id = Number(raw);
+function parseId(raw: unknown, field = "id"): number {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const id = Number(value);
   if (!Number.isSafeInteger(id) || id <= 0) {
-    throw AppError.badRequest("El id debe ser un número entero positivo");
+    throw AppError.badRequest(`El ${field} debe ser un número entero positivo`);
   }
   return id;
 }
