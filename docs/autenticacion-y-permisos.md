@@ -49,8 +49,10 @@ El registro público fija el rol `cliente`, aunque el cuerpo mande otro valor; l
 | `DELETE /api/tasks/:id` | Sesión válida, `tasks:delete` y acceso a la tarea. |
 | `GET /api/events` | Sesión válida y `calendar:read`. |
 | `POST /api/events`, `PUT /api/events/:id`, `DELETE /api/events/:id` | Sesión válida y `calendar:write`; las dos últimas operaciones además requieren ser quien creó el evento. |
+| `GET /api/vehicles`, `GET /api/brands`, `GET /api/vehicle-models` | Sesión válida y `vehicles:read`. |
+| `POST`, `PUT`, `DELETE` en `/api/vehicles`, `/api/brands`, `/api/vehicle-models` | Sesión válida y `vehicles:write`. |
 
-Las rutas y su middleware están declarados en [`user.routes.ts`](../back-asiinet/src/modules/user/user.routes.ts), [`task.routes.ts`](../back-asiinet/src/modules/task/task.routes.ts) y [`event.routes.ts`](../back-asiinet/src/modules/event/event.routes.ts).
+Las rutas y su middleware están declarados en [`user.routes.ts`](../back-asiinet/src/modules/user/user.routes.ts), [`task.routes.ts`](../back-asiinet/src/modules/task/task.routes.ts), [`event.routes.ts`](../back-asiinet/src/modules/event/event.routes.ts), [`vehicle.routes.ts`](../back-asiinet/src/modules/vehicle/vehicle.routes.ts), [`brand.routes.ts`](../back-asiinet/src/modules/brand/brand.routes.ts) y [`vehicle-model.routes.ts`](../back-asiinet/src/modules/vehicle-model/vehicle-model.routes.ts).
 
 ## Reglas de negocio
 
@@ -58,12 +60,12 @@ Las rutas y su middleware están declarados en [`user.routes.ts`](../back-asiine
 
 `normalizeRole` convierte los alias `user` y `client` en `cliente`, y `empleado` y `employee` en `operador`. Los roles canónicos son `admin`, `supervisor`, `operador` y `cliente`. `admin` supera todas las comprobaciones mediante `hasPermission`; el resto usa la matriz `ROLE_PERMISSIONS` de [`auth.ts`](../back-asiinet/src/middlewares/auth.ts#L30).
 
-| Rol | Usuarios | Tareas | Galería | Calendario |
-| --- | --- | --- | --- | --- |
-| `admin` | Leer y escribir | Leer, crear, actualizar y eliminar | Leer | Leer y escribir |
-| `supervisor` | Leer | Leer, crear y actualizar | Leer | Leer y escribir |
-| `operador` | Sin permiso general | Leer, crear y actualizar | Leer | Leer y escribir |
-| `cliente` | Leer | Leer, crear y actualizar | Leer | Sin permiso |
+| Rol | Usuarios | Tareas | Galería | Calendario | Vehículos |
+| --- | --- | --- | --- | --- | --- |
+| `admin` | Leer y escribir | Leer, crear, actualizar y eliminar | Leer | Leer y escribir | Leer y escribir |
+| `supervisor` | Leer | Leer, crear y actualizar | Leer | Leer y escribir | Leer y escribir |
+| `operador` | Sin permiso general | Leer, crear y actualizar | Leer | Leer y escribir | Solo leer |
+| `cliente` | Leer | Leer, crear y actualizar | Leer | Sin permiso | Sin permiso |
 
 El permiso `gallery:read` aparece en la matriz, pero no se encontró un router de galería montado en `index.ts`.
 

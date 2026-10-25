@@ -2,42 +2,39 @@
 
 ## Propósito
 
-Administra modelos de vehículo asociados a una marca.
+Administra los modelos de vehículos vinculados a una marca.
 
 ## Responsabilidades
 
-`VehicleModel` declara `id`, `descripcion` varchar y una relación `ManyToOne` requerida en el código con `Brand`, mediante la columna `brand_id`. El router se monta en `/api/vehicle-models`.
+La entidad `VehicleModel` declara `id`, `descripcion` varchar y relación `ManyToOne` con `Brand` (`brand_id`). El router se monta en `/api/vehicle-models` y está protegido con autenticación (`requireAuth`) y permisos (`requirePermission`).
 
-| Método y ruta | Respuesta |
-| --- | --- |
-| `GET /api/vehicle-models` | `200`, modelos incluyendo relación `brand`. |
-| `GET /api/vehicle-models/by-brand/:brandId` | `200`, modelos de la marca indicada, incluyendo `brand`. |
-| `GET /api/vehicle-models/:id` | `200`, un modelo incluyendo `brand`. |
-| `POST /api/vehicle-models` | `201`, modelo creado; cuerpo con `descripcion` y `brandId`. |
-| `PUT /api/vehicle-models/:id` | `200`, modelo actualizado; cuerpo puede incluir `descripcion` y `brandId`. |
-| `DELETE /api/vehicle-models/:id` | `204`, sin cuerpo. |
+| Método y ruta | Permiso | Respuesta |
+| --- | --- | --- |
+| `GET /api/vehicle-models` | `vehicles:read` | `200`, `{ vehicleModels: VehicleModel[] }`. |
+| `GET /api/vehicle-models/by-brand/:brandId` | `vehicles:read` | `200`, `{ vehicleModels: VehicleModel[] }`. |
+| `GET /api/vehicle-models/:id` | `vehicles:read` | `200`, `{ vehicleModel: VehicleModel }`. |
+| `POST /api/vehicle-models` | `vehicles:write` | `201`, `{ vehicleModel: VehicleModel }`. |
+| `PUT /api/vehicle-models/:id` | `vehicles:write` | `200`, `{ vehicleModel: VehicleModel }`. |
+| `DELETE /api/vehicle-models/:id` | `vehicles:write` | `200`, `{ message: "Modelo de vehículo eliminado correctamente" }`. |
 
 ## Cómo se conecta
 
-`vehicle-model.controller.ts` delega en `vehicle-model.service.ts`; el repositorio carga `brand` en consultas de lectura. El servicio busca la marca mediante `brand.repository.ts` al filtrar, crear o cambiar la marca asociada. `Vehicle` tiene relación `ManyToOne` con `VehicleModel`.
+`vehicle-model.controller.ts` delega en `vehicle-model.service.ts`; el repositorio carga la relación `brand` en consultas. Antes de eliminar un modelo, el servicio comprueba que no tenga vehículos asociados consultando `vehicleRepository.findByModelId`, y captura errores de clave foránea de base de datos traduciéndolos a `409 Conflict`.
 
 ## Contratos
 
-Los controladores convierten `id` y `brandId` a número y rechazan valores para los que `Number.isNaN` sea verdadero. `getById` y `remove` verifican existencia del modelo; `getByBrand` verifica primero que exista la marca. `create` requiere una marca existente y devuelve error de solicitud con código `INVALID_BRAND` si no existe. `update` verifica la existencia del modelo y, si recibe `brandId`, valida que la marca exista antes de asignarla.
-
-No se detectó validación explícita de tipo, obligatoriedad, longitud o normalización para `descripcion`; tampoco una regla de unicidad de esa columna. Restricciones que pueda aplicar la base de datos quedan **No verificado**.
+- **Validación con Zod**: El cuerpo se valida con `parseVehicleModelInput` al crear y `parseVehicleModelUpdateInput` al actualizar (`descripcion` requerida de hasta 100 caracteres y `brandId` entero positivo).
+- **Parámetros**: `id` y `brandId` se validan como enteros positivos (>= 1); de lo contrario se responde `400 Bad Request`.
+- **Existencia**: `getById`, `update` y `remove` comprueban que el modelo exista (`404 Not Found`). La marca indicada debe existir (`400 Bad Request`).
+- **Borrado con dependencias**: Si el modelo posee vehículos asociados o la base arroja error de clave foránea, se responde `409 Conflict`.
 
 ## Reglas de negocio
 
-- `getAll`, `getById` y `getByBrand` devuelven modelos con relación `brand` cargada por el repositorio.
-- `create` asocia la entidad de marca encontrada a `VehicleModel.brand`.
-- `update` solo cambia `descripcion` o `brand` cuando el campo correspondiente está presente.
-- Permisos: pendiente de revisión de permisos.
-- No se encontraron pruebas automáticas ni pantallas frontend para este módulo en el código revisado.
-
-## Errores y limitaciones conocidas
-
-Los identificadores no numéricos generan error de solicitud, un modelo o marca inexistente genera 404 según la operación y una marca indicada que no existe en creación/edición genera `INVALID_BRAND`. El resultado al eliminar un modelo relacionado con vehículos queda **No verificado**.
+- `getAll` y `getByBrand` devuelven los modelos con su marca cargada envueltos en `{ vehicleModels }`.
+- `create` y `update` construyen la entidad a partir de los campos validados.
+- `DELETE` responde con código HTTP `200` y cuerpo `{ message }`.
+- Permisos: `admin` y `supervisor` tienen `vehicles:read` y `vehicles:write`; `operador` solo tiene `vehicles:read`; `cliente` recibe `403 Forbidden`.
+- Cuenta con pruebas unitarias en `src/modules/vehicle/vehicle.test.ts` y soporte en frontend en `/vehiculos`.
 
 ## Archivos fuente
 
@@ -46,6 +43,4 @@ Los identificadores no numéricos generan error de solicitud, un modelo o marca 
 - `back-asiinet/src/modules/vehicle-model/vehicle-model.controller.ts`
 - `back-asiinet/src/modules/vehicle-model/vehicle-model.service.ts`
 - `back-asiinet/src/modules/vehicle-model/vehicle-model.repository.ts`
-- `back-asiinet/src/modules/brand/brand.repository.ts`
-- `back-asiinet/src/modules/vehicle/vehicle.entity.ts`
-- `back-asiinet/src/index.ts`
+- `back-asiinet/src/modules/vehicle/vehicle.validation.ts`
