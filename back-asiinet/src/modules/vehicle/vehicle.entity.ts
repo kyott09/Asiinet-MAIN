@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
-import { VehicleModel } from "../vehicle-model/vehicle-model.entity";
+import { VehicleModel } from "../vehicle-model/vehicle-model.entity.js";
 
 @Entity("vehicles")
 export class Vehicle {
