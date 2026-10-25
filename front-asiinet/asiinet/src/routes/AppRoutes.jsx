@@ -9,6 +9,7 @@ import Gallery from "../pages/Gallery";
 import Tareas from "../pages/Tareas";
 import NotFound from "../pages/NotFound";
 import Calendar from "../pages/Calendar";
+import Vehiculos from "../pages/Vehiculos";
 
 function getUserSession() {
   try {
@@ -96,6 +97,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["admin", "supervisor", "operador"]}>
               <Calendar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vehiculos"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "supervisor", "operador"]}>
+              <Vehiculos />
             </ProtectedRoute>
           }
         />
