@@ -141,3 +141,12 @@ export function formatVehicleResponse(vehicle: Vehicle) {
   const { employee_id, ...rest } = vehicle;
   return rest;
 }
+
+export function isForeignKeyConflict(err: any): boolean {
+  return (
+    err?.code === "ER_ROW_IS_REFERENCED_2" ||
+    err?.errno === 1451 ||
+    err?.driverError?.code === "ER_ROW_IS_REFERENCED_2" ||
+    err?.driverError?.errno === 1451
+  );
+}

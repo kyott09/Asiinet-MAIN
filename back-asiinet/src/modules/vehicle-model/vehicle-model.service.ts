@@ -1,7 +1,9 @@
 import * as vehicleModelRepository from "./vehicle-model.repository.js";
 import * as brandRepository from "../brand/brand.repository.js";
+import * as vehicleRepository from "../vehicle/vehicle.repository.js";
 import { AppError } from "../../middlewares/errors.js";
 import { VehicleModel } from "./vehicle-model.entity.js";
+import { isForeignKeyConflict } from "../vehicle/vehicle.validation.js";
 
 export const getAll = async () => vehicleModelRepository.findAll();
 
@@ -54,6 +56,18 @@ export const remove = async (id: number) => {
   const vehicleModel = await vehicleModelRepository.findById(id);
   if (!vehicleModel) throw AppError.notFound("Modelo no encontrado");
 
-  await vehicleModelRepository.deleteVehicleModel(id);
-  return vehicleModel;
+  const vehicles = await vehicleRepository.findByModelId(id);
+  if (vehicles.length > 0) {
+    throw AppError.conflict("No se puede eliminar el modelo porque tiene vehículos asociados", "MODEL_HAS_VEHICLES");
+  }
+
+  try {
+    await vehicleModelRepository.deleteVehicleModel(id);
+    return vehicleModel;
+  } catch (err: any) {
+    if (isForeignKeyConflict(err)) {
+      throw AppError.conflict("No se puede eliminar el modelo porque tiene dependencias asociadas", "MODEL_HAS_DEPENDENCIES");
+    }
+    throw err;
+  }
 };

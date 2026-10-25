@@ -18,6 +18,9 @@ export class Vehicle {
   @Column({ type: "varchar" })
   estado!: string; // ej: "disponible", "en_uso", "mantenimiento"
 
+  @Column({ type: "integer", nullable: true })
+  anio!: number | null;
+
   // Cada vehículo pertenece a un solo modelo.
   @ManyToOne(() => VehicleModel)
   @JoinColumn({ name: "vehicle_model_id" })

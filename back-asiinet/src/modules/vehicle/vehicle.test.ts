@@ -9,6 +9,7 @@ import {
   parseBrandInput,
   parseVehicleModelInput,
   formatVehicleResponse,
+  isForeignKeyConflict,
 } from "./vehicle.validation.js";
 import { AppError } from "../../middlewares/errors.js";
 
@@ -308,4 +309,14 @@ test("parseVehicleUpdateInput permite actualizacion parcial y valida campos pres
   assert.equal(res.color, "Azul Marino");
   assert.equal(res.estado, "mantenimiento");
   assert.equal(res.patente, undefined);
+});
+
+// ---------------------------------------------------------------------------
+// 8. Detección de errores de clave foránea de base de datos
+// ---------------------------------------------------------------------------
+test("isForeignKeyConflict detecta errores de FK en MySQL/TypeORM", () => {
+  assert.equal(isForeignKeyConflict({ code: "ER_ROW_IS_REFERENCED_2" }), true);
+  assert.equal(isForeignKeyConflict({ errno: 1451 }), true);
+  assert.equal(isForeignKeyConflict({ driverError: { code: "ER_ROW_IS_REFERENCED_2" } }), true);
+  assert.equal(isForeignKeyConflict(new Error("otro error")), false);
 });
