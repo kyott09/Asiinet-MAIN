@@ -1,29 +1,8 @@
 import AccountActions from "../components/dashboard/AccountActions";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 import GalleryCarousel from "../components/gallery/GalleryCarousel";
+import { galleryPhotos as photos } from "../components/gallery/galleryPhotos";
 import "./Gallery.css";
-
-import gallery1 from "../assets/foto1.jpg";
-import gallery2 from "../assets/foto2.jpg";
-import gallery3 from "../assets/foto3.jpg";
-
-const photos = [
-  {
-    id: 1,
-    src: gallery1,
-    alt: "Equipo de Asiinet durante una jornada de trabajo",
-  },
-  {
-    id: 2,
-    src: gallery2,
-    alt: "Instalación de un servicio de conectividad",
-  },
-  {
-    id: 3,
-    src: gallery3,
-    alt: "Personal técnico de Asiinet",
-  },
-];
 
 function Gallery() {
   return (
