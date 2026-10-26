@@ -4,15 +4,6 @@ import { AppError } from "../../middlewares/errors.js";
 import { Vehicle } from "./vehicle.entity.js";
 import { isForeignKeyConflict } from "./vehicle.validation.js";
 
-export const getAll = async (filters?: { brandId?: number; modelId?: number }) =>
-  vehicleRepository.findAll(filters);
-
-export const getById = async (id: number) => {
-  const vehicle = await vehicleRepository.findById(id);
-  if (!vehicle) throw AppError.notFound("Vehículo no encontrado");
-  return vehicle;
-};
-
 export interface CreateVehicleInput {
   patente: string;
   color: string;
@@ -31,69 +22,97 @@ export interface UpdateVehicleInput {
   vehicleModelId?: number;
 }
 
-export const create = async (data: CreateVehicleInput) => {
-  const existing = await vehicleRepository.findByPatente(data.patente);
-  if (existing) throw AppError.conflict("Ya existe un vehículo con esa patente");
+export const createVehicleService = (dependencies = {
+  findAll: vehicleRepository.findAll,
+  findById: vehicleRepository.findById,
+  findByPatente: vehicleRepository.findByPatente,
+  createVehicle: vehicleRepository.createVehicle,
+  updateVehicle: vehicleRepository.updateVehicle,
+  deleteVehicle: vehicleRepository.deleteVehicle,
+  findVehicleModelById: vehicleModelRepository.findById,
+}) => {
+  const getAll = async (filters?: { brandId?: number; modelId?: number }) =>
+    dependencies.findAll(filters);
 
-  const vehicleModel = await vehicleModelRepository.findById(data.vehicleModelId);
-  if (!vehicleModel) {
-    throw AppError.badRequest("El modelo de vehículo indicado no existe", "INVALID_VEHICLE_MODEL");
-  }
+  const getById = async (id: number) => {
+    const vehicle = await dependencies.findById(id);
+    if (!vehicle) throw AppError.notFound("Vehículo no encontrado");
+    return vehicle;
+  };
 
-  const created = await vehicleRepository.createVehicle({
-    patente: data.patente,
-    color: data.color,
-    descripcion: data.descripcion ?? null,
-    estado: data.estado,
-    anio: data.anio ?? null,
-    vehicleModel,
-  });
-
-  return (await vehicleRepository.findById(created.id)) ?? created;
-};
-
-export const update = async (id: number, data: UpdateVehicleInput) => {
-  const vehicle = await vehicleRepository.findById(id);
-  if (!vehicle) throw AppError.notFound("Vehículo no encontrado");
-
-  if (data.patente && data.patente !== vehicle.patente) {
-    const existing = await vehicleRepository.findByPatente(data.patente);
+  const create = async (data: CreateVehicleInput) => {
+    const existing = await dependencies.findByPatente(data.patente);
     if (existing) throw AppError.conflict("Ya existe un vehículo con esa patente");
-  }
 
-  const updateData: Partial<Vehicle> = {};
-
-  if (data.patente !== undefined) updateData.patente = data.patente;
-  if (data.color !== undefined) updateData.color = data.color;
-  if (data.descripcion !== undefined) updateData.descripcion = data.descripcion;
-  if (data.estado !== undefined) updateData.estado = data.estado;
-  if (data.anio !== undefined) updateData.anio = data.anio;
-
-  if (data.vehicleModelId !== undefined) {
-    const vehicleModel = await vehicleModelRepository.findById(data.vehicleModelId);
+    const vehicleModel = await dependencies.findVehicleModelById(data.vehicleModelId);
     if (!vehicleModel) {
       throw AppError.badRequest("El modelo de vehículo indicado no existe", "INVALID_VEHICLE_MODEL");
     }
-    updateData.vehicleModel = vehicleModel;
-  }
 
-  return vehicleRepository.updateVehicle(id, updateData);
-};
+    const created = await dependencies.createVehicle({
+      patente: data.patente,
+      color: data.color,
+      descripcion: data.descripcion ?? null,
+      estado: data.estado,
+      anio: data.anio ?? null,
+      vehicleModel,
+    });
 
-export const remove = async (id: number) => {
-  const vehicle = await vehicleRepository.findById(id);
-  if (!vehicle) throw AppError.notFound("Vehículo no encontrado");
+    return (await dependencies.findById(created.id)) ?? created;
+  };
 
-  try {
-    await vehicleRepository.deleteVehicle(id);
-    return vehicle;
-  } catch (err: any) {
-    if (isForeignKeyConflict(err)) {
-      throw AppError.conflict(
-        "No se puede eliminar el vehículo porque tiene dependencias asociadas",
-        "VEHICLE_HAS_DEPENDENCIES"
-      );
+  const update = async (id: number, data: UpdateVehicleInput) => {
+    const vehicle = await dependencies.findById(id);
+    if (!vehicle) throw AppError.notFound("Vehículo no encontrado");
+
+    if (data.patente && data.patente !== vehicle.patente) {
+      const existing = await dependencies.findByPatente(data.patente);
+      if (existing) throw AppError.conflict("Ya existe un vehículo con esa patente");
     }
-    throw err;
-  }
+
+    const updateData: Partial<Vehicle> = {};
+
+    if (data.patente !== undefined) updateData.patente = data.patente;
+    if (data.color !== undefined) updateData.color = data.color;
+    if (data.descripcion !== undefined) updateData.descripcion = data.descripcion;
+    if (data.estado !== undefined) updateData.estado = data.estado;
+    if (data.anio !== undefined) updateData.anio = data.anio;
+
+    if (data.vehicleModelId !== undefined) {
+      const vehicleModel = await dependencies.findVehicleModelById(data.vehicleModelId);
+      if (!vehicleModel) {
+        throw AppError.badRequest("El modelo de vehículo indicado no existe", "INVALID_VEHICLE_MODEL");
+      }
+      updateData.vehicleModel = vehicleModel;
+    }
+
+    return dependencies.updateVehicle(id, updateData);
+  };
+
+  const remove = async (id: number) => {
+    const vehicle = await dependencies.findById(id);
+    if (!vehicle) throw AppError.notFound("Vehículo no encontrado");
+
+    try {
+      await dependencies.deleteVehicle(id);
+      return vehicle;
+    } catch (err: any) {
+      if (isForeignKeyConflict(err)) {
+        throw AppError.conflict(
+          "No se puede eliminar el vehículo porque tiene dependencias asociadas",
+          "VEHICLE_HAS_DEPENDENCIES"
+        );
+      }
+      throw err;
+    }
+  };
+
+  return { getAll, getById, create, update, remove };
 };
+
+const defaultService = createVehicleService();
+export const getAll = defaultService.getAll;
+export const getById = defaultService.getById;
+export const create = defaultService.create;
+export const update = defaultService.update;
+export const remove = defaultService.remove;
