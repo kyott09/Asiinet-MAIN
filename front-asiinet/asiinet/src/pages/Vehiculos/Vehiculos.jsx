@@ -33,6 +33,8 @@ export default function Vehiculos() {
 
   const [activeTab, setActiveTab] = useState("vehicles");
   const tabRefs = useRef([]);
+  const returnFocusRef = useRef(null);
+  const visibleTabs = canWrite ? TABS : [TABS[0]];
 
   // Data states
   const [vehicles, setVehicles] = useState([]);
@@ -93,12 +95,37 @@ export default function Vehiculos() {
   }, []);
 
   useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
+    let active = true;
+    Promise.all([
+      vehicleService.getVehicles(),
+      vehicleService.getModels(),
+      vehicleService.getBrands(),
+    ])
+      .then(([vehiclesRes, modelsRes, brandsRes]) => {
+        if (!active) return;
+        setVehicles(vehiclesRes?.vehicles || []);
+        setModels(modelsRes?.vehicleModels || []);
+        setBrands(brandsRes?.brands || []);
+        setGlobalError("");
+      })
+      .catch((err) => {
+        if (!active) return;
+        setGlobalError(
+          err.message || "No se pudieron cargar los datos de la flota vehicular."
+        );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // WAI-ARIA Keyboard navigation on tabs (Arrows, Home, End)
   const handleTabKeyDown = (event, currentIndex) => {
-    let nextIndex = null;
+    let nextIndex;
     const total = TABS.length;
 
     switch (event.key) {
@@ -128,12 +155,14 @@ export default function Vehiculos() {
 
   // --- Handlers Vehículos ---
   const handleOpenCreateVehicle = () => {
+    returnFocusRef.current = document.activeElement;
     setSelectedVehicle(null);
     setModalError("");
     setVehicleModalOpen(true);
   };
 
   const handleOpenEditVehicle = (vehicle) => {
+    returnFocusRef.current = document.activeElement;
     setSelectedVehicle(vehicle);
     setModalError("");
     setVehicleModalOpen(true);
@@ -161,12 +190,14 @@ export default function Vehiculos() {
 
   // --- Handlers Modelos ---
   const handleOpenCreateModel = () => {
+    returnFocusRef.current = document.activeElement;
     setSelectedModel(null);
     setModalError("");
     setModelModalOpen(true);
   };
 
   const handleOpenEditModel = (model) => {
+    returnFocusRef.current = document.activeElement;
     setSelectedModel(model);
     setModalError("");
     setModelModalOpen(true);
@@ -194,12 +225,14 @@ export default function Vehiculos() {
 
   // --- Handlers Marcas ---
   const handleOpenCreateBrand = () => {
+    returnFocusRef.current = document.activeElement;
     setSelectedBrand(null);
     setModalError("");
     setBrandModalOpen(true);
   };
 
   const handleOpenEditBrand = (brand) => {
+    returnFocusRef.current = document.activeElement;
     setSelectedBrand(brand);
     setModalError("");
     setBrandModalOpen(true);
@@ -227,6 +260,7 @@ export default function Vehiculos() {
 
   // --- Handlers Delete ---
   const handleOpenDelete = (type, item) => {
+    returnFocusRef.current = document.activeElement;
     setDeleteTarget({ type, item });
     setDeleteError("");
     setDeleteModalOpen(true);
@@ -251,12 +285,22 @@ export default function Vehiculos() {
 
       setDeleteModalOpen(false);
       setDeleteTarget(null);
+      returnFocusRef.current?.focus();
+      returnFocusRef.current = null;
       loadAllData();
     } catch (err) {
       setDeleteError(err.message || "No se pudo eliminar el registro.");
     } finally {
       setDeleteLoading(false);
     }
+  };
+
+  const closeDialog = (setOpen) => {
+    setOpen(false);
+    requestAnimationFrame(() => {
+      returnFocusRef.current?.focus();
+      returnFocusRef.current = null;
+    });
   };
 
   // Delete modal texts
@@ -341,7 +385,7 @@ export default function Vehiculos() {
             aria-label="Secciones de flota y vehículos"
             className="vehiculos-tablist"
           >
-            {TABS.map((tab, idx) => {
+            {visibleTabs.map((tab, idx) => {
               const isSelected = activeTab === tab.id;
               return (
                 <button
@@ -368,7 +412,7 @@ export default function Vehiculos() {
           </div>
 
           {/* Tabpanels */}
-          <div
+          {canWrite && <div
             role="tabpanel"
             id="panel-vehicles"
             aria-labelledby="tab-vehicles"
@@ -388,9 +432,9 @@ export default function Vehiculos() {
                 loading={loading}
               />
             )}
-          </div>
+          </div>}
 
-          <div
+          {canWrite && <div
             role="tabpanel"
             id="panel-models"
             aria-labelledby="tab-models"
@@ -409,7 +453,7 @@ export default function Vehiculos() {
                 loading={loading}
               />
             )}
-          </div>
+          </div>}
 
           <div
             role="tabpanel"
@@ -439,7 +483,7 @@ export default function Vehiculos() {
           isOpen={vehicleModalOpen}
           vehicle={selectedVehicle}
           models={models}
-          onClose={() => setVehicleModalOpen(false)}
+          onClose={() => closeDialog(setVehicleModalOpen)}
           onSave={handleSaveVehicle}
           loading={modalLoading}
           error={modalError}
@@ -451,7 +495,7 @@ export default function Vehiculos() {
           isOpen={modelModalOpen}
           model={selectedModel}
           brands={brands}
-          onClose={() => setModelModalOpen(false)}
+          onClose={() => closeDialog(setModelModalOpen)}
           onSave={handleSaveModel}
           loading={modalLoading}
           error={modalError}
@@ -462,7 +506,7 @@ export default function Vehiculos() {
         <BrandModal
           isOpen={brandModalOpen}
           brand={selectedBrand}
-          onClose={() => setBrandModalOpen(false)}
+          onClose={() => closeDialog(setBrandModalOpen)}
           onSave={handleSaveBrand}
           loading={modalLoading}
           error={modalError}
@@ -474,7 +518,7 @@ export default function Vehiculos() {
           isOpen={deleteModalOpen}
           title={getDeleteModalInfo().title}
           message={getDeleteModalInfo().message}
-          onClose={() => setDeleteModalOpen(false)}
+          onClose={() => closeDialog(setDeleteModalOpen)}
           onConfirm={handleConfirmDelete}
           loading={deleteLoading}
           error={deleteError}

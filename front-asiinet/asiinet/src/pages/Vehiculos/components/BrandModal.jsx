@@ -8,19 +8,15 @@ export default function BrandModal({
   loading = false,
   error = "",
 }) {
-  const [descripcion, setDescripcion] = useState("");
+  const [descripcion, setDescripcion] = useState(brand?.descripcion ?? "");
   const [fieldError, setFieldError] = useState("");
   const inputRef = useRef(null);
 
   const isEditing = Boolean(brand?.id);
 
   useEffect(() => {
-    if (isOpen) {
-      setDescripcion(brand?.descripcion ?? "");
-      setFieldError("");
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [isOpen, brand]);
+    if (isOpen) inputRef.current?.focus();
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;

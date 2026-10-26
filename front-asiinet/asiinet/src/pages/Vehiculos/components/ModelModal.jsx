@@ -9,21 +9,16 @@ export default function ModelModal({
   loading = false,
   error = "",
 }) {
-  const [descripcion, setDescripcion] = useState("");
-  const [brandId, setBrandId] = useState("");
+  const [descripcion, setDescripcion] = useState(model?.descripcion ?? "");
+  const [brandId, setBrandId] = useState(model?.brand?.id ? String(model.brand.id) : "");
   const [fieldErrors, setFieldErrors] = useState({});
   const inputRef = useRef(null);
 
   const isEditing = Boolean(model?.id);
 
   useEffect(() => {
-    if (isOpen) {
-      setDescripcion(model?.descripcion ?? "");
-      setBrandId(model?.brand?.id ? String(model.brand.id) : "");
-      setFieldErrors({});
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [isOpen, model]);
+    if (isOpen) inputRef.current?.focus();
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;

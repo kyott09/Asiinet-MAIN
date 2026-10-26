@@ -13,29 +13,24 @@ export default function VehicleModal({
 }) {
   const currentMaxYear = new Date().getFullYear() + 1;
 
-  const [patente, setPatente] = useState("");
-  const [color, setColor] = useState("");
-  const [vehicleModelId, setVehicleModelId] = useState("");
-  const [anio, setAnio] = useState("");
-  const [estado, setEstado] = useState("disponible");
-  const [descripcion, setDescripcion] = useState("");
+  const [patente, setPatente] = useState(vehicle?.patente ?? "");
+  const [color, setColor] = useState(vehicle?.color ?? "");
+  const [vehicleModelId, setVehicleModelId] = useState(
+    vehicle?.vehicleModel?.id ? String(vehicle.vehicleModel.id) : ""
+  );
+  const [anio, setAnio] = useState(
+    vehicle?.anio !== undefined && vehicle?.anio !== null ? String(vehicle.anio) : ""
+  );
+  const [estado, setEstado] = useState(vehicle?.estado ?? "disponible");
+  const [descripcion, setDescripcion] = useState(vehicle?.descripcion ?? "");
   const [fieldErrors, setFieldErrors] = useState({});
 
   const patenteInputRef = useRef(null);
   const isEditing = Boolean(vehicle?.id);
 
   useEffect(() => {
-    if (isOpen) {
-      setPatente(vehicle?.patente ?? "");
-      setColor(vehicle?.color ?? "");
-      setVehicleModelId(vehicle?.vehicleModel?.id ? String(vehicle.vehicleModel.id) : "");
-      setAnio(vehicle?.anio !== undefined && vehicle?.anio !== null ? String(vehicle.anio) : "");
-      setEstado(vehicle?.estado ?? "disponible");
-      setDescripcion(vehicle?.descripcion ?? "");
-      setFieldErrors({});
-      setTimeout(() => patenteInputRef.current?.focus(), 50);
-    }
-  }, [isOpen, vehicle]);
+    if (isOpen) patenteInputRef.current?.focus();
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;

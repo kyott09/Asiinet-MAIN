@@ -17,6 +17,10 @@ async function apiRequest(endpoint, options = {}) {
     const error = new Error(message);
     error.statusCode = response.status;
     error.payload = data;
+    if (response.status === 401) {
+      sessionStorage.removeItem("user");
+      window.location.assign("/login");
+    }
     throw error;
   }
 
