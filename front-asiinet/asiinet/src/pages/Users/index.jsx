@@ -5,6 +5,7 @@ import "./Users.css";
 import UsersTable from "./components/UsersTable";
 import UsersCards from "./components/UsersCards";
 import UsersDialog from "./components/UsersDialog";
+import { buildUserUpdatePayload } from "./userManagementPayload";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 const USERS_URL = `${API_BASE_URL}/api/users`;
@@ -221,7 +222,7 @@ function Users() {
         isCreating ? "" : `/${selectedUser.id}`,
         {
           method: isCreating ? "POST" : "PUT",
-          body: JSON.stringify(form),
+          body: JSON.stringify(isCreating ? form : buildUserUpdatePayload(form)),
         }
       );
       if (!isCreating) syncCurrentUser(result.user);
