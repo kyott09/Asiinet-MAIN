@@ -5,7 +5,6 @@ import Users from "../pages/Users";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Profile from "../pages/Profile";
-import Gallery from "../pages/Gallery";
 import Tareas from "../pages/Tareas";
 import NotFound from "../pages/NotFound";
 import Calendar from "../pages/Calendar";
@@ -76,14 +75,7 @@ function AppRoutes() {
           }
         />
 
-        <Route
-          path="/galeria"
-          element={
-            <ProtectedRoute>
-              <Gallery />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/galeria" element={<Navigate to="/home" replace />} />
         <Route
           path="/tareas"
           element={
