@@ -27,7 +27,9 @@ El acceso de recurso para actualización permite admin y supervisor en cualquier
 
 Al crear, el cliente queda fijado a la identidad de sesión; la solicitud del cliente se crea sin empleado asignado, con prioridad `Baja` y estado `Vista`. Se rechaza otra solicitud activa del mismo servicio para ese cliente. Para otros roles, el servicio exige un empleado y valida que cliente y empleado tengan roles cliente y operador. La fecha de vencimiento no puede preceder la fecha de creación.
 
-Los estados finales reconocidos al comprobar solicitudes activas son `terminada`, `finalizada` y `finalizado`. Las reglas de normalización de campos y valores opcionales están en `parseTaskCreateInput` y `parseTaskUpdateInput` de `task.controller.ts`. Para actualizar, el controlador usa `parseTaskUpdateInput` en cliente y operador; para admin y supervisor usa `parseTaskCreateInput`, que admite el conjunto general de campos.
+Los estados finales reconocidos al comprobar solicitudes activas son `terminada`, `finalizada` y `finalizado`. Las reglas de normalización de campos y valores opcionales están en `parseTaskCreateInput` y `parseTaskUpdateInput` de `task.controller.ts`. Los schemas de creación y actualización son estrictos. Cliente crea con `description`, `service` y `serviceDetails` opcional o `null`, y actualiza solo descripción. Operador conserva el update de `dueDate` y `status` y no puede enviar detalles. Admin/supervisor pueden crear y editar `serviceDetails` opcional o `null` junto con los campos administrativos.
+
+`serviceDetails` se valida con una unión estricta discriminada por `service`. Los campos y opciones están declarados en la única constante `SERVICE_DETAIL_OPTIONS` de `shared/taskServiceDetails.js`; sus opciones son ejemplos **a confirmar**. Instalación incluye equipamiento y cantidad, velocidad y tipo de inmueble; Reconexión motivo/equipamiento disponible; Servicio técnico problema/equipamiento afectado; Desconexión motivo y retiro de equipos. Los detalles no compatibles se rechazan con `400`. Al cambiar el servicio en una actualización administrativa sin detalles nuevos, se limpia el valor a `null`; si no cambia y el campo se omite, se conservan los detalles previamente validados. Tareas existentes sin el campo se serializan como `null`.
 
 ## Reglas de negocio
 
@@ -48,4 +50,10 @@ La interfaz `Tareas.jsx` muestra el botón de eliminar a supervisores (`canDelet
 - `back-asiinet/src/modules/task/task.repository.ts`
 - `back-asiinet/src/middlewares/auth.ts`
 - `back-asiinet/src/modules/task/task.controller.test.ts`
-- `front-asiinet/asiinet/src/pages/Tareas.jsx`
+- `back-asiinet/src/modules/task/task.service.test.ts`
+- `back-asiinet/src/modules/task/task.routes.test.ts`
+- `shared/taskServiceDetails.js`
+- `shared/taskPayload.js`
+- `front-asiinet/asiinet/src/pages/Tareas/index.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/ServiceDetailsFields.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/TaskServiceDetailsDisplay.jsx`

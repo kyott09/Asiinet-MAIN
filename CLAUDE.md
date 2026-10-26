@@ -210,6 +210,8 @@ Para proteger al último administrador, las operaciones de cambio de rol/borrado
 Entidad TypeORM `Task` en tabla `tareas`. Campos principales: `id`, texto `client`/`employee`, relaciones opcionales con usuarios a través de `clientId`/`employeeId`, `createdAt`, `dueDate`, `description`, `service`, `priority` y `status`. La API administrativa impide eliminar usuarios con referencias a tareas antes de que aplique el `onDelete: SET NULL`.
 
 - Servicios aceptados: `Instalación`, `Reconexión`, `Servicio técnico`, `Desconexión`.
+- `serviceDetails` es nullable y se valida con unión Zod estricta discriminada por servicio; las opciones compartidas están en `shared/taskServiceDetails.js` y son ejemplos a confirmar.
+- Cliente puede enviar detalles al crear; admin y supervisor al crear/editar; operador no. Cambiar el servicio sin detalles nuevos limpia el valor; omitirlos sin cambiar el servicio conserva los ya guardados. Las tareas anteriores se serializan con `serviceDetails: null`.
 - Prioridad: `Baja`, `Media`, `Alta`.
 - Estados usados por la UI/API: `Vista`, `En proceso`, `Terminada`, `No terminada`. La API normaliza algunos alias heredados como `finalizada`/`finalizado` a `Terminada`.
 - Fechas de API son cadenas `YYYY-MM-DD`; Zod valida que sean fechas reales.
@@ -220,7 +222,7 @@ Entidad TypeORM `Task` en tabla `tareas`. Campos principales: `id`, texto `clien
 - Para operador, el backend exige asignación del cliente y del empleado al crear; no obstante, la interfaz actual no ofrece creación de tarea a operadores.
 - El listado serializado expone `id` y `number` (ambos basados en el ID), cliente/empleado, IDs, fechas y detalles de tarea.
 
-Las validaciones por rol difieren: no agregar campos a los payloads del cliente/operador sin modificar y probar los esquemas correspondientes. Cliente crea con `description` y `service`, y edita solo `description`; operador edita `dueDate` y `status`; otros roles usan el payload más amplio de tarea.
+Las validaciones por rol difieren: todos los cuerpos se validan con schemas Zod estrictos y los payloads se construyen con listas explícitas en `shared/taskPayload.js`. Cliente crea con `description`, `service` y `serviceDetails?`, y edita solo `description`; operador edita `dueDate` y `status` sin `serviceDetails`; admin/supervisor usan campos administrativos y pueden administrar detalles compatibles con el servicio.
 
 ## Base de datos y modelo de usuario
 
