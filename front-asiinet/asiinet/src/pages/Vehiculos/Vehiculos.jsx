@@ -126,7 +126,7 @@ export default function Vehiculos() {
   // WAI-ARIA Keyboard navigation on tabs (Arrows, Home, End)
   const handleTabKeyDown = (event, currentIndex) => {
     let nextIndex;
-    const total = TABS.length;
+    const total = visibleTabs.length;
 
     switch (event.key) {
       case "ArrowRight":
@@ -148,7 +148,7 @@ export default function Vehiculos() {
     }
 
     event.preventDefault();
-    const nextTab = TABS[nextIndex];
+    const nextTab = visibleTabs[nextIndex];
     setActiveTab(nextTab.id);
     tabRefs.current[nextIndex]?.focus();
   };
