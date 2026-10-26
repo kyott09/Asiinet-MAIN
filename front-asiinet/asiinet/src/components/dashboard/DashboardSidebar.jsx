@@ -25,10 +25,10 @@ function DashboardSidebar() {
     { label: isClient ? "Solicitudes" : "Tareas", icon: "fa-list-check", href: "/tareas" },
     { label: "Galería", icon: "fa-images", href: "/galeria" },
     ...(!isClient ? [{ label: "Calendario", icon: "fa-calendar-days", href: "/calendario" }] : []),
+    ...(!isClient ? [{ label: "Vehículos", icon: "fa-truck", href: "/vehiculos" }] : []),
     ...(isAdmin ? [{ label: "Usuarios", icon: "fa-users", href: "/users" }] : []),
   ];
   const upcomingLinks = [
-    { label: "Vehículos", icon: "fa-truck" },
     { label: "Empleados", icon: "fa-people-group" },
     { label: "Roles", icon: "fa-user-shield" },
     { label: "Documentación", icon: "fa-file-lines" },

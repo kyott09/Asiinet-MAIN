@@ -32,6 +32,13 @@ Resume los componentes reutilizables de autenticación, panel, galería y calend
 - `CalendarEvent` representa resumen, tipo y propiedad visual de un evento usando `getEventTypeInfo`.
 - `CalendarEventModal` gestiona modos de lista, creación, edición y confirmación de borrado; llama callbacks recibidos por props.
 
+### Vehículos
+
+- `VehiclesTab`, `ModelsTab` y `BrandsTab` presentan las tres colecciones del módulo.
+- `VehicleModal`, `ModelModal` y `BrandModal` gestionan altas y ediciones para roles con `vehicles:write`.
+- `ConfirmDeleteModal` solicita confirmación para eliminaciones.
+- `Vehiculos.jsx` gestiona las pestañas accesibles, filtros, carga, errores, permisos de escritura y retorno del foco en los diálogos.
+
 ### Elemento de interfaz
 
 `ActionButton.css` define estilos compartidos de `.auth-submit` y variantes; lo importa `AuthLayout`. `UserList.jsx`: **sin uso detectado**; no se encontraron importaciones o referencias activas en el frontend revisado.
@@ -73,4 +80,6 @@ El menú móvil, su respuesta a Escape y el uso de teclado de los controles no s
 - `front-asiinet/asiinet/src/pages/Login.jsx`
 - `front-asiinet/asiinet/src/pages/Register.jsx`
 - `front-asiinet/asiinet/src/pages/Calendar.jsx`
+- `front-asiinet/asiinet/src/pages/Vehiculos/Vehiculos.jsx`
+- `front-asiinet/asiinet/src/pages/Vehiculos/components/`
 - `front-asiinet/asiinet/src/pages/Gallery.jsx`

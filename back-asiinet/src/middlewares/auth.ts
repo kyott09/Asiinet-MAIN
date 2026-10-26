@@ -38,6 +38,8 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     "gallery:read",
     "calendar:read",
     "calendar:write",
+    "vehicles:read",
+    "vehicles:write",
   ],
   supervisor: [
     "users:read",
@@ -47,6 +49,8 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     "gallery:read",
     "calendar:read",
     "calendar:write",
+    "vehicles:read",
+    "vehicles:write",
   ],
   operador: [
     "tasks:read",
@@ -55,6 +59,7 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     "gallery:read",
     "calendar:read",
     "calendar:write",
+    "vehicles:read",
   ],
   cliente: [
     "users:read",

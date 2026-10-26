@@ -49,7 +49,7 @@ Este índice organiza la documentación técnica del backend Express/TypeORM, el
 
 ## Limitaciones conocidas
 
-- La API de marcas, modelos y vehículos está presente; no se encontraron pruebas automáticas ni pantallas frontend para esos módulos. La revisión de permisos queda pendiente.
+- La API de marcas, modelos y vehículos está implementada y protegida con `vehicles:read` y `vehicles:write`. El frontend incluye la ruta `/vehiculos`, sus pestañas y el servicio `vehicleService.js`.
 - En Tareas, la interfaz muestra el botón de eliminar a supervisores y el backend reserva `tasks:delete` para admin.
 - La cobertura automática del calendario no reemplaza la prueba manual con usuarios reales, que está pendiente.
 - La navegación por teclado, el menú móvil y el layout responsive no se probaron manualmente.

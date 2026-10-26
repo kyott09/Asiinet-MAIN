@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
-import { VehicleModel } from "../vehicle-model/vehicle-model.entity";
+import { VehicleModel } from "../vehicle-model/vehicle-model.entity.js";
 
 @Entity("vehicles")
 export class Vehicle {
@@ -17,6 +17,9 @@ export class Vehicle {
 
   @Column({ type: "varchar" })
   estado!: string; // ej: "disponible", "en_uso", "mantenimiento"
+
+  @Column({ type: "integer", nullable: true })
+  anio!: number | null;
 
   // Cada vehículo pertenece a un solo modelo.
   @ManyToOne(() => VehicleModel)

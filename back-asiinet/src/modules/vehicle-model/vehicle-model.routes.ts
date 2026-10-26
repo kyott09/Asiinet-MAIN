@@ -1,13 +1,21 @@
 import { Router } from "express";
+import type { RequestHandler } from "express";
 import * as vehicleModelController from "./vehicle-model.controller.js";
+import { requireAuth, requirePermission } from "../../middlewares/auth.js";
 
-const router = Router();
+type VehicleModelControllers = Pick<typeof vehicleModelController, "getAll" | "getByBrand" | "getById" | "create" | "update" | "remove">;
 
-router.get("/", vehicleModelController.getAll);
-router.get("/by-brand/:brandId", vehicleModelController.getByBrand);
-router.get("/:id", vehicleModelController.getById);
-router.post("/", vehicleModelController.create);
-router.put("/:id", vehicleModelController.update);
-router.delete("/:id", vehicleModelController.remove);
+export const createVehicleModelRouter = (auth: RequestHandler, controllers: VehicleModelControllers) => {
+	const router = Router();
 
-export default router;
+	router.get("/", auth, requirePermission("vehicles:read"), controllers.getAll);
+	router.get("/by-brand/:brandId", auth, requirePermission("vehicles:read"), controllers.getByBrand);
+	router.get("/:id", auth, requirePermission("vehicles:read"), controllers.getById);
+	router.post("/", auth, requirePermission("vehicles:write"), controllers.create);
+	router.put("/:id", auth, requirePermission("vehicles:write"), controllers.update);
+	router.delete("/:id", auth, requirePermission("vehicles:write"), controllers.remove);
+
+	return router;
+};
+
+export default createVehicleModelRouter(requireAuth, vehicleModelController);

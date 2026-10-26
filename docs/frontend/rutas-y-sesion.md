@@ -6,7 +6,7 @@ Describe el enrutado del cliente, su lectura local de sesión y las restriccione
 
 ## Responsabilidades
 
-`AppRoutes` monta `BrowserRouter` y declara estas rutas: `/` y `/login` muestran Login; `/register` muestra Register; `/home`, `/profile`, `/users`, `/galeria`, `/tareas` y `/calendario` muestran sus páginas; la ruta `*`, al final, muestra NotFound.
+`AppRoutes` monta `BrowserRouter` y declara estas rutas: `/` y `/login` muestran Login; `/register` muestra Register; `/home`, `/profile`, `/users`, `/galeria`, `/tareas`, `/calendario` y `/vehiculos` muestran sus páginas; la ruta `*`, al final, muestra NotFound.
 
 `ProtectedRoute` está definido dentro de `AppRoutes.jsx`. `getUserSession` lee y parsea `sessionStorage` bajo la clave `user`; ante ausencia o JSON inválido devuelve `null`. Si no hay usuario, `ProtectedRoute` redirige a `/login`. Si se indica `requireAdmin` y el rol no es exactamente `admin`, o si el rol no está incluido en `allowedRoles`, redirige a `/home`.
 
@@ -16,6 +16,7 @@ Describe el enrutado del cliente, su lectura local de sesión y las restriccione
 | `/home`, `/profile`, `/galeria`, `/tareas` | Requiere usuario en `sessionStorage`. |
 | `/users` | Requiere usuario y `requireAdmin`. |
 | `/calendario` | `allowedRoles`: `admin`, `supervisor`, `operador`. |
+| `/vehiculos` | `allowedRoles`: `admin`, `supervisor`, `operador`. |
 
 `allowedRoles` es una propiedad opcional de `ProtectedRoute`, comparada con el valor `user.role` guardado localmente. `requireAdmin` también es una comprobación del frontend.
 

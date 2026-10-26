@@ -64,8 +64,9 @@ Las rutas registradas en `src/routes/AppRoutes.jsx` son:
 | `/galeria` | Galería de fotos | Protegida; utiliza tres fotos locales. |
 | `/tareas` | Tareas | Protegida; CRUD conectado a la API. |
 | `/calendario` | Calendario | Protegida (`admin`, `supervisor`, `operador`); eventos con persistencia en API. Clientes sin acceso. |
+| `/vehiculos` | Vehículos | Protegida (`admin`, `supervisor`, `operador`); administra vehículos, modelos y marcas. Operadores tienen lectura; admin y supervisor tienen escritura. |
 
-La barra lateral también muestra enlaces como próximos a `/vehiculos`, `/empleados`, `/roles` y `/documentacion`, pero esas rutas no están implementadas en el router actual. No tratarlas como pantallas existentes ni simular que guardan datos reales. Se pueden proponer en una fase futura.
+La barra lateral muestra el acceso funcional a `/vehiculos` para los roles con permiso de lectura. Empleados, roles y documentación continúan como accesos informativos sin CRUD activo.
 
 No se ve una ruta catch-all para direcciones desconocidas. Considerar una pantalla 404 en la reconstrucción, sin cambiar las rutas válidas.
 
@@ -115,6 +116,14 @@ No se ve una ruta catch-all para direcciones desconocidas. Considerar una pantal
 - El encabezado de cuenta enlaza al perfil, muestra el nombre/avatar y permite cerrar sesión.
 - La galería usa tres imágenes locales y tiene componentes de carrusel, flechas e indicadores en el código fuente.
 
+### Vehículos
+
+- `Vehiculos.jsx` presenta las pestañas de vehículos, modelos y marcas con patrón WAI-ARIA.
+- `VehiclesTab`, `ModelsTab` y `BrandsTab` muestran estados de carga, error y vacío.
+- Admin y supervisor pueden crear, editar y eliminar; operador solo consulta vehículos y mantiene los filtros de marca y modelo.
+- `vehicleService.js` consume `/api/vehicles`, `/api/vehicle-models` y `/api/brands` con `credentials: "include"` y la base definida por `VITE_API_URL`.
+- La API protege 16 rutas con `vehicles:read` y `vehicles:write`.
+
 ## Visión funcional del producto (no confundir con lo implementado)
 
 El inicio menciona áreas que describen el alcance deseado, pero todavía no tienen su propio CRUD/API completo en este repositorio:
@@ -123,8 +132,8 @@ El inicio menciona áreas que describen el alcance deseado, pero todavía no tie
 - **Móviles y equipos:** cuadrillas de 2 o 3 empleados asignadas a vehículos; integrantes variables.
 - **Rendimiento:** productividad semanal y priorización para clientes premium.
 - **Stock:** materiales como precintos, tarugos, módems y routers, con alertas de reposición.
-- **Vehículos:** verificaciones técnicas, neumáticos y mantenimiento.
-- Módulos previstos que aparecen en la navegación: vehículos, empleados, roles, calendario y documentación.
+- **Vehículos:** el módulo básico de vehículos, marcas y modelos está implementado; las verificaciones técnicas, neumáticos y mantenimiento no forman parte de este alcance.
+- Módulos previstos que aparecen en la navegación: empleados, roles y documentación.
 
 La pantalla de tareas sí permite actualmente registrar y cambiar estado de tareas, pero no hay evidencia en el backend actual de órdenes asociadas a móviles, inventario, mantenimiento, ranking o calendario. No presentar esos módulos como implementados hasta que exista backend correspondiente.
 
