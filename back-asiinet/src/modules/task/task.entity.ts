@@ -45,6 +45,9 @@ export class Task {
   @Column({ type: "varchar", length: 80 })
   service!: string;
 
+  @Column({ type: "simple-json", nullable: true })
+  serviceDetails!: Record<string, unknown> | null;
+
   @Column({ type: "varchar", length: 20, nullable: true })
   priority!: string | null;
 

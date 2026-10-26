@@ -219,7 +219,9 @@ export const requirePermission = (...permissions: string[]) => {
   };
 };
 
-export const requireTaskAccess = (action: "read" | "update" | "delete") => {
+export const createRequireTaskAccess = (
+  findTaskByIdForAccess: typeof findTaskById = findTaskById
+) => (action: "read" | "update" | "delete") => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const user = (req as AuthenticatedRequest).user;
 
@@ -234,7 +236,7 @@ export const requireTaskAccess = (action: "read" | "update" | "delete") => {
       return next(AppError.badRequest("Identificador de tarea no válido"));
     }
 
-    const task = await findTaskById(taskId);
+    const task = await findTaskByIdForAccess(taskId);
 
     if (!task) {
       return next(AppError.notFound("Tarea no encontrada"));
@@ -248,3 +250,5 @@ export const requireTaskAccess = (action: "read" | "update" | "delete") => {
     return next();
   };
 };
+
+export const requireTaskAccess = createRequireTaskAccess();
