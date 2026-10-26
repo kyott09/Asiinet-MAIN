@@ -61,12 +61,12 @@ Las rutas registradas en `src/routes/AppRoutes.jsx` son:
 | `/home` | Inicio | Introducción al sistema y conceptos generales. Requiere sesión. |
 | `/profile` | Perfil | Editar nombre, email, foto, fecha de nacimiento y domicilio. Requiere sesión. |
 | `/users` | Usuarios | Protegida para `role === "admin"`; lista usuarios reales y permite alta, edición de nombre/email/rol y eliminación confirmada. |
-| `/galeria` | Galería de fotos | Protegida; utiliza tres fotos locales. |
+| `/galeria` | Redirección a Home | Redirige a `/home`; la galería integrada se muestra solo para clientes. |
 | `/tareas` | Tareas | Protegida; CRUD conectado a la API. |
 | `/calendario` | Calendario | Protegida (`admin`, `supervisor`, `operador`); eventos con persistencia en API. Clientes sin acceso. |
 | `/vehiculos` | Vehículos | Protegida (`admin`, `supervisor`, `operador`); administra vehículos, modelos y marcas. Operadores tienen lectura; admin y supervisor tienen escritura. |
 
-La barra lateral muestra el acceso funcional a `/vehiculos` para los roles con permiso de lectura. Empleados, roles y documentación continúan como accesos informativos sin CRUD activo.
+La barra lateral no muestra un acceso independiente a la galería. El acceso funcional a `/vehiculos` se mantiene para los roles con permiso de lectura. Empleados, roles y documentación continúan como accesos informativos sin CRUD activo.
 
 No se ve una ruta catch-all para direcciones desconocidas. Considerar una pantalla 404 en la reconstrucción, sin cambiar las rutas válidas.
 
@@ -111,10 +111,10 @@ No se ve una ruta catch-all para direcciones desconocidas. Considerar una pantal
 
 ### Inicio, navegación y galería
 
-- Inicio explica los objetivos del producto, tipos de servicio y conceptos operativos.
-- La navegación del panel incluye marca, secciones de registrar y accesos a galería, calendario y documentación. La entrada de registro se puede expandir; roles se muestra condicionalmente a administradores.
+- Inicio explica los objetivos del producto, tipos de servicio y conceptos operativos. Para clientes también integra la sección de galería.
+- La navegación del panel incluye marca, secciones de registrar y accesos a calendario y documentación. La entrada de registro se puede expandir; roles se muestra condicionalmente a administradores.
 - El encabezado de cuenta enlaza al perfil, muestra el nombre/avatar y permite cerrar sesión.
-- La galería usa tres imágenes locales y tiene componentes de carrusel, flechas e indicadores en el código fuente.
+- La galería usa tres imágenes locales y reutiliza `GalleryCarousel`, `GalleryArrows` y `GalleryIndicators` dentro de Home.
 
 ### Vehículos
 
@@ -152,7 +152,7 @@ La pantalla de tareas sí permite actualmente registrar y cambiar estado de tare
 
 - El estado visual completo no quedó verificado en el navegador compartido durante la preparación de este brief; validar las pantallas arrancando frontend y backend localmente.
 - Hay cambios locales preexistentes sin confirmar. Revisar `git status` antes de editar y preservar cualquier trabajo existente.
-- En el árbol inspeccionado, `Gallery.jsx` hace referencia a `AccountActions` y `GalleryCarousel`, pero no aparecen importados en ese archivo. Verificar y corregir este tipo de inconsistencias al reconstruir; no asumir que toda la interfaz actual compila o está terminada.
+- La galería independiente fue retirada; `GalleryCarousel` se reutiliza desde Home y sus estilos compartidos permanecen en `pages/Gallery.css`.
 - El registro pide “Usuario” y “Nombre completo”, pero el backend solo persiste `nombre`; el nombre de usuario no es un campo del modelo actual.
 - `/users/assignables` sigue alimentando los selectores de tareas; no sustituye al listado administrativo, que usa `users:write`.
 - No copiar secretos ni datos de `.env` a código, documentación pública o mensajes.

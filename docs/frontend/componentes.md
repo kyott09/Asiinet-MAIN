@@ -45,7 +45,7 @@ Resume los componentes reutilizables de autenticación, panel, galería y calend
 
 ## Cómo se conecta
 
-Las páginas componen estos elementos: `Login` y `Register` usan `AuthLayout`, `TextField` y `PasswordField`; las páginas del panel usan `DashboardSidebar` y `AccountActions`; `Gallery` usa `GalleryCarousel`; `Calendar` organiza header, grilla, modal y tipos de eventos. El modal del calendario recibe operaciones por callbacks desde `Calendar.jsx`.
+Las páginas componen estos elementos: `Login` y `Register` usan `AuthLayout`, `TextField` y `PasswordField`; las páginas del panel usan `DashboardSidebar` y `AccountActions`; `Home` integra `GalleryCarousel` para clientes; `Calendar` organiza header, grilla, modal y tipos de eventos. El modal del calendario recibe operaciones por callbacks desde `Calendar.jsx`.
 
 ## Contratos
 
@@ -82,4 +82,7 @@ El menú móvil, su respuesta a Escape y el uso de teclado de los controles no s
 - `front-asiinet/asiinet/src/pages/Calendar.jsx`
 - `front-asiinet/asiinet/src/pages/Vehiculos/Vehiculos.jsx`
 - `front-asiinet/asiinet/src/pages/Vehiculos/components/`
-- `front-asiinet/asiinet/src/pages/Gallery.jsx`
+- `front-asiinet/asiinet/src/pages/Home/index.jsx`
+- `front-asiinet/asiinet/src/components/gallery/GalleryCarousel.jsx`
+- `front-asiinet/asiinet/src/components/gallery/GalleryArrows.jsx`
+- `front-asiinet/asiinet/src/components/gallery/GalleryIndicators.jsx`

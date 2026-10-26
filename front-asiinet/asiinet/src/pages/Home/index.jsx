@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import AccountActions from "../../components/dashboard/AccountActions";
 import DashboardSidebar from "../../components/dashboard/DashboardSidebar";
+import GalleryCarousel from "../../components/gallery/GalleryCarousel";
+import { galleryPhotos } from "../../components/gallery/galleryPhotos";
+import "../Gallery.css";
 import "./Home.css";
 import NetworkDiagram from "./NetworkDiagram";
 
@@ -96,6 +99,18 @@ function Home() {
             ))}
           </div>
         </section>
+
+        {isClient && (
+          <section className="home-gallery" aria-labelledby="home-gallery-title">
+            <div className="home-section-heading">
+              <div>
+                <h2 id="home-gallery-title">Galería de fotos</h2>
+                <p>Un vistazo al trabajo de Asiinet.</p>
+              </div>
+            </div>
+            <GalleryCarousel photos={galleryPhotos} />
+          </section>
+        )}
 
         <p className="home-footnote">
           El panel centraliza tareas y solicitudes. La gestión de vehículos,

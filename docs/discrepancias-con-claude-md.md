@@ -30,7 +30,7 @@ No aplica: este archivo no agrega ni cambia reglas del sistema.
 | Ambas guías | La descripción anterior de vehículos, marcas y modelos no reflejaba su implementación actual. | El backend tiene módulos y 16 rutas protegidas; el frontend incluye `/vehiculos`, sus pestañas y `vehicleService.js`. La documentación actualizada describe esos contratos. |
 | `CLAUDE_FRONTEND_BRIEF.md` | No hay evidencia de backend para calendario. | Hay módulo `event`, rutas bajo `/api/events` y una página Calendar que consume la API. La propia tabla de rutas del brief también describe el calendario conectado. |
 | `CLAUDE_FRONTEND_BRIEF.md` | Login y Register tienen la URL de API escrita directamente. | Ambos archivos leen `import.meta.env.VITE_API_URL` y usan una alternativa definida en el código. |
-| `CLAUDE_FRONTEND_BRIEF.md` | `Gallery.jsx` usa `AccountActions` y `GalleryCarousel` sin importarlos. | `Gallery.jsx` importa ambos componentes. |
+| `CLAUDE_FRONTEND_BRIEF.md` | La descripción anterior de la galería independiente quedó desactualizada. | La pantalla independiente fue retirada; `Home/index.jsx` reutiliza `GalleryCarousel` y `Gallery.css`. |
 
 ## Limitaciones conocidas
 
@@ -48,7 +48,8 @@ No aplica: este archivo no define ni describe respuestas de error de la API.
 - `back-asiinet/src/database/data-source.ts`
 - `front-asiinet/asiinet/src/routes/AppRoutes.jsx`
 - `front-asiinet/asiinet/src/pages/NotFound.jsx`
-- `front-asiinet/asiinet/src/pages/Gallery.jsx`
+- `front-asiinet/asiinet/src/pages/Home/index.jsx`
+- `front-asiinet/asiinet/src/components/gallery/GalleryCarousel.jsx`
 - `front-asiinet/asiinet/src/pages/Login.jsx`
 - `front-asiinet/asiinet/src/pages/Register.jsx`
 - `front-asiinet/asiinet/src/index.css`

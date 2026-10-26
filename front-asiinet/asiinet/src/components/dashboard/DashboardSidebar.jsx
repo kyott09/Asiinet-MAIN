@@ -23,7 +23,6 @@ function DashboardSidebar() {
   const links = [
     { label: "Inicio", icon: "fa-house", href: "/home" },
     { label: isClient ? "Solicitudes" : "Tareas", icon: "fa-list-check", href: "/tareas" },
-    { label: "Galería", icon: "fa-images", href: "/galeria" },
     ...(!isClient ? [{ label: "Calendario", icon: "fa-calendar-days", href: "/calendario" }] : []),
     ...(!isClient ? [{ label: "Vehículos", icon: "fa-truck", href: "/vehiculos" }] : []),
     ...(isAdmin ? [{ label: "Usuarios", icon: "fa-users", href: "/users" }] : []),

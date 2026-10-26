@@ -104,7 +104,7 @@ El punto de entrada es `src/main.jsx`; monta `App` dentro de `StrictMode`. `App.
 | `/home` | Inicio | Requiere usuario en `sessionStorage`. |
 | `/profile` | Perfil | Requiere sesión; carga y actualiza el perfil por API. |
 | `/users` | Usuarios | Protegida en frontend para `role === "admin"`; permite listar, crear, editar y eliminar cuentas mediante la API. |
-| `/galeria` | Galería | Requiere sesión; muestra imágenes locales. |
+| `/galeria` | Redirección | Redirige a `/home`; la galería se muestra dentro de Home solo para clientes. |
 | `/tareas` | Tareas/solicitudes | Requiere sesión; CRUD y vistas dependen del rol. |
 | `/calendario` | Calendario | Protegida en frontend para `admin`, `supervisor` y `operador`; gestión de eventos con persistencia API. Clientes sin acceso. |
 | `/vehiculos` | Vehículos | Protegida en frontend para `admin`, `supervisor` y `operador`; administra vehículos, modelos y marcas según el rol. Clientes sin acceso. |
@@ -123,11 +123,11 @@ Hay una ruta catch-all/404 definida. Los módulos de empleados, roles y document
 ### Pantallas y componentes principales
 
 - `src/pages/Login.jsx`, `Register.jsx`: formularios y componentes comunes en `components/auth/`.
-- `src/pages/Home.jsx`: introducción y servicios; no es un tablero de métricas de la API.
+- `src/pages/Home/index.jsx`: introducción, servicios y galería para clientes; no es un tablero de métricas de la API.
 - `src/pages/Profile.jsx`: perfil, incluido `fotoPerfil` como Data URL leído en el navegador.
 - `src/pages/Tareas.jsx`: listado, búsqueda/filtro, formularios, confirmación de borrado, tabla y representación para móvil.
 - `src/pages/Users.jsx`: gestión administrativa de usuarios, con tabla adaptable, alta, edición de nombre/email/rol y borrado confirmado.
-- `src/pages/Gallery.jsx`: carrusel local con `foto1.jpg`, `foto2.jpg` y `foto3.jpg`; controles y puntos están en `components/gallery/`.
+- `components/gallery/GalleryCarousel.jsx`: carrusel local con `foto1.jpg`, `foto2.jpg` y `foto3.jpg`; controles y puntos se reutilizan dentro de Home.
 - `components/dashboard/DashboardSidebar.jsx` y `AccountActions.jsx`: navegación y cuenta compartidas por las páginas del panel.
 - Estilos globales en `src/index.css` y `src/App.css`; estilos específicos junto a páginas/componentes. Mantener los patrones CSS existentes antes de sumar un sistema nuevo.
 

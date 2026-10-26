@@ -242,6 +242,23 @@
   line-height: 1.6;
 }
 
+.home-gallery {
+  width: min(100%, 960px);
+  margin-top: var(--space-10);
+}
+
+.home-gallery .home-section-heading {
+  margin-bottom: var(--space-4);
+}
+
+.home-gallery .gallery-container {
+  width: 100%;
+}
+
+.home-gallery .gallery-indicators {
+  width: 100%;
+}
+
 @media (max-width: 980px) {
   .home-hero {
     grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
