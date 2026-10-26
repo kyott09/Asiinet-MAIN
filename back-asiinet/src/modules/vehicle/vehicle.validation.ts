@@ -43,7 +43,7 @@ export const vehicleCreateSchema = z.object({
   estado: estadoSchema,
   anio: anioSchema.default(null),
   vehicleModelId: z.number().int().positive("El modelo de vehículo debe ser un id válido"),
-});
+}).strict();
 
 export const vehicleUpdateSchema = z.object({
   patente: patenteSchema.optional(),
@@ -58,21 +58,21 @@ export const vehicleUpdateSchema = z.object({
   estado: estadoSchema.optional(),
   anio: anioSchema.optional(),
   vehicleModelId: z.number().int().positive("El modelo de vehículo debe ser un id válido").optional(),
-});
+}).strict();
 
 export const brandSchema = z.object({
   descripcion: z.string().trim().min(1, "La descripción de la marca es obligatoria").max(100),
-});
+}).strict();
 
 export const vehicleModelSchema = z.object({
   descripcion: z.string().trim().min(1, "La descripción del modelo es obligatoria").max(100),
   brandId: z.number().int().positive("La marca debe ser un id válido"),
-});
+}).strict();
 
 export const vehicleModelUpdateSchema = z.object({
   descripcion: z.string().trim().min(1, "La descripción no puede estar vacía").max(100).optional(),
   brandId: z.number().int().positive("La marca debe ser un id válido").optional(),
-});
+}).strict();
 
 export function parseVehicleCreateInput(raw: unknown) {
   const parsed = vehicleCreateSchema.safeParse(raw);

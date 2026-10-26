@@ -333,16 +333,21 @@ test("estado rechaza cualquier otro valor", () => {
 // ---------------------------------------------------------------------------
 // 5. employee_id no se acepta en payload y se excluye de la respuesta API
 // ---------------------------------------------------------------------------
-test("employee_id es ignorado/excluido al crear o actualizar", () => {
-  const result = parseVehicleCreateInput({
-    patente: "ABC123",
-    color: "Negro",
-    estado: "disponible",
-    vehicleModelId: 1,
-    employee_id: 99,
-  } as any);
-
-  assert.equal((result as any).employee_id, undefined);
+test("employee_id se rechaza al crear o actualizar", () => {
+  assert.throws(
+    () => parseVehicleCreateInput({
+      patente: "ABC123",
+      color: "Negro",
+      estado: "disponible",
+      vehicleModelId: 1,
+      employee_id: 99,
+    } as any),
+    (err: any) => err instanceof AppError && err.statusCode === 400,
+  );
+  assert.throws(
+    () => parseVehicleUpdateInput({ color: "Negro", employee_id: 99 } as any),
+    (err: any) => err instanceof AppError && err.statusCode === 400,
+  );
 });
 
 test("formatVehicleResponse excluye employee_id de la respuesta", () => {
