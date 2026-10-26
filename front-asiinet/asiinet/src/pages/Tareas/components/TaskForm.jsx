@@ -1,4 +1,6 @@
-function TaskForm({ form, editingId, isClient, isEmployee, tasks, nextTaskNumber, today, clients, employees, loading, handleChange, getTaskStatusLabel, saving, handleSubmit, handleCancel }) {
+import ServiceDetailsFields from "./ServiceDetailsFields";
+
+function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails, serviceDetailsErrors, onServiceDetailsChange, tasks, nextTaskNumber, today, clients, employees, loading, handleChange, getTaskStatusLabel, saving, handleSubmit, handleCancel }) {
   return (
         <section className="tasks-panel" aria-labelledby="task-form-title">
           <h2 id="task-form-title">
@@ -219,6 +221,16 @@ function TaskForm({ form, editingId, isClient, isEmployee, tasks, nextTaskNumber
                   required
                 />
               </label>
+            )}
+
+            {canEditServiceDetails && form.service && (
+              <ServiceDetailsFields
+                service={form.service}
+                value={form.serviceDetails}
+                errors={serviceDetailsErrors}
+                disabled={saving}
+                onChange={onServiceDetailsChange}
+              />
             )}
 
             {(isEmployee || !isClient) && (

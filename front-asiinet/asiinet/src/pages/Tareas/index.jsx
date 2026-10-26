@@ -9,6 +9,8 @@ import TaskFilters from "./components/TaskFilters";
 import TaskTable from "./components/TaskTable";
 import TaskCards from "./components/TaskCards";
 import TaskForm from "./components/TaskForm";
+import { buildTaskPayload } from "../../../../../shared/taskPayload.js";
+import { validateTaskServiceDetails } from "../../../../../shared/taskServiceDetails.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 const TASKS_URL = `${API_BASE_URL}/api/tasks`;
@@ -73,6 +75,7 @@ const emptyForm = {
   service: "",
   priority: "Baja",
   status: "Vista",
+  serviceDetails: null,
 };
 
 function getUserSession() {
@@ -159,6 +162,7 @@ function Tareas() {
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [form, setForm] = useState(emptyForm);
+  const [serviceDetailsErrors, setServiceDetailsErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState("");
@@ -257,7 +261,18 @@ function Tareas() {
 
   function handleChange(event) {
     const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === "service" ? { serviceDetails: null } : {}),
+    }));
+    if (name === "service") setServiceDetailsErrors({});
+    setError("");
+  }
+
+  function handleServiceDetailsChange(serviceDetails) {
+    setForm((current) => ({ ...current, serviceDetails }));
+    setServiceDetailsErrors({});
     setError("");
   }
 
@@ -265,6 +280,7 @@ function Tareas() {
     setForm({ ...emptyForm });
     setEditingId(null);
     setError("");
+    setServiceDetailsErrors({});
   }
 
   async function handleSubmit(event) {
@@ -276,13 +292,19 @@ function Tareas() {
       ? tasks.find((task) => task.id === editingId)?.createdAt
       : today();
 
-    if (isClient && editingId === null && form.service && form.service !== "") {
-      // no-op: creation validation is handled below for client requests
-    }
-
     if (!isClient && form.dueDate < createdAt) {
       setError("La fecha de finalización no puede ser anterior a la fecha de creación.");
       return;
+    }
+
+    const canWriteDetails = isClient ? editingId === null : !isEmployee;
+    if (canWriteDetails && form.serviceDetails !== null) {
+      const detailErrors = validateTaskServiceDetails(form.service, form.serviceDetails);
+      if (Object.keys(detailErrors).length > 0) {
+        setServiceDetailsErrors(detailErrors);
+        setError("Revisá los detalles del servicio antes de continuar.");
+        return;
+      }
     }
 
     if (isClient && !editingId) {
@@ -300,21 +322,11 @@ function Tareas() {
 
     setSaving(true);
     try {
-      const payloadBody = isClient
-        ? editingId !== null
-          ? {
-              description: form.description,
-            }
-          : {
-              description: form.description,
-              service: form.service,
-            }
-        : isEmployee
-          ? {
-              dueDate: form.dueDate,
-              status: form.status,
-            }
-          : form;
+      const payloadBody = buildTaskPayload({ role: userRole, editingId, form });
+      if (!payloadBody) {
+        setError("No se puede crear una tarea desde esta cuenta.");
+        return;
+      }
 
       const payload = await requestTasks(editingId !== null ? `/${editingId}` : "", {
         method: editingId !== null ? "PUT" : "POST",
@@ -346,31 +358,21 @@ function Tareas() {
       return;
     }
 
-    if (isEmployee) {
-      setForm({
-        clientId: task.clientId ? String(task.clientId) : "",
-        employeeId: task.employeeId ? String(task.employeeId) : "",
-        dueDate: task.dueDate,
-        description: task.description,
-        service: task.service,
-        priority: task.priority,
-        status: task.status,
-      });
-    } else {
-      setForm({
-        clientId: task.clientId ? String(task.clientId) : "",
-        employeeId: task.employeeId ? String(task.employeeId) : "",
-        dueDate: task.dueDate,
-        description: task.description,
-        service: task.service,
-        priority: task.priority,
-        status: task.status,
-      });
-    }
+    setForm({
+      clientId: task.clientId ? String(task.clientId) : "",
+      employeeId: task.employeeId ? String(task.employeeId) : "",
+      dueDate: task.dueDate,
+      description: task.description,
+      service: task.service,
+      priority: task.priority,
+      status: task.status,
+      serviceDetails: task.serviceDetails ?? null,
+    });
 
     setEditingId(task.id);
     setMessage("");
     setError("");
+    setServiceDetailsErrors({});
     setShowForm(true);
   }
 
@@ -453,7 +455,7 @@ function Tareas() {
       )}
 
       {showForm ? (
-        <TaskForm form={form} editingId={editingId} isClient={isClient} isEmployee={isEmployee} tasks={tasks} nextTaskNumber={nextTaskNumber} today={today} clients={clients} employees={employees} loading={loading} handleChange={handleChange} getTaskStatusLabel={getTaskStatusLabel} saving={saving} handleSubmit={handleSubmit} handleCancel={handleCancel} />
+        <TaskForm form={form} editingId={editingId} isClient={isClient} isEmployee={isEmployee} canEditServiceDetails={isClient ? editingId === null : !isEmployee} serviceDetailsErrors={serviceDetailsErrors} onServiceDetailsChange={handleServiceDetailsChange} tasks={tasks} nextTaskNumber={nextTaskNumber} today={today} clients={clients} employees={employees} loading={loading} handleChange={handleChange} getTaskStatusLabel={getTaskStatusLabel} saving={saving} handleSubmit={handleSubmit} handleCancel={handleCancel} />
       ) : (
         <section className="tasks-panel" aria-labelledby="task-list-title" aria-busy={loading}>
           <div className="tasks-list-header">

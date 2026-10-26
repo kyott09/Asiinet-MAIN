@@ -1,3 +1,5 @@
+import TaskServiceDetailsDisplay from "./TaskServiceDetailsDisplay";
+
 function TaskTable({ filteredTasks, isClient, getTaskStatusLabel, canClientEditTask, handleEdit, canDeleteTask, requestDelete, deletingId }) {
   return (
               <div className="tasks-table-wrap" role="region" aria-label="Listado de tareas" tabIndex="0">
@@ -13,6 +15,7 @@ function TaskTable({ filteredTasks, isClient, getTaskStatusLabel, canClientEditT
                     {!isClient && <th scope="col">Prioridad</th>}
                     <th scope="col">Estado</th>
                     <th scope="col">Descripción</th>
+                    <th scope="col">Detalles del servicio</th>
                     <th scope="col">Acciones</th>
                   </tr>
                 </thead>
@@ -38,6 +41,7 @@ function TaskTable({ filteredTasks, isClient, getTaskStatusLabel, canClientEditT
                         </span>
                       </td>
                       <td>{task.description}</td>
+                      <td><TaskServiceDetailsDisplay service={task.service} serviceDetails={task.serviceDetails} /></td>
                       <td>
                         <div className="tasks-actions">
                           {isClient && canClientEditTask(task) && (
