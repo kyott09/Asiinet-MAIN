@@ -107,8 +107,9 @@ El punto de entrada es `src/main.jsx`; monta `App` dentro de `StrictMode`. `App.
 | `/galeria` | Galería | Requiere sesión; muestra imágenes locales. |
 | `/tareas` | Tareas/solicitudes | Requiere sesión; CRUD y vistas dependen del rol. |
 | `/calendario` | Calendario | Protegida en frontend para `admin`, `supervisor` y `operador`; gestión de eventos con persistencia API. Clientes sin acceso. |
+| `/vehiculos` | Vehículos | Protegida en frontend para `admin`, `supervisor` y `operador`; administra vehículos, modelos y marcas según el rol. Clientes sin acceso. |
 
-No hay ruta catch-all/404 definida. No se debe asumir que otros enlaces implican pantallas implementadas: vehículos, empleados, roles y documentación no tienen rutas activas en el router.
+Hay una ruta catch-all/404 definida. Los módulos de empleados, roles y documentación no tienen CRUD activo en el router.
 
 ### Estado de sesión en navegador
 
@@ -138,7 +139,7 @@ El entry point usado por scripts es `back-asiinet/src/index.ts` (`src/index.js` 
 
 CORS permite credenciales y actualmente acepta orígenes localhost `5173`, `5174` y `5175` (además de peticiones sin `Origin`). El Vite actual sirve en `5174`. Antes de desplegar en otro dominio hay que revisar y configurar la lista en `src/index.ts`; no asumir que existe un proxy de Vite.
 
-Las rutas se montan en `/api/users` y `/api/tasks`. `notFoundHandler` y `errorHandler` devuelven errores JSON; los errores de aplicación tienen forma `{ status: "error", code, message }`. Controladores asíncronos usan `asyncHandler`.
+Las rutas se montan en `/api/users`, `/api/tasks`, `/api/events`, `/api/brands`, `/api/vehicle-models` y `/api/vehicles`. `notFoundHandler` y `errorHandler` devuelven errores JSON; los errores de aplicación tienen forma `{ status: "error", code, message }`. Controladores asíncronos usan `asyncHandler`.
 
 ## API implementada
 
@@ -165,6 +166,12 @@ Todas las rutas, salvo que se indique, están bajo `/api`. Las rutas de usuarios
 | `POST /events` | Sí + `calendar:write` | Crea evento con `{ titulo, tipo, fecha, descripcion? }` asignando el usuario creador del JWT. Tipos fijos: `reunion`, `cumpleanos`, `capacitacion`, `licencia`, `otro`. |
 | `PUT /events/:id` | Sí + `calendar:write` | Actualiza un evento existente. Solo el usuario creador puede modificarlo (403 para ajenos, incluidos admins). |
 | `DELETE /events/:id` | Sí + `calendar:write` | Elimina un evento existente. Solo el usuario creador puede eliminarlo (403 para ajenos, incluidos admins). |
+| `GET /brands`, `GET /brands/:id` | Sí + `vehicles:read` | Lista o consulta marcas. |
+| `POST`, `PUT`, `DELETE` en `/brands` y `/brands/:id` | Sí + `vehicles:write` | Administra marcas; los borrados con modelos asociados devuelven 409. |
+| `GET /vehicle-models`, `GET /vehicle-models/by-brand/:brandId`, `GET /vehicle-models/:id` | Sí + `vehicles:read` | Lista, filtra o consulta modelos. |
+| `POST`, `PUT`, `DELETE` en `/vehicle-models` y `/vehicle-models/:id` | Sí + `vehicles:write` | Administra modelos; los borrados con vehículos asociados devuelven 409. |
+| `GET /vehicles`, `GET /vehicles/:id` | Sí + `vehicles:read` | Lista o consulta vehículos con filtros positivos `brandId` y `modelId`. |
+| `POST`, `PUT`, `DELETE` en `/vehicles` y `/vehicles/:id` | Sí + `vehicles:write` | Administra vehículos con respuestas envueltas. |
 
 La cookie se lee directamente desde `Cookie` por el middleware; el cliente no necesita ni debe mover el token a `localStorage`. El frontend guarda localmente solo la representación pública del usuario para renderizar/navegar. `requireAuth` consulta la fila del usuario en cada request autenticado y usa el email/rol actuales de la base; un usuario borrado recibe 401 aunque su JWT aún no haya vencido. El JWT conserva la expiración de una hora y su contrato no cambia.
 
@@ -225,7 +232,7 @@ Entidad `Event` en tabla `eventos`: `id`, `titulo`, `tipo`, `fecha`, `descripcio
 
 ## Límites funcionales: no presentar como implementado
 
-- Vehículos, cuadrillas, empleados como módulo independiente, stock/materiales, mantenimiento, métricas/rendimiento y documentación.
+- Cuadrillas, empleados como módulo independiente, stock/materiales, mantenimiento, métricas/rendimiento y documentación.
 - Rutas de frontend distintas a las de la tabla de navegación.
 - Cualquier dato ficticio que se presente como proveniente de API.
 
