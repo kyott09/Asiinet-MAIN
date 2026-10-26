@@ -22,6 +22,7 @@ import { createVehicleRouter } from "./vehicle.routes.js";
 import { createBrandService } from "../brand/brand.service.js";
 import { createVehicleModelService } from "../vehicle-model/vehicle-model.service.js";
 import { createVehicleService } from "./vehicle.service.js";
+import * as vehicleController from "./vehicle.controller.js";
 
 const TEST_JWT_KEY = "vehicle-route-test-key";
 
@@ -557,4 +558,18 @@ test("patente duplicada devuelve conflicto", async () => {
     () => service.create({ patente: "ABC123", color: "Blanco", estado: "disponible", vehicleModelId: 1 }),
     (err: any) => err.statusCode === 409,
   );
+});
+
+test("los filtros inválidos devuelven 400 desde el controlador HTTP", async () => {
+  const users = new Map([[1, { id: 1, email: "admin@test.local", role: "admin" }]]);
+  const auth = createRequireAuth(async (id) => users.get(id) ?? null, TEST_JWT_KEY);
+  const app = express();
+  app.use(express.json());
+  app.use("/vehicles", createVehicleRouter(auth, vehicleController));
+  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    res.status(err.statusCode ?? 500).json({ message: err.message });
+  });
+
+  assert.equal((await request(app, "GET", "/vehicles?brandId=abc", tokenFor(1))).status, 400);
+  assert.equal((await request(app, "GET", "/vehicles?modelId=1.2", tokenFor(1))).status, 400);
 });
