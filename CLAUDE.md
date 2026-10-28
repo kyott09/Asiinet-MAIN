@@ -99,12 +99,14 @@ El punto de entrada es `src/main.jsx`; monta `App` dentro de `StrictMode`. `App.
 
 | Ruta | Pantalla | Estado/acceso |
 | --- | --- | --- |
-| `/` y `/login` | Login | Pública. |
+| `/` | Inicio institucional | Pública; información de Asiinet, servicios, galería y acción adaptada a la sesión. |
+| `/login` | Login | Pública. |
 | `/register` | Registro | Pública; envía `role: "user"` para registrar un usuario tipo cliente. |
-| `/home` | Inicio | Requiere usuario en `sessionStorage`. |
+| `/panel` | Panel operativo | Requiere usuario en `sessionStorage`. |
+| `/home` | Compatibilidad | Redirige a `/panel`. |
 | `/profile` | Perfil | Requiere sesión; carga y actualiza el perfil por API. |
 | `/users` | Usuarios | Protegida en frontend para `role === "admin"`; permite listar, crear, editar y eliminar cuentas mediante la API. |
-| `/galeria` | Redirección | Redirige a `/home`; la galería se muestra dentro de Home solo para clientes. |
+| `/galeria` | Redirección | Redirige a `/`; la galería forma parte de Home pública. |
 | `/tareas` | Tareas/solicitudes | Requiere sesión; CRUD y vistas dependen del rol. |
 | `/calendario` | Calendario | Protegida en frontend para `admin`, `supervisor` y `operador`; gestión de eventos con persistencia API. Clientes sin acceso. |
 | `/vehiculos` | Vehículos | Protegida en frontend para `admin`, `supervisor` y `operador`; administra vehículos, modelos y marcas según el rol. Clientes sin acceso. |
@@ -123,7 +125,8 @@ Hay una ruta catch-all/404 definida. Los módulos de empleados, roles y document
 ### Pantallas y componentes principales
 
 - `src/pages/Login.jsx`, `Register.jsx`: formularios y componentes comunes en `components/auth/`.
-- `src/pages/Home/index.jsx`: introducción, servicios y galería para clientes; no es un tablero de métricas de la API.
+- `src/pages/Home/Home.jsx`: página institucional pública con tipos de servicio, galería local y acción principal según sesión/rol.
+- `src/pages/Panel.jsx`: panel interno con navegación, información de operaciones y galería para clientes; no es un tablero de métricas de la API.
 - `src/pages/Profile.jsx`: perfil, incluido `fotoPerfil` como Data URL leído en el navegador.
 - `src/pages/Tareas.jsx`: listado, búsqueda/filtro, formularios, confirmación de borrado, tabla y representación para móvil.
 - `src/pages/Users.jsx`: gestión administrativa de usuarios, con tabla adaptable, alta, edición de nombre/email/rol y borrado confirmado.

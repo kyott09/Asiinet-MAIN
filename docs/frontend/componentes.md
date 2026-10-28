@@ -82,7 +82,8 @@ El menú móvil, su respuesta a Escape y el uso de teclado de los controles no s
 - `front-asiinet/asiinet/src/pages/Calendar.jsx`
 - `front-asiinet/asiinet/src/pages/Vehiculos/Vehiculos.jsx`
 - `front-asiinet/asiinet/src/pages/Vehiculos/components/`
-- `front-asiinet/asiinet/src/pages/Home/index.jsx`
+- `front-asiinet/asiinet/src/pages/Home/Home.jsx`
+- `front-asiinet/asiinet/src/pages/Panel.jsx`
 - `front-asiinet/asiinet/src/components/gallery/GalleryCarousel.jsx`
 - `front-asiinet/asiinet/src/components/gallery/GalleryArrows.jsx`
 - `front-asiinet/asiinet/src/components/gallery/GalleryIndicators.jsx`

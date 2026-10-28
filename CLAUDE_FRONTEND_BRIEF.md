@@ -56,19 +56,21 @@ Las rutas registradas en `src/routes/AppRoutes.jsx` son:
 
 | Ruta | Pantalla | Acceso / función actual |
 |---|---|---|
-| `/` y `/login` | Iniciar sesión | Formulario de autenticación. |
+| `/` | Inicio institucional | Pública; informa sobre Asiinet, sus servicios y trabajo; adapta saludo y acción a la sesión local. |
+| `/login` | Iniciar sesión | Formulario de autenticación. |
 | `/register` | Crear cuenta | Registro con nombre, email y contraseña. |
-| `/home` | Inicio | Introducción al sistema y conceptos generales. Requiere sesión. |
+| `/panel` | Panel operativo | Requiere usuario en `sessionStorage`. |
+| `/home` | Compatibilidad | Redirige a `/panel`. |
 | `/profile` | Perfil | Editar nombre, email, foto, fecha de nacimiento y domicilio. Requiere sesión. |
 | `/users` | Usuarios | Protegida para `role === "admin"`; lista usuarios reales y permite alta, edición de nombre/email/rol y eliminación confirmada. |
-| `/galeria` | Redirección a Home | Redirige a `/home`; la galería integrada se muestra solo para clientes. |
+| `/galeria` | Redirección a Home | Redirige a `/`; la galería se muestra en la portada pública. |
 | `/tareas` | Tareas | Protegida; CRUD conectado a la API. |
 | `/calendario` | Calendario | Protegida (`admin`, `supervisor`, `operador`); eventos con persistencia en API. Clientes sin acceso. |
 | `/vehiculos` | Vehículos | Protegida (`admin`, `supervisor`, `operador`); administra vehículos, modelos y marcas. Operadores tienen lectura; admin y supervisor tienen escritura. |
 
 La barra lateral no muestra un acceso independiente a la galería. El acceso funcional a `/vehiculos` se mantiene para los roles con permiso de lectura. Empleados, roles y documentación continúan como accesos informativos sin CRUD activo.
 
-No se ve una ruta catch-all para direcciones desconocidas. Considerar una pantalla 404 en la reconstrucción, sin cambiar las rutas válidas.
+Hay una ruta catch-all que muestra la pantalla 404 para direcciones desconocidas.
 
 ## Funcionalidad existente que debe preservarse
 
@@ -111,10 +113,10 @@ No se ve una ruta catch-all para direcciones desconocidas. Considerar una pantal
 
 ### Inicio, navegación y galería
 
-- Inicio explica los objetivos del producto, tipos de servicio y conceptos operativos. Para clientes también integra la sección de galería.
+- Home pública explica los servicios de Asiinet, incluye la galería local y personaliza el saludo y la acción principal según sesión y rol. Panel mantiene la introducción operativa para usuarios autenticados.
 - La navegación del panel incluye marca, secciones de registrar y accesos a calendario y documentación. La entrada de registro se puede expandir; roles se muestra condicionalmente a administradores.
 - El encabezado de cuenta enlaza al perfil, muestra el nombre/avatar y permite cerrar sesión.
-- La galería usa tres imágenes locales y reutiliza `GalleryCarousel`, `GalleryArrows` y `GalleryIndicators` dentro de Home.
+- La galería usa tres imágenes locales y reutiliza `GalleryCarousel`, `GalleryArrows` y `GalleryIndicators` dentro de Home pública.
 
 ### Vehículos
 

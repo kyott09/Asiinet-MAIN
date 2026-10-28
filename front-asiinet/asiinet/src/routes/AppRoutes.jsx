@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Home from "../pages/Home";
+import Home from "../pages/Home/Home";
+import Panel from "../pages/Panel";
 import Users from "../pages/Users";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -27,11 +28,11 @@ function ProtectedRoute({ children, requireAdmin = false, allowedRoles = null })
   }
 
   if (requireAdmin && user.role !== "admin") {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/panel" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/panel" replace />;
   }
 
   return children;
@@ -44,18 +45,19 @@ function AppRoutes() {
         Saltar al contenido principal
       </a>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
         <Route
-          path="/home"
+          path="/panel"
           element={
             <ProtectedRoute>
-              <Home />
+              <Panel />
             </ProtectedRoute>
           }
         />
+        <Route path="/home" element={<Navigate to="/panel" replace />} />
 
         <Route
           path="/profile"
@@ -75,7 +77,7 @@ function AppRoutes() {
           }
         />
 
-        <Route path="/galeria" element={<Navigate to="/home" replace />} />
+        <Route path="/galeria" element={<Navigate to="/" replace />} />
         <Route
           path="/tareas"
           element={
