@@ -66,7 +66,7 @@ export const errorHandler = (
     });
   }
 
-  //Error que NO esperábamos
+  //Error que NO esperabamos
   console.error("Error no controlado:", err);
 
   return res.status(500).json({
