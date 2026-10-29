@@ -13,6 +13,7 @@ const actors = new Map([
   [1, { id: 1, email: "operator@example.invalid", role: "operador" }],
   [2, { id: 2, email: "client@example.invalid", role: "cliente" }],
   [3, { id: 3, email: "admin@example.invalid", role: "admin" }],
+  [4, { id: 4, email: "supervisor@example.invalid", role: "supervisor" }],
 ]);
 
 const rows = [
@@ -153,6 +154,16 @@ test("el parser estricto acepta parámetros válidos y rechaza valores inválido
 test("la compatibilidad sin parámetros mantiene colección completa y forma original", async () => {
   const { app, repositoryCalls } = createHarness();
   const response = await request(app, "/api/tasks", 3);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(Object.keys(response.body), ["tasks"]);
+  assert.deepEqual(response.body.tasks.map((task: any) => task.id), [10, 11, 12, 13]);
+  assert.equal(repositoryCalls.length, 0);
+});
+
+test("sin parámetros, supervisor mantiene la colección completa y la respuesta heredada", async () => {
+  const { app, repositoryCalls } = createHarness();
+  const response = await request(app, "/api/tasks", 4);
 
   assert.equal(response.status, 200);
   assert.deepEqual(Object.keys(response.body), ["tasks"]);
