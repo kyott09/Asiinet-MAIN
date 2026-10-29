@@ -41,9 +41,11 @@ Resume los componentes reutilizables de autenticación, panel, galería y calend
 
 ### Tareas
 
+- `TaskForm` adapta la asignación y edición al rol. Cliente ve visita opcional solo al crear; admin/supervisor pueden gestionarla en cualquier estado. Una tarea sin operador puede permanecer así en `Vista`; si cambia a otro estado, el formulario solicita un operador.
 - `ServiceDetailsFields` presenta los campos del servicio dentro de un `fieldset` y `legend`; recibe valor, errores y callbacks desde `Tareas/index.jsx`.
 - `TaskServiceDetailsDisplay` muestra el resumen en un disclosure accesible reutilizado por tabla y tarjetas.
 - La definición compartida en `shared/taskServiceDetails.js` mantiene opciones, etiquetas y límites en un único lugar.
+- `shared/taskVisitSlots.js` comparte franjas, etiquetas, formato de fecha sin conversión local y el texto `A coordinar` para formularios, tabla y tarjetas.
 
 ### Elemento de interfaz
 
@@ -95,6 +97,7 @@ El menú móvil, su respuesta a Escape y el uso de teclado de los controles no s
 - `front-asiinet/asiinet/src/pages/Tareas/components/ServiceDetailsFields.jsx`
 - `front-asiinet/asiinet/src/pages/Tareas/components/TaskServiceDetailsDisplay.jsx`
 - `shared/taskServiceDetails.js`
+- `shared/taskVisitSlots.js`
 - `front-asiinet/asiinet/src/pages/Home/Home.jsx`
 - `front-asiinet/asiinet/src/pages/Panel.jsx`
 - `front-asiinet/asiinet/src/components/gallery/GalleryCarousel.jsx`

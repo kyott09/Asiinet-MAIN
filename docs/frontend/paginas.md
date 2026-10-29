@@ -16,12 +16,12 @@ Resume el contenido, acceso, llamadas de red y estados visibles de cada página 
 | Users (`/users`) | Solo admin según `ProtectedRoute` | Tabla/lista adaptable de cuentas, roles y acciones de alta, edición y baja. | `GET /api/users`, `POST /api/users`, `PUT /api/users/:id`, `DELETE /api/users/:id` | Carga, error con reintento, lista vacía, aviso de éxito, diálogo y error de formulario. |
 | Compatibilidad (`/home`) | Redirección | Redirige a `/panel`. | Ninguno | Mantiene enlaces antiguos al panel interno. |
 | Gallery (`/galeria`) | Redirección | Redirige a `/`; la galería es parte de Home pública. | Ninguno | El carrusel usa navegación local. |
-| Tareas (`/tareas`) | Cualquier sesión local | Solicitudes o tareas, búsqueda/filtro y formularios según rol. | `GET /api/tasks`; `GET /api/users/assignables` para admin y supervisor; `POST`, `PUT` y `DELETE /api/tasks/:id` según acción. | Carga, vacío, error, aviso de éxito, guardado/borrado, confirmación de eliminación y filtros. Un 401 elimina `user` de `sessionStorage` y navega a login. |
+| Tareas (`/tareas`) | Cualquier sesión local | Solicitudes o tareas, búsqueda/filtro y formularios según rol; cliente elige visita opcional al crear; admin/supervisor gestionan fecha y franja en cualquier estado; todas las vistas muestran la visita programada o `A coordinar`. | `GET /api/tasks`; `GET /api/users/assignables` para admin y supervisor; `POST`, `PUT` y `DELETE` `/api/tasks/:id` según acción. | Carga, vacío, error, aviso de éxito, guardado/borrado, confirmación de eliminación y filtros. Un 401 elimina `user` de `sessionStorage` y navega a login. |
 | Calendar (`/calendario`) | Admin, supervisor u operador según `allowedRoles` | Calendario mensual, leyenda, eventos y diálogo para ver/crear/editar/eliminar. | `GET /api/events?month=YYYY-MM`, `POST /api/events`, `PUT /api/events/:id`, `DELETE /api/events/:id` | Carga, error con reintento, calendario sin/eventos, diálogo, error de operación y aviso de éxito. |
 | Vehículos (`/vehiculos`) | Admin, supervisor u operador según `allowedRoles` | Pestañas de vehículos, modelos y marcas; operadores tienen lectura y admin/supervisor escritura. | `GET`, `POST`, `PUT`, `DELETE` de `/api/vehicles`, `/api/vehicle-models` y `/api/brands` | Carga, error, listas vacías, filtros de marca/modelo, formularios, confirmación y avisos. |
 | NotFound (`*`) | Pública; ruta comodín | Mensaje 404, logo y enlace a login. | Ninguno | Vista 404 estática. |
 
-En Tareas, la solicitud de asignables se omite para cliente y operador; la página solo la envía para admin y supervisor. El backend fija el cliente a la sesión. Los permisos y el alcance por recurso del backend se documentan en [task](../backend/task.md). Las páginas del panel también incluyen `AccountActions`, que llama `POST /api/users/logout` al cerrar sesión.
+En Tareas, la solicitud de asignables se omite para cliente y operador; la página solo la envía para admin y supervisor. El backend fija el cliente a la sesión. Cliente solo puede elegir visita al crear y no puede editarla después; operador no puede escribir visitas ni detalles. Admin/supervisor pueden gestionarlos al crear y editar, sin bloqueo por estado. Las fechas de visita se presentan desde `YYYY-MM-DD` para evitar cambios de día por zona local. Los permisos y el alcance por recurso del backend se documentan en [task](../backend/task.md). Las páginas del panel también incluyen `AccountActions`, que llama `POST /api/users/logout` al cerrar sesión.
 
 ## Cómo se conecta
 
@@ -61,6 +61,7 @@ Las listas y formularios muestran estados explícitos, pero el tratamiento de 40
 - `front-asiinet/asiinet/src/pages/Tareas/components/TaskServiceDetailsDisplay.jsx`
 - `shared/taskPayload.js`
 - `shared/taskServiceDetails.js`
+- `shared/taskVisitSlots.js`
 - `front-asiinet/asiinet/src/pages/Calendar.jsx`
 - `front-asiinet/asiinet/src/pages/NotFound.jsx`
 - `front-asiinet/asiinet/src/services/calendarService.js`

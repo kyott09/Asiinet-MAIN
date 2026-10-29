@@ -162,8 +162,8 @@ Todas las rutas, salvo que se indique, están bajo `/api`. Las rutas de usuarios
 | `PUT /users/:id` | Sí + `users:write` | Actualiza únicamente `nombre`, `email` y/o `role`; devuelve `{ user }` sin hash. Protege al último admin y los roles compatibles con asignaciones de tareas. |
 | `DELETE /users/:id` | Sí + `users:write` | Elimina un usuario sin tareas asociadas; no permite autoeliminación ni eliminar al último admin. Devuelve `{ message }`. |
 | `GET /tasks` | Sí + `tasks:read` | Devuelve `{ tasks }`, filtradas por visibilidad del rol. |
-| `POST /tasks` | Sí + `tasks:create` | Crea tarea/solicitud; devuelve `{ task }` con HTTP 201. |
-| `PUT /tasks/:id` | Sí + `tasks:update` + acceso a esa tarea | Actualiza campos permitidos según rol; devuelve `{ task }`. |
+| `POST /tasks` | Sí + `tasks:create` | Crea tarea/solicitud; cliente y admin/supervisor pueden incluir `visitDate` y `visitTimeSlot` juntos; la visita del cliente es opcional; devuelve `{ task }` con HTTP 201. |
+| `PUT /tasks/:id` | Sí + `tasks:update` + acceso a esa tarea | Actualiza campos permitidos según rol; admin/supervisor pueden conservar, quitar o reprogramar la visita en cualquier estado; devuelve `{ task }`. |
 | `DELETE /tasks/:id` | Sí + `tasks:delete` + acceso | Elimina y devuelve `{ message: "Tarea eliminada" }`. |
 | `GET /events` | Sí + `calendar:read` | Devuelve eventos filtrados opcionalmente por `?month=YYYY-MM`, con indicador `esPropio`. Lectura para `admin`, `supervisor`, `operador`. |
 | `POST /events` | Sí + `calendar:write` | Crea evento con `{ titulo, tipo, fecha, descripcion? }` asignando el usuario creador del JWT. Tipos fijos: `reunion`, `cumpleanos`, `capacitacion`, `licencia`, `otro`. |
@@ -210,11 +210,14 @@ Para proteger al último administrador, las operaciones de cambio de rol/borrado
 
 ## Reglas y datos de tareas
 
-Entidad TypeORM `Task` en tabla `tareas`. Campos principales: `id`, texto `client`/`employee`, relaciones opcionales con usuarios a través de `clientId`/`employeeId`, `createdAt`, `dueDate`, `description`, `service`, `priority` y `status`. La API administrativa impide eliminar usuarios con referencias a tareas antes de que aplique el `onDelete: SET NULL`.
+Entidad TypeORM `Task` en tabla `tareas`. Campos principales: `id`, texto `client`/`employee`, relaciones opcionales con usuarios a través de `clientId`/`employeeId`, `createdAt`, `dueDate`, `visitDate`, `visitTimeSlot`, `description`, `service`, `priority` y `status`. La API administrativa impide eliminar usuarios con referencias a tareas antes de que aplique el `onDelete: SET NULL`.
 
 - Servicios aceptados: `Instalación`, `Reconexión`, `Servicio técnico`, `Desconexión`.
 - `serviceDetails` es nullable y se valida con unión Zod estricta discriminada por servicio; las opciones compartidas están en `shared/taskServiceDetails.js` y son ejemplos a confirmar.
 - Cliente puede enviar detalles al crear; admin y supervisor al crear/editar; operador no. Cambiar el servicio sin detalles nuevos limpia el valor; omitirlos sin cambiar el servicio conserva los ya guardados. Las tareas anteriores se serializan con `serviceDetails: null`.
+- `visitDate` y `visitTimeSlot` son campos nullable y forman un par. La lista de franjas, etiquetas y el texto `A coordinar` se comparte desde `shared/taskVisitSlots.js`. Cliente puede asignar una visita opcional al crear; cliente y operador no pueden cambiarla después. En un `PUT` administrativo, omitir ambos conserva, `null` en ambos quita y ambos completos asignan/reprograman; se rechazan pares incompletos, pero no se bloquea por estado.
+- Una visita nueva o una fecha cambiada no puede ser anterior al día actual de `America/Argentina/Buenos_Aires`; se comparan cadenas `YYYY-MM-DD`. Editar otros campos conserva sin revalidación una visita pasada ya existente. El frontend presenta fechas directamente desde `YYYY-MM-DD`, sin parsearlas en zona local.
+- Cliente mantiene `PUT` de solo `description`; operador no puede enviar campos de visita ni `serviceDetails`. Si una tarea está sin operador, admin/supervisor pueden editarla y mantenerla sin asignación mientras el estado resultante sea `Vista`; para los demás estados se requiere operador. La creación administrativa sigue requiriendo operador.
 - Prioridad: `Baja`, `Media`, `Alta`.
 - Estados usados por la UI/API: `Vista`, `En proceso`, `Terminada`, `No terminada`. La API normaliza algunos alias heredados como `finalizada`/`finalizado` a `Terminada`.
 - Fechas de API son cadenas `YYYY-MM-DD`; Zod valida que sean fechas reales.
@@ -225,7 +228,7 @@ Entidad TypeORM `Task` en tabla `tareas`. Campos principales: `id`, texto `clien
 - Para operador, el backend exige asignación del cliente y del empleado al crear; no obstante, la interfaz actual no ofrece creación de tarea a operadores.
 - El listado serializado expone `id` y `number` (ambos basados en el ID), cliente/empleado, IDs, fechas y detalles de tarea.
 
-Las validaciones por rol difieren: todos los cuerpos se validan con schemas Zod estrictos y los payloads se construyen con listas explícitas en `shared/taskPayload.js`. Cliente crea con `description`, `service` y `serviceDetails?`, y edita solo `description`; operador edita `dueDate` y `status` sin `serviceDetails`; admin/supervisor usan campos administrativos y pueden administrar detalles compatibles con el servicio.
+Las validaciones por rol difieren: todos los cuerpos se validan con schemas Zod estrictos y los payloads se construyen con listas explícitas en `shared/taskPayload.js`. Cliente crea con `description`, `service`, `serviceDetails?` y una visita opcional completa; edita solo `description`. Operador edita `dueDate` y `status` sin `serviceDetails` ni visita; admin/supervisor usan campos administrativos y pueden administrar detalles compatibles con el servicio y la visita.
 
 ## Base de datos y modelo de usuario
 

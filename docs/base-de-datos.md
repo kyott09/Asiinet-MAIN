@@ -26,7 +26,7 @@ Las relaciones de las tareas permiten que una cuenta sea cliente o empleado de v
 | Entidad y tabla | Campos declarados | Relaciones y borrado |
 | --- | --- | --- |
 | `User` — `usuarios` | `id`, `nombre`, `email`, `passwordHash`, `role`, `fechaNacimiento`, `domicilio`, `fotoPerfil`, `creadoEn` | `email` es único. No declara relaciones salientes. |
-| `Task` — `tareas` | `id`, `client`, `clientId`, `employee`, `employeeId`, `createdAt`, `dueDate`, `description`, `service`, `serviceDetails`, `priority`, `status` | `serviceDetails` usa `simple-json` nullable para los campos específicos del servicio. `clientUser` y `employeeUser` son relaciones opcionales a `User`; ambas declaran `onDelete: SET NULL`. |
+| `Task` — `tareas` | `id`, `client`, `clientId`, `employee`, `employeeId`, `createdAt`, `dueDate`, `visitDate`, `visitTimeSlot`, `description`, `service`, `serviceDetails`, `priority`, `status` | `serviceDetails` usa `simple-json` nullable; `visitDate` (`date`) y `visitTimeSlot` (`varchar`) son nullable. `clientUser` y `employeeUser` son relaciones opcionales a `User`; ambas declaran `onDelete: SET NULL`. |
 | `Event` — `eventos` | `id`, `titulo`, `tipo`, `fecha`, `descripcion`, `creadorId`, `creadoEn`, `actualizadoEn` | Relación requerida con `User`; declara `onDelete: CASCADE`. |
 | `Brand` — `brands` | `id`, `descripcion` | `descripcion` es única. |
 | `VehicleModel` — `vehicle_models` | `id`, `descripcion` | Relación `ManyToOne` a `Brand`, con columna `brand_id`; no declara una acción `onDelete`. |
@@ -40,7 +40,7 @@ En el esquema declarado, `User.email`, `Brand.descripcion` y `Vehicle.patente` s
 
 ## Reglas de esquema
 
-`AppDataSource` en [`data-source.ts`](../back-asiinet/src/database/data-source.ts#L11) usa el driver MySQL, toma sus parámetros de `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS` y `DB_NAME`, registra las entidades y establece `synchronize: true`. Para el cambio aditivo de C1, TypeORM agregará una columna nullable a `tareas`; las filas existentes tendrán `NULL`, sin backfill ni actualización de datos. No se encontró configuración de migraciones TypeORM en el backend. El SQL concreto, la versión del motor y el estado de una base particular no fueron verificados.
+`AppDataSource` en [`data-source.ts`](../back-asiinet/src/database/data-source.ts#L11) usa el driver MySQL, toma sus parámetros de `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS` y `DB_NAME`, registra las entidades y establece `synchronize: true`. TypeORM agregará `visitDate` y `visitTimeSlot` como columnas nullable en `tareas`; las filas existentes quedarán sin visita (`NULL`), sin backfill ni actualización de datos. No se encontró configuración de migraciones TypeORM en el backend. El SQL concreto, la versión del motor y el estado de una base particular no fueron verificados.
 
 Las acciones explícitas al borrar son `SET NULL` para las dos relaciones de tareas a usuarios y `CASCADE` para el creador de eventos. Para las relaciones de modelo a marca y vehículo a modelo, la entidad no declara una acción `onDelete`; el efecto concreto queda **No verificado**.
 
