@@ -76,6 +76,8 @@ const emptyForm = {
   priority: "Baja",
   status: "Vista",
   serviceDetails: null,
+  visitDate: "",
+  visitTimeSlot: "",
 };
 
 function getUserSession() {
@@ -244,6 +246,7 @@ function Tareas() {
         translatedStatus,
         task.createdAt,
         task.dueDate,
+        task.visitDate,
         task.priority,
       ]
         .filter((value) => value !== null && value !== undefined)
@@ -276,6 +279,11 @@ function Tareas() {
     setError("");
   }
 
+  function handleClearVisit() {
+    setForm((current) => ({ ...current, visitDate: "", visitTimeSlot: "" }));
+    setError("");
+  }
+
   function resetForm() {
     setForm({ ...emptyForm });
     setEditingId(null);
@@ -294,6 +302,19 @@ function Tareas() {
 
     if (!isClient && form.dueDate < createdAt) {
       setError("La fecha de finalización no puede ser anterior a la fecha de creación.");
+      return;
+    }
+
+    const canWriteVisit = !isEmployee && (!isClient || editingId === null);
+    if (canWriteVisit && Boolean(form.visitDate) !== Boolean(form.visitTimeSlot)) {
+      setError("Seleccioná una fecha y una franja para la visita, o quitá ambos campos.");
+      return;
+    }
+
+    const employeeRequired = !isClient && !isEmployee
+      && (editingId === null || form.status !== "Vista");
+    if (employeeRequired && !form.employeeId) {
+      setError("Selecciona un operador registrado con rol operador.");
       return;
     }
 
@@ -322,7 +343,7 @@ function Tareas() {
 
     setSaving(true);
     try {
-      const payloadBody = buildTaskPayload({ role: userRole, editingId, form });
+      const payloadBody = buildTaskPayload({ role: userRole, editingId, form, canWriteVisit });
       if (!payloadBody) {
         setError("No se puede crear una tarea desde esta cuenta.");
         return;
@@ -367,6 +388,8 @@ function Tareas() {
       priority: task.priority,
       status: task.status,
       serviceDetails: task.serviceDetails ?? null,
+      visitDate: task.visitDate ?? "",
+      visitTimeSlot: task.visitTimeSlot ?? "",
     });
 
     setEditingId(task.id);
@@ -455,7 +478,28 @@ function Tareas() {
       )}
 
       {showForm ? (
-        <TaskForm form={form} editingId={editingId} isClient={isClient} isEmployee={isEmployee} canEditServiceDetails={isClient ? editingId === null : !isEmployee} serviceDetailsErrors={serviceDetailsErrors} onServiceDetailsChange={handleServiceDetailsChange} tasks={tasks} nextTaskNumber={nextTaskNumber} today={today} clients={clients} employees={employees} loading={loading} handleChange={handleChange} getTaskStatusLabel={getTaskStatusLabel} saving={saving} handleSubmit={handleSubmit} handleCancel={handleCancel} />
+        <TaskForm
+          form={form}
+          editingId={editingId}
+          isClient={isClient}
+          isEmployee={isEmployee}
+          canEditServiceDetails={isClient ? editingId === null : !isEmployee}
+          canEditVisit={!isEmployee && (!isClient || editingId === null)}
+          onClearVisit={handleClearVisit}
+          serviceDetailsErrors={serviceDetailsErrors}
+          onServiceDetailsChange={handleServiceDetailsChange}
+          tasks={tasks}
+          nextTaskNumber={nextTaskNumber}
+          today={today}
+          clients={clients}
+          employees={employees}
+          loading={loading}
+          handleChange={handleChange}
+          getTaskStatusLabel={getTaskStatusLabel}
+          saving={saving}
+          handleSubmit={handleSubmit}
+          handleCancel={handleCancel}
+        />
       ) : (
         <section className="tasks-panel" aria-labelledby="task-list-title" aria-busy={loading}>
           <div className="tasks-list-header">

@@ -111,7 +111,9 @@ Hay una ruta catch-all que muestra la pantalla 404 para direcciones desconocidas
 - En pantallas estrechas existe una representación en tarjetas en lugar de la tabla.
 - La API solo permite asociar clientes con rol `cliente` y empleados con rol `empleado`. El formulario no puede asignar hasta que existan usuarios de esos roles.
 - Los detalles de servicio se despliegan en `TaskForm` según el servicio, usando `fieldset`, `legend`, etiquetas y errores en línea. La tabla y las tarjetas los muestran bajo demanda; los campos/opciones se comparten desde `shared/taskServiceDetails.js`.
-- Los payloads por rol se construyen explícitamente en `shared/taskPayload.js`: cliente crea detalles opcionales y solo edita descripción; operador no escribe detalles; admin/supervisor pueden crear y editarlos.
+- Cliente puede elegir fecha y franja de visita opcionales al crear; si no elige, el formulario y los listados muestran `A coordinar`. La fecha y franja se comparten desde `shared/taskVisitSlots.js`.
+- Los payloads por rol se construyen explícitamente en `shared/taskPayload.js`: cliente crea detalles y visita opcionales y solo edita descripción; operador no escribe detalles ni visita; admin/supervisor pueden gestionar ambos al crear y editar, cualquiera sea el estado.
+- En una edición administrativa, una tarea ya sin operador puede seguir sin asignación mientras el estado resultante sea `Vista`; si pasa a otro estado, el formulario requiere operador. La creación administrativa siempre requiere operador.
 
 ### Inicio, navegación y galería
 

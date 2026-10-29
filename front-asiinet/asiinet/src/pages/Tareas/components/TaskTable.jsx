@@ -1,4 +1,5 @@
 import TaskServiceDetailsDisplay from "./TaskServiceDetailsDisplay";
+import { formatTaskVisit } from "../../../../../../shared/taskVisitSlots.js";
 
 function TaskTable({ filteredTasks, isClient, getTaskStatusLabel, canClientEditTask, handleEdit, canDeleteTask, requestDelete, deletingId }) {
   return (
@@ -14,6 +15,7 @@ function TaskTable({ filteredTasks, isClient, getTaskStatusLabel, canClientEditT
                     <th scope="col">Servicio</th>
                     {!isClient && <th scope="col">Prioridad</th>}
                     <th scope="col">Estado</th>
+                    <th scope="col">Visita</th>
                     <th scope="col">Descripción</th>
                     <th scope="col">Detalles del servicio</th>
                     <th scope="col">Acciones</th>
@@ -40,6 +42,7 @@ function TaskTable({ filteredTasks, isClient, getTaskStatusLabel, canClientEditT
                           {isClient ? getTaskStatusLabel(task.status) : task.status}
                         </span>
                       </td>
+                      <td>{formatTaskVisit(task.visitDate, task.visitTimeSlot)}</td>
                       <td>{task.description}</td>
                       <td><TaskServiceDetailsDisplay service={task.service} serviceDetails={task.serviceDetails} /></td>
                       <td>

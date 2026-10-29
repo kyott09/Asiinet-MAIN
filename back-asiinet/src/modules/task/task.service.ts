@@ -13,12 +13,14 @@ const isFinalizedStatus = (status?: string | null) => {
 };
 
 const today = () => {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+  const dateParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const parts = Object.fromEntries(dateParts.map(({ type, value }) => [type, value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
 };
 
 const formatDate = (value: Date | string) => {
@@ -29,6 +31,9 @@ const formatDate = (value: Date | string) => {
   const day = String(value.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+
+const formatVisitDate = (value: Date | string) =>
+  typeof value === "string" ? value.slice(0, 10) : value.toISOString().slice(0, 10);
 
 const serializeTask = (task: Task) => ({
   id: task.id,
@@ -44,6 +49,8 @@ const serializeTask = (task: Task) => ({
   priority: task.priority ?? "",
   status: task.status,
   serviceDetails: task.serviceDetails ?? null,
+  visitDate: task.visitDate ? formatVisitDate(task.visitDate) : null,
+  visitTimeSlot: task.visitTimeSlot ?? null,
 });
 
 type TaskRepositoryAdapter = Pick<typeof taskRepository, "findAll" | "findById" | "create" | "save" | "remove">;
@@ -108,17 +115,17 @@ const hasActiveServiceRequest = async (clientId: number, service: string, exclud
   });
 };
 
-const getAssignees = async (clientId: number, employeeId: number) => {
+const getAssignees = async (clientId: number, employeeId: number | null) => {
   const [client, employee] = await Promise.all([
     usersRepository.findById(clientId),
-    usersRepository.findById(employeeId),
+    employeeId === null ? Promise.resolve(null) : usersRepository.findById(employeeId),
   ]);
 
   if (!client || normalizeRole(client.role) !== "cliente") {
     throw AppError.badRequest("Selecciona un cliente registrado con rol cliente.");
   }
 
-  if (!employee || normalizeRole(employee.role) !== "operador") {
+  if (employeeId !== null && (!employee || normalizeRole(employee.role) !== "operador")) {
     throw AppError.badRequest("Selecciona un operador registrado con rol operador.");
   }
 
@@ -133,6 +140,9 @@ const create = async (
 
   const role = normalizeRole(actor?.role);
   const clientId = role === "cliente" ? actor!.id : input.clientId;
+  if (input.visitDate && input.visitDate < todayProvider()) {
+    throw AppError.badRequest("La fecha de visita no puede ser anterior a hoy.");
+  }
 
   if (role !== "cliente" && input.dueDate && input.dueDate < createdAt) {
     throw AppError.badRequest("La fecha de finalización no puede ser anterior a la fecha de creación.");
@@ -162,6 +172,8 @@ const create = async (
       employeeUser: null,
       status: input.status ?? "Vista",
       serviceDetails: input.serviceDetails ?? null,
+      visitDate: input.visitDate ?? null,
+      visitTimeSlot: input.visitTimeSlot ?? null,
     });
 
     return serializeTask(task);
@@ -177,6 +189,9 @@ const create = async (
   }
 
   const { client, employee } = await getAssignees(clientId, employeeId);
+  if (!employee) {
+    throw AppError.badRequest("Selecciona un operador registrado con rol operador.");
+  }
   const task = await tasksRepository.create({
     ...input,
     clientId,
@@ -187,6 +202,8 @@ const create = async (
     clientUser: client,
     employeeUser: employee,
     serviceDetails: role === "operador" ? null : input.serviceDetails ?? null,
+    visitDate: role === "operador" ? null : input.visitDate ?? null,
+    visitTimeSlot: role === "operador" ? null : input.visitTimeSlot ?? null,
   });
 
   return serializeTask(task);
@@ -246,8 +263,31 @@ const update = async (
 
   const { clientId, employeeId, ...taskFields } = input as TaskInput;
   const safeClientId = clientId ?? task.clientId ?? 0;
-  const safeEmployeeId = employeeId ?? task.employeeId ?? 0;
-  const { client, employee } = await getAssignees(safeClientId, safeEmployeeId);
+  const nextEmployeeId = employeeId === undefined ? task.employeeId ?? null : employeeId;
+  if (task.employeeId !== null && task.employeeId !== undefined && nextEmployeeId === null) {
+    throw AppError.badRequest("No se puede quitar el operador asignado.");
+  }
+  const nextStatus = input.status ?? task.status;
+  if (nextStatus !== "Vista" && nextEmployeeId === null) {
+    throw AppError.badRequest("Selecciona un operador registrado con rol operador.");
+  }
+  const { client, employee } = await getAssignees(safeClientId, nextEmployeeId);
+  const hasVisitDate = Object.prototype.hasOwnProperty.call(input, "visitDate");
+  const hasVisitTimeSlot = Object.prototype.hasOwnProperty.call(input, "visitTimeSlot");
+  if (
+    hasVisitDate !== hasVisitTimeSlot
+    || (hasVisitDate && ((input.visitDate === null) !== (input.visitTimeSlot === null)))
+  ) {
+    throw AppError.badRequest("La fecha y la franja de visita deben enviarse juntas.");
+  }
+
+  const nextVisitDate = hasVisitDate ? input.visitDate ?? null : task.visitDate ?? null;
+  const nextVisitTimeSlot = hasVisitTimeSlot ? input.visitTimeSlot ?? null : task.visitTimeSlot ?? null;
+  const visitDateChanged = nextVisitDate !== (task.visitDate ?? null);
+  if (visitDateChanged && nextVisitDate !== null && nextVisitDate < todayProvider()) {
+    throw AppError.badRequest("La fecha de visita no puede ser anterior a hoy.");
+  }
+
   const serviceChanged = input.service !== task.service;
   const nextServiceDetails = Object.prototype.hasOwnProperty.call(input, "serviceDetails")
     ? input.serviceDetails ?? null
@@ -257,14 +297,16 @@ const update = async (
 
   Object.assign(task, taskFields, {
     clientId: safeClientId,
-    employeeId: safeEmployeeId,
+    employeeId: nextEmployeeId,
     client: client.nombre || client.email,
-    employee: employee.nombre || employee.email,
+    employee: employee?.nombre || employee?.email || null,
     clientUser: client,
     employeeUser: employee,
     dueDate: nextDueDate,
-    status: input.status ?? task.status,
+    status: nextStatus,
     serviceDetails: nextServiceDetails,
+    visitDate: nextVisitDate,
+    visitTimeSlot: nextVisitTimeSlot,
   });
 
   return serializeTask(await tasksRepository.save(task));

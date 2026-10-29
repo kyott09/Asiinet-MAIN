@@ -16,7 +16,7 @@ Documenta los servicios que agrupan las solicitudes del navegador a las APIs de 
 
 `Vehiculos.jsx` usa `vehicleService` para cargar las tres colecciones, aplicar filtros de marca/modelo y ejecutar operaciones de escritura según el rol.
 
-`Tareas/index.jsx` envía las solicitudes a `/api/tasks` con `credentials: "include"`. `shared/taskPayload.js` construye cuerpos con claves explícitas por rol; `shared/taskServiceDetails.js` comparte opciones y validación de interfaz de los detalles de servicio con el backend.
+`Tareas/index.jsx` envía las solicitudes a `/api/tasks` con `credentials: "include"`. `shared/taskPayload.js` construye cuerpos con claves explícitas por rol; `shared/taskServiceDetails.js` comparte opciones y validación de interfaz de los detalles de servicio con el backend; `shared/taskVisitSlots.js` comparte franjas, etiquetas y presentación de visita.
 
 ## Contratos
 
@@ -30,6 +30,8 @@ Documenta los servicios que agrupan las solicitudes del navegador a las APIs de 
 `vehicleService` expone `getVehicles`, `getVehicleById`, `createVehicle`, `updateVehicle`, `deleteVehicle`, `getBrands`, `createBrand`, `updateBrand`, `deleteBrand`, `getModels`, `createModel`, `updateModel` y `deleteModel`.
 
 Los payloads de tarea se validan en el backend con schemas Zod estrictos. El frontend solo limita los campos de interfaz y no sustituye permisos ni validación del servidor.
+
+El cliente puede enviar visita opcional al crear, pero su `PUT` sigue limitado a `{ description }`; operador no puede escribir visita ni detalles. Admin/supervisor pueden gestionar visitas y detalles al crear y editar, cualquiera sea el estado. En una actualización administrativa, omitir ambas claves de visita conserva la pareja, `null` en ambas la quita, y ambas completas la asignan o reprograman. Sin visita se presenta `A coordinar`; la fecha `YYYY-MM-DD` se formatea como cadena para evitar conversiones de zona horaria.
 
 Para otras respuestas, `request` intenta parsear JSON; si el cuerpo no es JSON usa `null`. En respuestas no exitosas, el mensaje proviene de `data.message` o de un texto genérico, y se adjuntan el status HTTP y el payload al error.
 
@@ -48,6 +50,7 @@ La respuesta del servidor puede no incluir JSON, en cuyo caso el payload queda `
 - `front-asiinet/asiinet/src/pages/Tareas/index.jsx`
 - `shared/taskPayload.js`
 - `shared/taskServiceDetails.js`
+- `shared/taskVisitSlots.js`
 - `front-asiinet/asiinet/src/pages/Calendar.jsx`
 - `back-asiinet/src/modules/event/event.routes.ts`
 - `back-asiinet/src/modules/event/event.controller.ts`

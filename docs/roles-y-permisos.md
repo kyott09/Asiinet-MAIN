@@ -171,6 +171,10 @@ router.delete(
 
 En `PUT /api/tasks/:id`, el permiso general permite pasar a los roles habilitados, pero `requireTaskAccess` restringe la tarea y el servicio limita los campos editables: cliente solo puede cambiar descripción; operador, fecha y estado; supervisor/admin aplican la edición más amplia. Para borrar, solo `admin` tiene `tasks:delete`, y además se ejecuta el control del recurso.
 
+Las solicitudes de cliente se crean sin operador. Admin/supervisor pueden editar esos registros manteniéndolos sin asignación mientras el estado resultante sea `Vista`; si el estado resultante es otro, se debe asignar un operador. Una tarea con operador ya asignado no permite quitarlo. La creación administrativa siempre requiere un operador.
+
+Cliente puede asignar una visita opcional al crear enviando juntos `visitDate` (`YYYY-MM-DD`) y `visitTimeSlot` (`manana`, `tarde` o `noche`); sin visita, ambos campos quedan `null` y la interfaz muestra `A coordinar`. Admin/supervisor pueden asignar, cambiar o quitar la visita al crear y editar, cualquiera sea el estado. En `PUT`, omitir ambos conserva la visita existente; `null` en ambos la quita; ambos completos asignan o reprograman. Un par incompleto devuelve `400`. Una visita nueva o fecha cambiada no puede ser anterior al día actual de `America/Argentina/Buenos_Aires`; editar otros campos conserva una visita pasada ya existente. El cliente conserva un `PUT` limitado a `{ description }`; operador recibe `400` si envía campos de visita o `serviceDetails`.
+
 ```ts
 // src/modules/event/event.routes.ts
 router.get("/", requireAuth, requirePermission("calendar:read"), getEvents);

@@ -1,4 +1,5 @@
 import TaskServiceDetailsDisplay from "./TaskServiceDetailsDisplay";
+import { formatTaskVisit } from "../../../../../../shared/taskVisitSlots.js";
 
 function TaskCards({ filteredTasks, pageTitle, isClient, getTaskStatusLabel, canClientEditTask, handleEdit, canDeleteTask, requestDelete, deletingId }) {
   return (
@@ -23,26 +24,32 @@ function TaskCards({ filteredTasks, pageTitle, isClient, getTaskStatusLabel, can
                       )}
                     </div>
 
-                    {!isClient && (
-                      <dl className="tasks-mobile-summary">
-                        <div>
-                          <dt>Prioridad</dt>
-                          <dd>
-                            <span className={`tasks-priority tasks-priority-${String(task.priority ?? "").toLowerCase()}`}>
-                              {task.priority || "Sin asignar"}
-                            </span>
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Finalización</dt>
-                          <dd>{task.dueDate}</dd>
-                        </div>
-                        <div>
-                          <dt>Empleado asignado</dt>
-                          <dd>{task.employee || "Sin asignar"}</dd>
-                        </div>
-                      </dl>
-                    )}
+                    <dl className="tasks-mobile-summary">
+                      <div>
+                        <dt>Visita</dt>
+                        <dd>{formatTaskVisit(task.visitDate, task.visitTimeSlot)}</dd>
+                      </div>
+                      {!isClient && (
+                        <>
+                          <div>
+                            <dt>Prioridad</dt>
+                            <dd>
+                              <span className={`tasks-priority tasks-priority-${String(task.priority ?? "").toLowerCase()}`}>
+                                {task.priority || "Sin asignar"}
+                              </span>
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Finalización</dt>
+                            <dd>{task.dueDate}</dd>
+                          </div>
+                          <div>
+                            <dt>Empleado asignado</dt>
+                            <dd>{task.employee || "Sin asignar"}</dd>
+                          </div>
+                        </>
+                      )}
+                    </dl>
 
                     <details className="tasks-mobile-details">
                       <summary>Detalles de la {pageTitle.toLowerCase().slice(0, -1)}</summary>
