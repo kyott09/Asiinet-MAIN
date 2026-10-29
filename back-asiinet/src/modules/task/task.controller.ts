@@ -5,6 +5,7 @@ import { AuthenticatedRequest, normalizeRole } from "../../middlewares/auth.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import * as taskService from "./task.service.js";
 import { SERVICE_DETAIL_OPTIONS, type TaskServiceName } from "../../../../shared/taskServiceDetails.js";
+import { TASK_VISIT_TIME_SLOTS, type TaskVisitTimeSlot } from "../../../../shared/taskVisitSlots.js";
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
   const date = new Date(`${value}T00:00:00.000Z`);
@@ -39,6 +40,29 @@ const normalizeStatusValue = (value: unknown) => {
 };
 
 const SERVICE_NAMES = ["Instalación", "Reconexión", "Servicio técnico", "Desconexión"] as const;
+const visitTimeSlotValues = TASK_VISIT_TIME_SLOTS.map(({ value }) => value) as [
+  TaskVisitTimeSlot,
+  ...TaskVisitTimeSlot[],
+];
+
+const validateVisitFields = (
+  data: { visitDate?: string | null; visitTimeSlot?: TaskVisitTimeSlot | null },
+  context: z.RefinementCtx
+) => {
+  const hasVisitDate = data.visitDate !== undefined;
+  const hasVisitTimeSlot = data.visitTimeSlot !== undefined;
+  const bothNull = data.visitDate === null && data.visitTimeSlot === null;
+
+  if (hasVisitDate !== hasVisitTimeSlot || (hasVisitDate && hasVisitTimeSlot && !bothNull && (
+    data.visitDate === null || data.visitTimeSlot === null
+  ))) {
+    context.addIssue({
+      code: "custom",
+      message: "La fecha y la franja de visita deben enviarse juntas.",
+      path: ["visitDate"],
+    });
+  }
+};
 
 const optionValues = (service: TaskServiceName, fieldName: string) => {
   const field = SERVICE_DETAIL_OPTIONS[service].find((option) => option.name === fieldName);
@@ -124,16 +148,24 @@ const taskFields = {
   status: z.enum(["Vista", "En proceso", "Terminada", "No terminada"]).optional(),
 };
 
+const visitFields = {
+  visitDate: dateSchema.nullable().optional(),
+  visitTimeSlot: z.enum(visitTimeSlotValues).nullable().optional(),
+};
+
 const administrativeVariant = <T extends TaskServiceName>(service: T) => z.object({
   ...taskFields,
+  employeeId: z.union([z.coerce.number().int().positive(), z.null()]).optional(),
   service: z.literal(service),
   serviceDetails: serviceDetailSchemas[service].nullable().optional(),
+  ...visitFields,
 }).strict();
 
 const clientVariant = <T extends TaskServiceName>(service: T) => z.object({
   description: z.string().trim().min(1),
   service: z.literal(service),
   serviceDetails: serviceDetailSchemas[service].nullable().optional(),
+  ...visitFields,
 }).strict();
 
 const administrativeTaskSchema = z.discriminatedUnion("service", [
@@ -141,14 +173,14 @@ const administrativeTaskSchema = z.discriminatedUnion("service", [
   administrativeVariant("Reconexión"),
   administrativeVariant("Servicio técnico"),
   administrativeVariant("Desconexión"),
-]);
+]).superRefine(validateVisitFields);
 
 const clientRequestSchema = z.discriminatedUnion("service", [
   clientVariant("Instalación"),
   clientVariant("Reconexión"),
   clientVariant("Servicio técnico"),
   clientVariant("Desconexión"),
-]);
+]).superRefine(validateVisitFields);
 
 const operatorCreateSchema = z.object({
   ...taskFields,
@@ -186,6 +218,8 @@ export const parseTaskCreateInput = (body: unknown, role?: string | null): TaskI
     return {
       ...parsed,
       serviceDetails: parsed.serviceDetails ?? null,
+      visitDate: parsed.visitDate ?? null,
+      visitTimeSlot: parsed.visitTimeSlot ?? null,
       status: "Vista",
     };
   }
@@ -203,6 +237,8 @@ export const parseTaskCreateInput = (body: unknown, role?: string | null): TaskI
     priority: parsed.priority ?? "Baja",
     status: parsed.status ?? "Vista",
     serviceDetails: parsed.serviceDetails ?? null,
+    visitDate: parsed.visitDate ?? null,
+    visitTimeSlot: parsed.visitTimeSlot ?? null,
   };
 };
 

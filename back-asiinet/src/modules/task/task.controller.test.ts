@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 
 import { parseTaskCreateInput, parseTaskUpdateInput, type TaskInput } from "./task.controller.js";
 import { buildTaskPayload } from "../../../../shared/taskPayload.js";
+import { TASK_VISIT_TIME_SLOTS } from "../../../../shared/taskVisitSlots.js";
 import { getBuenosAiresDateOffset } from "./task.test-helpers.js";
 
 const futureDueDate = getBuenosAiresDateOffset(30);
+const futureVisitDate = getBuenosAiresDateOffset(1);
 
 const installationDetails = {
   equipment: [
@@ -39,7 +41,7 @@ test("cliente can create a request with only service and description", () => {
       description: "Necesito internet en casa",
     },
     "cliente"
-  );
+  ) as TaskInput;
 
   assert.equal(payload.service, "Instalación");
   assert.equal(payload.description, "Necesito internet en casa");
@@ -48,6 +50,46 @@ test("cliente can create a request with only service and description", () => {
   assert.equal("dueDate" in payload, false);
   assert.equal("priority" in payload, false);
   assert.equal("employeeId" in payload, false);
+  assert.equal(payload.visitDate, null);
+  assert.equal(payload.visitTimeSlot, null);
+});
+
+test("cliente puede crear con cada franja compartida o sin visita", () => {
+  const date = getBuenosAiresDateOffset(1);
+  for (const { value } of TASK_VISIT_TIME_SLOTS) {
+    const payload = parseTaskCreateInput({
+      service: "Instalación",
+      description: "Solicitud del cliente",
+      visitDate: date,
+      visitTimeSlot: value,
+    }, "cliente") as TaskInput;
+
+    assert.equal(payload.visitDate, date);
+    assert.equal(payload.visitTimeSlot, value);
+  }
+
+  const withoutVisit = parseTaskCreateInput({
+    service: "Instalación",
+    description: "Solicitud sin coordinar",
+  }, "cliente") as TaskInput;
+  assert.equal(withoutVisit.visitDate, null);
+  assert.equal(withoutVisit.visitTimeSlot, null);
+});
+
+test("cliente no puede crear una visita con una sola clave", () => {
+  for (const visitFields of [
+    { visitDate: getBuenosAiresDateOffset(1) },
+    { visitTimeSlot: "manana" },
+  ]) {
+    assert.throws(
+      () => parseTaskCreateInput({
+        service: "Instalación",
+        description: "Solicitud incompleta",
+        ...visitFields,
+      }, "cliente"),
+      { code: "BAD_REQUEST" }
+    );
+  }
 });
 
 test("cliente puede crear con detalles válidos del servicio de instalación", () => {
@@ -81,6 +123,25 @@ test("administración puede crear con detalles válidos del servicio seleccionad
   assert.deepEqual(payload.serviceDetails, installationDetails);
 });
 
+test("admin y supervisor pueden crear una visita con fecha y franja compartida", () => {
+  for (const role of ["admin", "supervisor"]) {
+    const payload = parseTaskCreateInput({
+      clientId: "1",
+      employeeId: "2",
+      dueDate: futureDueDate,
+      description: "Instalación en domicilio",
+      service: "Instalación",
+      priority: "Media",
+      status: "Vista",
+      visitDate: futureVisitDate,
+      visitTimeSlot: "noche",
+    }, role) as TaskInput;
+
+    assert.equal(payload.visitDate, futureVisitDate);
+    assert.equal(payload.visitTimeSlot, "noche");
+  }
+});
+
 test("la actualización administrativa conserva la normalización de prioridad y estado", () => {
   const payload = parseTaskUpdateInput({
     clientId: "1",
@@ -95,6 +156,115 @@ test("la actualización administrativa conserva la normalización de prioridad y
 
   assert.equal(payload.priority, "Alta");
   assert.equal(payload.status, "Terminada");
+});
+
+test("admin y supervisor aceptan visita completa, nula u omitida en una actualización", () => {
+  const taskFields = {
+    clientId: "1",
+    employeeId: "2",
+    dueDate: futureDueDate,
+    description: "Tarea actualizada",
+    service: "Instalación",
+    priority: "Media",
+    status: "Vista",
+  };
+  const scheduled = parseTaskUpdateInput({
+    ...taskFields,
+    visitDate: futureVisitDate,
+    visitTimeSlot: "manana",
+  }, "admin") as TaskInput;
+  const removed = parseTaskUpdateInput({
+    ...taskFields,
+    visitDate: null,
+    visitTimeSlot: null,
+  }, "supervisor") as TaskInput;
+  const unchanged = parseTaskUpdateInput(taskFields, "admin") as TaskInput;
+
+  assert.equal(scheduled.visitDate, futureVisitDate);
+  assert.equal(scheduled.visitTimeSlot, "manana");
+  assert.equal(removed.visitDate, null);
+  assert.equal(removed.visitTimeSlot, null);
+  assert.equal("visitDate" in unchanged, false);
+  assert.equal("visitTimeSlot" in unchanged, false);
+});
+
+test("rechaza pares de visita incompletos", () => {
+  const taskFields = {
+    clientId: "1",
+    employeeId: "2",
+    dueDate: futureDueDate,
+    description: "Tarea actualizada",
+    service: "Instalación",
+    priority: "Media",
+    status: "Vista",
+  };
+
+  for (const visitFields of [
+    { visitDate: "2026-10-31" },
+    { visitTimeSlot: "manana" },
+    { visitDate: null },
+    { visitTimeSlot: null },
+    { visitDate: "2026-10-31", visitTimeSlot: null },
+    { visitDate: null, visitTimeSlot: "manana" },
+  ]) {
+    assert.throws(
+      () => parseTaskUpdateInput({ ...taskFields, ...visitFields }, "admin"),
+      { code: "BAD_REQUEST" },
+      JSON.stringify(visitFields)
+    );
+  }
+});
+
+test("cliente conserva su PUT de solo descripción y operador no puede enviar una visita", () => {
+  assert.deepEqual(parseTaskUpdateInput({ description: "Cambio" }, "cliente"), {
+    description: "Cambio",
+  });
+  assert.throws(
+    () => parseTaskUpdateInput({
+      dueDate: futureDueDate,
+      status: "En proceso",
+      visitDate: "2026-10-31",
+      visitTimeSlot: "manana",
+    }, "operador"),
+    { code: "BAD_REQUEST" }
+  );
+});
+
+test("cliente no puede enviar visita ni detalles en un PUT", () => {
+  for (const body of [
+    { description: "Cambio", visitDate: "2026-10-31", visitTimeSlot: "manana" },
+    { description: "Cambio", serviceDetails: installationDetails },
+  ]) {
+    assert.throws(
+      () => parseTaskUpdateInput(body, "cliente"),
+      { code: "BAD_REQUEST" }
+    );
+  }
+});
+
+test("administración admite employeeId nulo en actualizaciones sin asignación previa", () => {
+  const payload = parseTaskUpdateInput({
+    description: "Solicitud sin operador",
+    service: "Instalación",
+    status: "Vista",
+    employeeId: null,
+  }, "admin") as TaskInput;
+
+  assert.equal(payload.employeeId, null);
+});
+
+test("el PUT administrativo sigue rechazando estados heredados cancelada y cancelado", () => {
+  for (const status of ["cancelada", "cancelado"]) {
+    assert.throws(
+      () => parseTaskUpdateInput({
+        description: "Actualizar estado heredado",
+        service: "Instalación",
+        status,
+      }, "admin"),
+      { code: "BAD_REQUEST" },
+      status
+    );
+  }
 });
 
 test("cada servicio acepta solo su variante de detalles", () => {
@@ -262,6 +432,8 @@ test("los payloads reales de TaskForm usan una lista explícita de claves por ro
     priority: "Media",
     status: "Vista",
     serviceDetails: installationDetails,
+    visitDate: "2026-10-31",
+    visitTimeSlot: "manana",
     accidentalField: "no enviar",
   };
 
@@ -274,14 +446,21 @@ test("los payloads reales de TaskForm usan una lista explícita de claves por ro
   if (!clientCreate || !clientUpdate || !operatorUpdate || !adminCreate || !supervisorUpdate) {
     throw new Error("Payload inesperado para el rol seleccionado");
   }
-  assert.deepEqual(Object.keys(clientCreate).sort(), ["description", "service", "serviceDetails"]);
+  assert.deepEqual(Object.keys(clientCreate).sort(), [
+    "description", "service", "serviceDetails", "visitDate", "visitTimeSlot",
+  ]);
+  assert.equal(clientCreate.visitDate, form.visitDate);
+  assert.equal(clientCreate.visitTimeSlot, form.visitTimeSlot);
   assert.deepEqual(Object.keys(clientUpdate), ["description"]);
   assert.deepEqual(Object.keys(adminCreate).sort(), [
-    "clientId", "description", "dueDate", "employeeId", "priority", "service", "serviceDetails", "status",
+    "clientId", "description", "dueDate", "employeeId", "priority", "service", "serviceDetails", "status", "visitDate", "visitTimeSlot",
   ]);
   assert.deepEqual(Object.keys(supervisorUpdate).sort(), Object.keys(adminCreate).sort());
 
   assert.deepEqual(parseTaskCreateInput(clientCreate, "cliente").serviceDetails, installationDetails);
+  const parsedClientVisit = parseTaskCreateInput(clientCreate, "cliente") as TaskInput;
+  assert.equal(parsedClientVisit.visitDate, form.visitDate);
+  assert.equal(parsedClientVisit.visitTimeSlot, form.visitTimeSlot);
   assert.deepEqual(parseTaskCreateInput(adminCreate, "admin").serviceDetails, installationDetails);
   assert.deepEqual(parseTaskUpdateInput(clientUpdate, "cliente"), { description: form.description });
   assert.deepEqual(parseTaskUpdateInput(operatorUpdate, "operador"), {

@@ -7,6 +7,7 @@ import { createRequireAuth, createRequireTaskAccess, type AuthenticatedRequest }
 import { createTaskRouter } from "./task.routes.js";
 import { parseTaskCreateInput, parseTaskUpdateInput } from "./task.controller.js";
 import { getBuenosAiresDateOffset } from "./task.test-helpers.js";
+import { createTaskService } from "./task.service.js";
 
 const futureDueDate = getBuenosAiresDateOffset(30);
 
@@ -179,4 +180,185 @@ test("rutas reales aplican auth y permissions; ownership usa un task repository 
 
   assert.equal((await request(app, "DELETE", "/api/tasks/42", 3)).status, 403);
   assert.equal((await request(app, "DELETE", "/api/tasks/42", 1)).status, 200);
+});
+
+test("middleware y servicio permiten gestionar tareas sin operador solo en Vista", async () => {
+  const taskStore = new Map<number, any>();
+  const taskService = createTaskService({
+    tasks: {
+      findAll: async () => [...taskStore.values()],
+      findById: async (id: number) => taskStore.get(id) ?? null,
+      create: async (data: any) => {
+        const task = { ...data, id: 44 };
+        taskStore.set(task.id, task);
+        return task;
+      },
+      save: async (task: any) => {
+        const saved = structuredClone(task);
+        taskStore.set(saved.id, saved);
+        return saved;
+      },
+      remove: async (task: any) => taskStore.delete(task.id),
+    },
+    users: {
+      findById: async (id: number) => testUsers.get(id) ?? null,
+      findByRoles: async () => [testUsers.get(3)!],
+    },
+    today: () => getBuenosAiresDateOffset(0),
+  } as any);
+  const auth = createRequireAuth(async (id) => testUsers.get(id) ?? null, TEST_JWT_SECRET);
+  const taskAccess = createRequireTaskAccess(async (id) => taskStore.get(id) ?? null);
+  const app = express();
+  app.use(express.json());
+  app.use("/api/tasks", createTaskRouter(auth, taskAccess, {
+    getAll: (_req, res) => res.status(200).json({ tasks: [] }),
+    create: async (req, res, next) => {
+      try {
+        const actor = (req as AuthenticatedRequest).user!;
+        const input = parseTaskCreateInput(req.body, actor.role);
+        const task = await taskService.create(input as any, actor);
+        return res.status(201).json({ task });
+      } catch (error) {
+        return next(error);
+      }
+    },
+    update: async (req, res, next) => {
+      try {
+        const actor = (req as AuthenticatedRequest).user!;
+        const input = parseTaskUpdateInput(req.body, actor.role);
+        const task = await taskService.update(Number(req.params.id), input, actor);
+        return res.status(200).json({ task });
+      } catch (error) {
+        return next(error);
+      }
+    },
+    remove: (_req, res) => res.status(204).end(),
+  }));
+  app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
+    res.status(error.statusCode ?? 500).json({ code: error.code, message: error.message });
+  });
+
+  const details = {
+    equipment: [{ type: "modem", quantity: 1 }],
+    speed: "300",
+    propertyType: "casa",
+  };
+  const adminUserIds = [1, 2];
+  const statuses = ["Vista", "En proceso", "Terminada", "No terminada"];
+  const createTask = (employeeAssigned: boolean, status: string) => ({
+    id: 42,
+    client: "Cliente",
+    clientId: 4,
+    employee: employeeAssigned ? "Operador" : null,
+    employeeId: employeeAssigned ? 3 : null,
+    clientUser: testUsers.get(4),
+    employeeUser: employeeAssigned ? testUsers.get(3) : null,
+    createdAt: getBuenosAiresDateOffset(0),
+    dueDate: futureDueDate,
+    description: "Descripción inicial",
+    service: "Instalación",
+    serviceDetails: { ...details, speed: "100" },
+    priority: "Media",
+    status,
+    visitDate: null,
+    visitTimeSlot: null,
+  });
+  const bodyFor = (action: string, employeeAssigned: boolean, status: string) => ({
+    clientId: "4",
+    ...(employeeAssigned ? { employeeId: "3" } : { employeeId: null }),
+    dueDate: futureDueDate,
+    description: action === "description" ? "Descripción modificada" : "Descripción inicial",
+    service: "Instalación",
+    priority: "Media",
+    status,
+    ...(action === "serviceDetails" ? { serviceDetails: details } : {}),
+    ...(action === "visit" ? { visitDate: futureDueDate, visitTimeSlot: "tarde" } : {}),
+  });
+
+  for (const visitTimeSlot of [undefined, "manana", "tarde", "noche"]) {
+    taskStore.clear();
+    const body = {
+      service: "Instalación",
+      description: "Solicitud del cliente",
+      ...(visitTimeSlot ? { visitDate: futureDueDate, visitTimeSlot } : {}),
+    };
+    const response = await request(app, "POST", "/api/tasks", 4, body);
+    assert.equal(response.status, 201);
+    assert.equal(response.body.task.visitDate, visitTimeSlot ? futureDueDate : null);
+    assert.equal(response.body.task.visitTimeSlot, visitTimeSlot ?? null);
+  }
+  taskStore.clear();
+  const incompleteClientVisit = await request(app, "POST", "/api/tasks", 4, {
+    service: "Instalación",
+    description: "Solicitud incompleta",
+    visitDate: futureDueDate,
+  });
+  assert.equal(incompleteClientVisit.status, 400);
+  assert.equal(incompleteClientVisit.body.code, "BAD_REQUEST");
+
+  for (const userId of adminUserIds) {
+    const role = userId === 1 ? "admin" : "supervisor";
+    for (const status of statuses) {
+      for (const action of ["serviceDetails", "visit", "description"]) {
+        taskStore.set(42, createTask(true, status));
+        const response = await request(
+          app,
+          "PUT",
+          "/api/tasks/42",
+          userId,
+          bodyFor(action, true, status)
+        );
+
+        assert.equal(response.status, 200, `${role}, ${status}, ${action}: ${response.body?.message}`);
+        if (action === "serviceDetails") {
+          assert.deepEqual(response.body.task.serviceDetails, details, `${role}, ${status}`);
+        }
+        if (action === "visit") {
+          assert.equal(response.body.task.visitDate, futureDueDate, `${role}, ${status}`);
+          assert.equal(response.body.task.visitTimeSlot, "tarde", `${role}, ${status}`);
+        }
+      }
+    }
+
+    for (const action of ["serviceDetails", "visit", "description"]) {
+      taskStore.set(42, createTask(false, "Vista"));
+      const response = await request(
+        app,
+        "PUT",
+        "/api/tasks/42",
+        userId,
+        bodyFor(action, false, "Vista")
+      );
+      assert.equal(response.status, 200, `${role}, Vista sin operador, ${action}: ${response.body?.message}`);
+      assert.equal(response.body.task.employeeId, null);
+    }
+
+    taskStore.set(42, createTask(false, "Vista"));
+    const transition = await request(app, "PUT", "/api/tasks/42", userId, {
+      ...bodyFor("description", false, "En proceso"),
+    });
+    assert.equal(transition.status, 400);
+    assert.equal(transition.body.code, "BAD_REQUEST");
+    assert.equal(transition.body.message, "Selecciona un operador registrado con rol operador.");
+
+    taskStore.set(42, createTask(true, "Vista"));
+    const removeEmployee = await request(app, "PUT", "/api/tasks/42", userId, {
+      ...bodyFor("description", true, "Vista"),
+      employeeId: null,
+    });
+    assert.equal(removeEmployee.status, 400);
+    assert.equal(removeEmployee.body.code, "BAD_REQUEST");
+
+    const createWithoutEmployee = await request(app, "POST", "/api/tasks", userId, {
+      clientId: "4",
+      dueDate: futureDueDate,
+      description: "Tarea sin operador",
+      service: "Instalación",
+      priority: "Media",
+      status: "Vista",
+    });
+    assert.equal(createWithoutEmployee.status, 400);
+    assert.equal(createWithoutEmployee.body.code, "BAD_REQUEST");
+    assert.equal(createWithoutEmployee.body.message, "Selecciona un empleado para asignar la tarea.");
+  }
 });

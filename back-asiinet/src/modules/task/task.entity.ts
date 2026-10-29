@@ -39,6 +39,12 @@ export class Task {
   @Column({ type: "date", nullable: true })
   dueDate!: string | null;
 
+  @Column({ type: "date", nullable: true })
+  visitDate!: string | null;
+
+  @Column({ type: "varchar", length: 10, nullable: true })
+  visitTimeSlot!: string | null;
+
   @Column({ type: "text" })
   description!: string;
 

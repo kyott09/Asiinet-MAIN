@@ -2,6 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildTaskPayload } from "../../../../../shared/taskPayload.js";
 import { getTaskServiceDetailEntries, validateTaskServiceDetails } from "../../../../../shared/taskServiceDetails.js";
+import {
+  formatTaskVisit,
+  formatTaskVisitDate,
+  NO_TASK_VISIT_LABEL,
+  TASK_VISIT_TIME_SLOTS,
+} from "../../../../../shared/taskVisitSlots.js";
 
 function getBuenosAiresDateOffset(daysFromToday) {
   const dateParts = new Intl.DateTimeFormat("en-CA", {
@@ -37,6 +43,8 @@ const form = {
   priority: "Media",
   status: "Vista",
   serviceDetails,
+  visitDate: "2026-10-31",
+  visitTimeSlot: "manana",
   accidentalField: "no enviar",
 };
 
@@ -48,15 +56,49 @@ test("cada rol envía solo las claves de su contrato de creación y edición", (
   const adminCreate = buildTaskPayload({ role: "admin", editingId: null, form });
   const supervisorUpdate = buildTaskPayload({ role: "supervisor", editingId: 4, form });
 
-  assert.deepEqual(Object.keys(clientCreate).sort(), ["description", "service", "serviceDetails"]);
+  assert.deepEqual(Object.keys(clientCreate).sort(), [
+    "description", "service", "serviceDetails", "visitDate", "visitTimeSlot",
+  ]);
+  assert.equal(clientCreate.visitDate, form.visitDate);
+  assert.equal(clientCreate.visitTimeSlot, form.visitTimeSlot);
   assert.deepEqual(Object.keys(clientUpdate), ["description"]);
   assert.equal(operatorCreate, null);
   assert.deepEqual(Object.keys(operatorUpdate).sort(), ["dueDate", "status"]);
   assert.deepEqual(Object.keys(adminCreate).sort(), [
-    "clientId", "description", "dueDate", "employeeId", "priority", "service", "serviceDetails", "status",
+    "clientId", "description", "dueDate", "employeeId", "priority", "service", "serviceDetails", "status", "visitDate", "visitTimeSlot",
   ]);
   assert.deepEqual(Object.keys(supervisorUpdate).sort(), Object.keys(adminCreate).sort());
   assert.equal("accidentalField" in adminCreate, false);
+});
+
+test("payload administrativo mantiene claves explícitas y employeeId nulo sin string vacío", () => {
+  const payload = buildTaskPayload({
+    role: "supervisor",
+    editingId: 4,
+    form: { ...form, employeeId: "" },
+  });
+
+  assert.equal(payload.employeeId, null);
+  assert.deepEqual(Object.keys(payload).sort(), [
+    "clientId", "description", "dueDate", "employeeId", "priority", "service", "serviceDetails", "status", "visitDate", "visitTimeSlot",
+  ]);
+});
+
+test("las fechas de visita se presentan desde YYYY-MM-DD sin conversión a zona local", () => {
+  assert.equal(formatTaskVisitDate("2026-10-31"), "31/10/2026");
+});
+
+test("las franjas y sus etiquetas se comparten entre frontend y backend", () => {
+  assert.deepEqual(TASK_VISIT_TIME_SLOTS, [
+    { value: "manana", label: "Mañana" },
+    { value: "tarde", label: "Tarde" },
+    { value: "noche", label: "Noche" },
+  ]);
+});
+
+test("la etiqueta de visita no coordinada es compartida y se presenta como A coordinar", () => {
+  assert.equal(NO_TASK_VISIT_LABEL, "A coordinar");
+  assert.equal(formatTaskVisit(null, null), NO_TASK_VISIT_LABEL);
 });
 
 test("los detalles opcionales ausentes se envían como null y mantienen compatibilidad", () => {
@@ -67,6 +109,8 @@ test("los detalles opcionales ausentes se envían como null y mantienen compatib
   });
 
   assert.equal(payload.serviceDetails, null);
+  assert.equal(payload.visitDate, null);
+  assert.equal(payload.visitTimeSlot, null);
 });
 
 test("la validación local señala detalles inválidos y permite guardar sin el bloque opcional", () => {

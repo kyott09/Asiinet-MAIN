@@ -10,7 +10,7 @@ function normalizeRole(role) {
   return ROLE_ALIASES[normalized] ?? normalized;
 }
 
-export function buildTaskPayload({ role, editingId, form }) {
+export function buildTaskPayload({ role, editingId, form, canWriteVisit = true }) {
   const normalizedRole = normalizeRole(role);
   const isEditing = editingId !== null && editingId !== undefined;
 
@@ -20,6 +20,8 @@ export function buildTaskPayload({ role, editingId, form }) {
       description: form.description,
       service: form.service,
       serviceDetails: form.serviceDetails ?? null,
+      visitDate: form.visitDate || null,
+      visitTimeSlot: form.visitTimeSlot || null,
     };
   }
 
@@ -35,9 +37,9 @@ export function buildTaskPayload({ role, editingId, form }) {
     throw new Error("Rol no válido para construir el payload de tarea.");
   }
 
-  return {
+  const payload = {
     clientId: form.clientId,
-    employeeId: form.employeeId,
+    employeeId: form.employeeId || null,
     dueDate: form.dueDate,
     description: form.description,
     service: form.service,
@@ -45,4 +47,11 @@ export function buildTaskPayload({ role, editingId, form }) {
     status: form.status,
     serviceDetails: form.serviceDetails ?? null,
   };
+
+  if (canWriteVisit) {
+    payload.visitDate = form.visitDate || null;
+    payload.visitTimeSlot = form.visitTimeSlot || null;
+  }
+
+  return payload;
 }
