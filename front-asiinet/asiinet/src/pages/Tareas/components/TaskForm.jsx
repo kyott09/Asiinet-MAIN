@@ -4,7 +4,7 @@ import {
   TASK_VISIT_TIME_SLOTS,
 } from "../../../../../../shared/taskVisitSlots.js";
 
-function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails, canEditVisit, onClearVisit, serviceDetailsErrors, onServiceDetailsChange, tasks, nextTaskNumber, today, clients, employees, loading, handleChange, getTaskStatusLabel, saving, handleSubmit, handleCancel }) {
+function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails, canEditVisit, onClearVisit, serviceDetailsErrors, onServiceDetailsChange, tasks, today, clients, employees, loading, handleChange, getTaskStatusLabel, saving, handleSubmit, handleCancel }) {
   const employeeRequired = editingId === null || form.status !== "Vista";
 
   return (
@@ -23,7 +23,7 @@ function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails
                   <input
                     value={editingId !== null
                       ? tasks.find((task) => task.id === editingId)?.number ?? ""
-                      : nextTaskNumber}
+                      : "Se asigna al guardar"}
                     readOnly
                   />
                 </label>
