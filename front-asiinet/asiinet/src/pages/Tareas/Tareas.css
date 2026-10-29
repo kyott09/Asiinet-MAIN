@@ -79,6 +79,185 @@
   resize: vertical;
 }
 
+.tasks-service-details-optional {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  min-width: 0;
+  padding-top: var(--space-2);
+}
+
+.tasks-service-details-optional p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.tasks-service-details {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+}
+
+.tasks-service-details > legend,
+.tasks-detail-checks > legend {
+  padding-inline: var(--space-2);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.tasks-service-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.tasks-detail-field,
+.tasks-equipment-row label {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+  color: var(--graphite);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.tasks-detail-field-wide {
+  grid-column: 1 / -1;
+}
+
+.tasks-detail-field select,
+.tasks-equipment-row select,
+.tasks-equipment-row input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--graphite);
+  font: inherit;
+  font-weight: 400;
+}
+
+.tasks-detail-field select:focus-visible,
+.tasks-equipment-row select:focus-visible,
+.tasks-equipment-row input:focus-visible,
+.tasks-detail-checkbox input:focus-visible,
+.tasks-service-details button:focus-visible,
+.tasks-service-details-summary summary:focus-visible {
+  outline: 2px solid var(--orange-dark);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+.tasks-detail-field [aria-invalid="true"],
+.tasks-equipment-row [aria-invalid="true"] {
+  border-color: var(--orange-dark);
+}
+
+.tasks-field-error {
+  color: var(--orange-dark);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.tasks-equipment-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.tasks-equipment-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(7rem, 0.45fr) auto;
+  align-items: end;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.tasks-equipment-remove {
+  align-self: end;
+  min-height: 44px;
+}
+
+.tasks-detail-checks {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.tasks-detail-checks > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+}
+
+.tasks-detail-checkbox {
+  display: inline-flex !important;
+  grid-template-columns: auto 1fr !important;
+  align-items: center;
+  gap: var(--space-2) !important;
+  min-height: 36px;
+  font-weight: 500 !important;
+}
+
+.tasks-detail-checkbox input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--orange-dark);
+}
+
+.tasks-service-details-summary {
+  max-width: 260px;
+  color: var(--graphite);
+}
+
+.tasks-service-details-summary summary {
+  width: fit-content;
+  color: var(--orange-dark);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tasks-service-details-summary dl {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  white-space: normal;
+}
+
+.tasks-service-details-summary dl > div {
+  min-width: 0;
+}
+
+.tasks-service-details-summary dt {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.tasks-service-details-summary dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.tasks-detail-empty {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
 .tasks-form input:focus-visible,
 .tasks-form textarea:focus-visible,
 .tasks-form select:focus-visible {
@@ -528,6 +707,10 @@
     grid-template-columns: 1fr;
   }
 
+  .tasks-service-details-grid {
+    grid-template-columns: 1fr;
+  }
+
   .tasks-header h1 {
     font-size: 30px;
   }
@@ -546,6 +729,18 @@
   .tasks-delete-dialog .tasks-actions {
     flex-direction: column-reverse;
     align-items: stretch;
+  }
+
+  .tasks-service-details {
+    padding: var(--space-3);
+  }
+
+  .tasks-equipment-row {
+    grid-template-columns: minmax(0, 1fr) minmax(5rem, 0.65fr);
+  }
+
+  .tasks-equipment-remove {
+    grid-column: 1 / -1;
   }
 }
 

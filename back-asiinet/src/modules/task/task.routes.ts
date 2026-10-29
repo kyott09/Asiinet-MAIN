@@ -1,12 +1,24 @@
 import { Router } from "express";
+import type { RequestHandler } from "express";
 import { requireAuth, requirePermission, requireTaskAccess } from "../../middlewares/auth.js";
 import * as taskController from "./task.controller.js";
 
-const router = Router();
+type TaskControllers = Pick<typeof taskController, "getAll" | "create" | "update" | "remove">;
+type TaskAccessFactory = (action: "read" | "update" | "delete") => RequestHandler;
 
-router.get("/", requireAuth, requirePermission("tasks:read"), taskController.getAll);
-router.post("/", requireAuth, requirePermission("tasks:create"), taskController.create);
-router.put("/:id", requireAuth, requirePermission("tasks:update"), requireTaskAccess("update"), taskController.update);
-router.delete("/:id", requireAuth, requirePermission("tasks:delete"), requireTaskAccess("delete"), taskController.remove);
+export const createTaskRouter = (
+	auth: RequestHandler = requireAuth,
+	taskAccess: TaskAccessFactory = requireTaskAccess,
+	controllers: TaskControllers = taskController
+) => {
+	const router = Router();
 
-export default router;
+	router.get("/", auth, requirePermission("tasks:read"), controllers.getAll);
+	router.post("/", auth, requirePermission("tasks:create"), controllers.create);
+	router.put("/:id", auth, requirePermission("tasks:update"), taskAccess("update"), controllers.update);
+	router.delete("/:id", auth, requirePermission("tasks:delete"), taskAccess("delete"), controllers.remove);
+
+	return router;
+};
+
+export default createTaskRouter();

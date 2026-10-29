@@ -1,3 +1,5 @@
+import TaskServiceDetailsDisplay from "./TaskServiceDetailsDisplay";
+
 function TaskCards({ filteredTasks, pageTitle, isClient, getTaskStatusLabel, canClientEditTask, handleEdit, canDeleteTask, requestDelete, deletingId }) {
   return (
               <div className="tasks-mobile-list" aria-label="Listado de tareas">
@@ -56,6 +58,10 @@ function TaskCards({ filteredTasks, pageTitle, isClient, getTaskStatusLabel, can
                         <div>
                           <dt>Descripción</dt>
                           <dd>{task.description}</dd>
+                        </div>
+                        <div>
+                          <dt>Detalles del servicio</dt>
+                          <dd><TaskServiceDetailsDisplay service={task.service} serviceDetails={task.serviceDetails} /></dd>
                         </div>
                       </dl>
                     </details>

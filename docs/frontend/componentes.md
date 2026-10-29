@@ -39,6 +39,12 @@ Resume los componentes reutilizables de autenticación, panel, galería y calend
 - `ConfirmDeleteModal` solicita confirmación para eliminaciones.
 - `Vehiculos.jsx` gestiona las pestañas accesibles, filtros, carga, errores, permisos de escritura y retorno del foco en los diálogos.
 
+### Tareas
+
+- `ServiceDetailsFields` presenta los campos del servicio dentro de un `fieldset` y `legend`; recibe valor, errores y callbacks desde `Tareas/index.jsx`.
+- `TaskServiceDetailsDisplay` muestra el resumen en un disclosure accesible reutilizado por tabla y tarjetas.
+- La definición compartida en `shared/taskServiceDetails.js` mantiene opciones, etiquetas y límites en un único lugar.
+
 ### Elemento de interfaz
 
 `ActionButton.css` define estilos compartidos de `.auth-submit` y variantes; lo importa `AuthLayout`. `UserList.jsx`: **sin uso detectado**; no se encontraron importaciones o referencias activas en el frontend revisado.
@@ -82,6 +88,13 @@ El menú móvil, su respuesta a Escape y el uso de teclado de los controles no s
 - `front-asiinet/asiinet/src/pages/Calendar.jsx`
 - `front-asiinet/asiinet/src/pages/Vehiculos/Vehiculos.jsx`
 - `front-asiinet/asiinet/src/pages/Vehiculos/components/`
+- `front-asiinet/asiinet/src/pages/Tareas/index.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/TaskForm.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/TaskTable.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/TaskCards.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/ServiceDetailsFields.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/TaskServiceDetailsDisplay.jsx`
+- `shared/taskServiceDetails.js`
 - `front-asiinet/asiinet/src/pages/Home/index.jsx`
 - `front-asiinet/asiinet/src/components/gallery/GalleryCarousel.jsx`
 - `front-asiinet/asiinet/src/components/gallery/GalleryArrows.jsx`

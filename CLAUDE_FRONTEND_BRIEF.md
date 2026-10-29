@@ -108,6 +108,8 @@ No se ve una ruta catch-all para direcciones desconocidas. Considerar una pantal
 - La pantalla actual soporta alta, edición y eliminación con confirmación; muestra número, cliente, empleado, fechas, servicio, prioridad, estado y descripción.
 - En pantallas estrechas existe una representación en tarjetas en lugar de la tabla.
 - La API solo permite asociar clientes con rol `cliente` y empleados con rol `empleado`. El formulario no puede asignar hasta que existan usuarios de esos roles.
+- Los detalles de servicio se despliegan en `TaskForm` según el servicio, usando `fieldset`, `legend`, etiquetas y errores en línea. La tabla y las tarjetas los muestran bajo demanda; los campos/opciones se comparten desde `shared/taskServiceDetails.js`.
+- Los payloads por rol se construyen explícitamente en `shared/taskPayload.js`: cliente crea detalles opcionales y solo edita descripción; operador no escribe detalles; admin/supervisor pueden crear y editarlos.
 
 ### Inicio, navegación y galería
 

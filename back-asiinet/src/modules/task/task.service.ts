@@ -43,10 +43,23 @@ const serializeTask = (task: Task) => ({
   service: task.service,
   priority: task.priority ?? "",
   status: task.status,
+  serviceDetails: task.serviceDetails ?? null,
 });
 
-export const getAll = async (user?: { id: number; role?: string } | null) => {
-  const tasks = await taskRepository.findAll();
+type TaskRepositoryAdapter = Pick<typeof taskRepository, "findAll" | "findById" | "create" | "save" | "remove">;
+type UserRepositoryAdapter = Pick<typeof userRepository, "findById" | "findByRoles">;
+
+export const createTaskService = ({
+  tasks: tasksRepository = taskRepository,
+  users: usersRepository = userRepository,
+  today: todayProvider = today,
+}: {
+  tasks?: TaskRepositoryAdapter;
+  users?: UserRepositoryAdapter;
+  today?: () => string;
+} = {}) => {
+const getAll = async (user?: { id: number; role?: string } | null) => {
+  const tasks = await tasksRepository.findAll();
 
   if (!user) {
     return tasks.map(serializeTask);
@@ -74,7 +87,7 @@ export const getAll = async (user?: { id: number; role?: string } | null) => {
 };
 
 const getDefaultEmployee = async () => {
-  const operators = await userRepository.findByRoles(["operador", "empleado"]);
+  const operators = await usersRepository.findByRoles(["operador", "empleado"]);
   const employee = operators[0];
 
   if (!employee) {
@@ -85,7 +98,7 @@ const getDefaultEmployee = async () => {
 };
 
 const hasActiveServiceRequest = async (clientId: number, service: string, excludeId?: number) => {
-  const tasks = await taskRepository.findAll();
+  const tasks = await tasksRepository.findAll();
 
   return tasks.some((task) => {
     if (task.clientId !== clientId) return false;
@@ -97,8 +110,8 @@ const hasActiveServiceRequest = async (clientId: number, service: string, exclud
 
 const getAssignees = async (clientId: number, employeeId: number) => {
   const [client, employee] = await Promise.all([
-    userRepository.findById(clientId),
-    userRepository.findById(employeeId),
+    usersRepository.findById(clientId),
+    usersRepository.findById(employeeId),
   ]);
 
   if (!client || normalizeRole(client.role) !== "cliente") {
@@ -112,11 +125,11 @@ const getAssignees = async (clientId: number, employeeId: number) => {
   return { client, employee };
 };
 
-export const create = async (
+const create = async (
   input: TaskInput,
   actor?: { id: number; role?: string } | null
 ) => {
-  const createdAt = today();
+  const createdAt = todayProvider();
 
   const role = normalizeRole(actor?.role);
   const clientId = role === "cliente" ? actor!.id : input.clientId;
@@ -131,12 +144,12 @@ export const create = async (
       throw AppError.badRequest("Ya tienes una solicitud activa para este tipo de servicio.");
     }
 
-    const client = await userRepository.findById(clientId);
+    const client = await usersRepository.findById(clientId);
     if (!client || normalizeRole(client.role) !== "cliente") {
       throw AppError.badRequest("Selecciona un cliente registrado con rol cliente.");
     }
 
-    const task = await taskRepository.create({
+    const task = await tasksRepository.create({
       ...input,
       clientId,
       employeeId: null,
@@ -148,6 +161,7 @@ export const create = async (
       clientUser: client,
       employeeUser: null,
       status: input.status ?? "Vista",
+      serviceDetails: input.serviceDetails ?? null,
     });
 
     return serializeTask(task);
@@ -163,7 +177,7 @@ export const create = async (
   }
 
   const { client, employee } = await getAssignees(clientId, employeeId);
-  const task = await taskRepository.create({
+  const task = await tasksRepository.create({
     ...input,
     clientId,
     employeeId,
@@ -172,17 +186,18 @@ export const create = async (
     employee: employee.nombre || employee.email,
     clientUser: client,
     employeeUser: employee,
+    serviceDetails: role === "operador" ? null : input.serviceDetails ?? null,
   });
 
   return serializeTask(task);
 };
 
-export const update = async (
+const update = async (
   id: number,
   input: Partial<TaskInput>,
   actor?: { id: number; role?: string } | null
 ) => {
-  const task = await taskRepository.findById(id);
+  const task = await tasksRepository.findById(id);
   if (!task) throw AppError.notFound("Tarea no encontrada");
 
   const role = normalizeRole(actor?.role);
@@ -201,7 +216,7 @@ export const update = async (
       description: nextDescription,
     });
 
-    return serializeTask(await taskRepository.save(task));
+    return serializeTask(await tasksRepository.save(task));
   }
 
   if (role === "operador") {
@@ -221,7 +236,7 @@ export const update = async (
       status: nextStatus,
     });
 
-    return serializeTask(await taskRepository.save(task));
+    return serializeTask(await tasksRepository.save(task));
   }
 
   const nextDueDate = input.dueDate ?? task.dueDate;
@@ -233,6 +248,12 @@ export const update = async (
   const safeClientId = clientId ?? task.clientId ?? 0;
   const safeEmployeeId = employeeId ?? task.employeeId ?? 0;
   const { client, employee } = await getAssignees(safeClientId, safeEmployeeId);
+  const serviceChanged = input.service !== task.service;
+  const nextServiceDetails = Object.prototype.hasOwnProperty.call(input, "serviceDetails")
+    ? input.serviceDetails ?? null
+    : serviceChanged
+      ? null
+      : task.serviceDetails ?? null;
 
   Object.assign(task, taskFields, {
     clientId: safeClientId,
@@ -243,14 +264,24 @@ export const update = async (
     employeeUser: employee,
     dueDate: nextDueDate,
     status: input.status ?? task.status,
+    serviceDetails: nextServiceDetails,
   });
 
-  return serializeTask(await taskRepository.save(task));
+  return serializeTask(await tasksRepository.save(task));
 };
 
-export const remove = async (id: number) => {
-  const task = await taskRepository.findById(id);
+const remove = async (id: number) => {
+  const task = await tasksRepository.findById(id);
   if (!task) throw AppError.notFound("Tarea no encontrada");
 
-  await taskRepository.remove(task);
+  await tasksRepository.remove(task);
 };
+
+return { getAll, create, update, remove };
+};
+
+const defaultTaskService = createTaskService();
+export const getAll = defaultTaskService.getAll;
+export const create = defaultTaskService.create;
+export const update = defaultTaskService.update;
+export const remove = defaultTaskService.remove;

@@ -14,7 +14,7 @@ Resume el contenido, acceso, llamadas de red y estados visibles de cada página 
 | Profile (`/profile`) | Cualquier sesión local | Datos personales y formulario de nombre, email, fecha, domicilio y foto. | `GET /api/users/me`, `PUT /api/users/me` | Carga inicial, guardado, éxito/error; 401 limpia sesión local y redirige a login. |
 | Users (`/users`) | Solo admin según `ProtectedRoute` | Tabla/lista adaptable de cuentas, roles y acciones de alta, edición y baja. | `GET /api/users`, `POST /api/users`, `PUT /api/users/:id`, `DELETE /api/users/:id` | Carga, error con reintento, lista vacía, aviso de éxito, diálogo y error de formulario. |
 | Gallery (`/galeria`) | Redirección | Redirige a `/home`; el carrusel se muestra dentro de Home solo para clientes. | Ninguno | La galería es un bloque de Home, con navegación local del carrusel. |
-| Tareas (`/tareas`) | Cualquier sesión local | Solicitudes o tareas, búsqueda/filtro y formularios según rol. | `GET /api/tasks`; `GET /api/users/assignables` para admin y supervisor; `POST`, `PUT` y `DELETE /api/tasks/:id` según acción. | Carga, vacío, error, aviso de éxito, guardado/borrado, confirmación de eliminación y filtros. Un 401 elimina `user` de `sessionStorage` y navega a login. |
+| Tareas (`/tareas`) | Cualquier sesión local | Solicitudes/tareas, formularios por rol y detalles específicos validados según el servicio. Los detalles aparecen en un disclosure en tabla y tarjetas. | `GET /api/tasks`; `GET /api/users/assignables` para admin y supervisor; `POST`, `PUT` y `DELETE /api/tasks/:id` según acción. | Carga, vacío, error, aviso de éxito, guardado/borrado, confirmación, filtros y errores inline en detalles. Un 401 elimina `user` de `sessionStorage` y navega a login. |
 | Calendar (`/calendario`) | Admin, supervisor u operador según `allowedRoles` | Calendario mensual, leyenda, eventos y diálogo para ver/crear/editar/eliminar. | `GET /api/events?month=YYYY-MM`, `POST /api/events`, `PUT /api/events/:id`, `DELETE /api/events/:id` | Carga, error con reintento, calendario sin/eventos, diálogo, error de operación y aviso de éxito. |
 | Vehículos (`/vehiculos`) | Admin, supervisor u operador según `allowedRoles` | Pestañas de vehículos, modelos y marcas; operadores tienen lectura y admin/supervisor escritura. | `GET`, `POST`, `PUT`, `DELETE` de `/api/vehicles`, `/api/vehicle-models` y `/api/brands` | Carga, error, listas vacías, filtros de marca/modelo, formularios, confirmación y avisos. |
 | NotFound (`*`) | Pública; ruta comodín | Mensaje 404, logo y enlace a login. | Ninguno | Vista 404 estática. |
@@ -50,7 +50,15 @@ Las listas y formularios muestran estados explícitos, pero el tratamiento de 40
 - `front-asiinet/asiinet/src/pages/Users.jsx`
 - `front-asiinet/asiinet/src/pages/Home/index.jsx`
 - `front-asiinet/asiinet/src/components/gallery/GalleryCarousel.jsx`
-- `front-asiinet/asiinet/src/pages/Tareas.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/index.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/index.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/TaskForm.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/TaskTable.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/TaskCards.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/ServiceDetailsFields.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/components/TaskServiceDetailsDisplay.jsx`
+- `shared/taskPayload.js`
+- `shared/taskServiceDetails.js`
 - `front-asiinet/asiinet/src/pages/Calendar.jsx`
 - `front-asiinet/asiinet/src/pages/NotFound.jsx`
 - `front-asiinet/asiinet/src/services/calendarService.js`
