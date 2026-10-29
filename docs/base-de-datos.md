@@ -44,6 +44,12 @@ En el esquema declarado, `User.email`, `Brand.descripcion` y `Vehicle.patente` s
 
 Las acciones explícitas al borrar son `SET NULL` para las dos relaciones de tareas a usuarios y `CASCADE` para el creador de eventos. Para las relaciones de modelo a marca y vehículo a modelo, la entidad no declara una acción `onDelete`; el efecto concreto queda **No verificado**.
 
+## Seeders de desarrollo
+
+Los seeders de clientes/tareas y flota construyen un `DataSource` nuevo a partir de la configuración de conexión, con `synchronize: false` y `migrationsRun: false`; no inicializan `AppDataSource`. La simulación es el modo predeterminado y solo ejecuta lecturas para calcular conteos. La aplicación inserta registros en una transacción y exige host local, `NODE_ENV` no productivo, `--apply` y coincidencia de `--confirm-database` con la base configurada. No modifica filas existentes ni el esquema.
+
+Los seeders y la limpieza están descritos en [seeders de desarrollo](backend/seeders-desarrollo.md). La limpieza también simula por defecto; la ejecución requiere confirmación explícita independiente y elimina en orden dependiente→principal usando solo los marcadores y claves reservadas. El usuario debe tener un respaldo antes de aplicar cambios.
+
 ## Errores y limitaciones conocidas
 
 No se consultó ni modificó una base de datos. El esquema existente, los datos, las restricciones que ya estén aplicadas y el resultado de `synchronize` en un entorno concreto quedan **No verificado**. La documentación describe únicamente las declaraciones TypeORM leídas.
@@ -51,6 +57,11 @@ No se consultó ni modificó una base de datos. El esquema existente, los datos,
 ## Archivos fuente
 
 - `back-asiinet/src/database/data-source.ts`
+- `back-asiinet/src/database/seeds/seed-runtime.ts`
+- `back-asiinet/src/database/seeds/seed-clients.ts`
+- `back-asiinet/src/database/seeds/seed-fleet.ts`
+- `back-asiinet/src/database/seeds/run-seed-clients.ts`
+- `back-asiinet/src/database/seeds/run-seed-fleet.ts`
 - `back-asiinet/src/modules/user/user.entity.ts`
 - `back-asiinet/src/modules/task/task.entity.ts`
 - `back-asiinet/src/modules/event/event.entity.ts`
