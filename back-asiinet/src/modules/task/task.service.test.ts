@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createTaskService } from "./task.service.js";
+import { getBuenosAiresDateOffset } from "./task.test-helpers.js";
+
+const serviceToday = getBuenosAiresDateOffset(0);
+const futureDueDate = getBuenosAiresDateOffset(30);
 
 const users = new Map<number, any>([
   [1, { id: 1, nombre: "Cliente", email: "cliente@example.invalid", role: "cliente" }],
@@ -35,6 +39,7 @@ function serviceFor(initialTasks: any[] = []) {
       findById: async (id: number) => users.get(id) ?? null,
       findByRoles: async () => [users.get(2)!],
     },
+    today: () => serviceToday,
   } as any);
 
   return { service, tasks };
@@ -59,7 +64,7 @@ test("admin puede guardar detalles previamente validados en la tarea asignada", 
   const created = await service.create({
     clientId: 1,
     employeeId: 2,
-    dueDate: "2026-10-27",
+    dueDate: futureDueDate,
     description: "Instalación solicitada",
     service: "Instalación",
     priority: "Media",
@@ -80,8 +85,8 @@ test("al cambiar de servicio sin detalles nuevos, elimina los detalles incompati
     employeeId: 2,
     clientUser: users.get(1),
     employeeUser: users.get(2),
-    createdAt: "2026-10-20",
-    dueDate: "2026-10-26",
+    createdAt: serviceToday,
+    dueDate: futureDueDate,
     description: "Instalación domiciliaria",
     service: "Instalación",
     serviceDetails: installationDetails,
@@ -93,7 +98,7 @@ test("al cambiar de servicio sin detalles nuevos, elimina los detalles incompati
   await service.update(10, {
     clientId: 1,
     employeeId: 2,
-    dueDate: "2026-10-26",
+    dueDate: futureDueDate,
     description: "Reconexión solicitada",
     service: "Reconexión",
     priority: "Media",
@@ -113,8 +118,8 @@ test("actualizar una tarea sin cambiar el servicio conserva sus detalles", async
     employeeId: 2,
     clientUser: users.get(1),
     employeeUser: users.get(2),
-    createdAt: "2026-10-20",
-    dueDate: "2026-10-26",
+    createdAt: serviceToday,
+    dueDate: futureDueDate,
     description: "Instalación domiciliaria",
     service: "Instalación",
     serviceDetails: installationDetails,
@@ -126,7 +131,7 @@ test("actualizar una tarea sin cambiar el servicio conserva sus detalles", async
   await service.update(11, {
     clientId: 1,
     employeeId: 2,
-    dueDate: "2026-10-26",
+    dueDate: futureDueDate,
     description: "Descripción corregida",
     service: "Instalación",
     priority: "Media",
@@ -145,8 +150,8 @@ test("tareas existentes sin serviceDetails se serializan como null", async () =>
     employeeId: 2,
     clientUser: users.get(1),
     employeeUser: users.get(2),
-    createdAt: "2026-10-20",
-    dueDate: "2026-10-26",
+    createdAt: serviceToday,
+    dueDate: futureDueDate,
     description: "Tarea anterior al campo nuevo",
     service: "Instalación",
     priority: "Baja",

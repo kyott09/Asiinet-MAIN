@@ -6,6 +6,9 @@ import test from "node:test";
 import { createRequireAuth, createRequireTaskAccess, type AuthenticatedRequest } from "../../middlewares/auth.js";
 import { createTaskRouter } from "./task.routes.js";
 import { parseTaskCreateInput, parseTaskUpdateInput } from "./task.controller.js";
+import { getBuenosAiresDateOffset } from "./task.test-helpers.js";
+
+const futureDueDate = getBuenosAiresDateOffset(30);
 
 const TEST_JWT_SECRET = "task-route-test-secret";
 const testUsers = new Map([
@@ -104,7 +107,7 @@ test("rutas reales aplican auth y permissions; ownership usa un task repository 
   const administrativeCreateBody = {
     clientId: "4",
     employeeId: "3",
-    dueDate: "2026-10-27",
+    dueDate: futureDueDate,
     description: "Solicitud asignada",
     service: "Instalación",
     priority: "Media",
@@ -143,7 +146,7 @@ test("rutas reales aplican auth y permissions; ownership usa un task repository 
   const operatorLegacyCreate = await request(app, "POST", "/api/tasks", 3, {
     clientId: "4",
     employeeId: "3",
-    dueDate: "2026-10-27",
+    dueDate: futureDueDate,
     description: "Tarea legacy sin detalles",
     service: "Instalación",
   });
@@ -156,19 +159,19 @@ test("rutas reales aplican auth y permissions; ownership usa un task repository 
   assert.equal((await request(app, "PUT", "/api/tasks/43", 4, { description: "Ajena" })).status, 403);
 
   const assignedOperatorUpdate = await request(app, "PUT", "/api/tasks/42", 3, {
-    dueDate: "2026-10-27",
+    dueDate: futureDueDate,
     status: "En proceso",
   });
   assert.equal(assignedOperatorUpdate.status, 200);
 
   const foreignOperatorUpdate = await request(app, "PUT", "/api/tasks/43", 3, {
-    dueDate: "2026-10-27",
+    dueDate: futureDueDate,
     status: "En proceso",
   });
   assert.equal(foreignOperatorUpdate.status, 403);
 
   const operatorCannotWriteDetails = await request(app, "PUT", "/api/tasks/42", 3, {
-    dueDate: "2026-10-27",
+    dueDate: futureDueDate,
     status: "En proceso",
     serviceDetails: clientCreateBody.serviceDetails,
   });

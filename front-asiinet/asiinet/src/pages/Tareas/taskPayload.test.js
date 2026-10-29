@@ -3,6 +3,25 @@ import test from "node:test";
 import { buildTaskPayload } from "../../../../../shared/taskPayload.js";
 import { getTaskServiceDetailEntries, validateTaskServiceDetails } from "../../../../../shared/taskServiceDetails.js";
 
+function getBuenosAiresDateOffset(daysFromToday) {
+  const dateParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const parts = Object.fromEntries(dateParts.map(({ type, value }) => [type, value]));
+  const date = new Date(Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day) + daysFromToday
+  ));
+
+  return date.toISOString().slice(0, 10);
+}
+
+const futureDueDate = getBuenosAiresDateOffset(30);
+
 const serviceDetails = {
   equipment: [{ type: "modem", quantity: 1 }],
   speed: "300",
@@ -12,7 +31,7 @@ const serviceDetails = {
 const form = {
   clientId: "1",
   employeeId: "2",
-  dueDate: "2026-10-27",
+  dueDate: futureDueDate,
   description: "Solicitud",
   service: "Instalación",
   priority: "Media",

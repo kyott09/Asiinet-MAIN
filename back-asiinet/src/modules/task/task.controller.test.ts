@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 
 import { parseTaskCreateInput, parseTaskUpdateInput, type TaskInput } from "./task.controller.js";
 import { buildTaskPayload } from "../../../../shared/taskPayload.js";
+import { getBuenosAiresDateOffset } from "./task.test-helpers.js";
+
+const futureDueDate = getBuenosAiresDateOffset(30);
 
 const installationDetails = {
   equipment: [
@@ -65,7 +68,7 @@ test("administración puede crear con detalles válidos del servicio seleccionad
     {
       clientId: "1",
       employeeId: "2",
-      dueDate: "2026-10-26",
+      dueDate: futureDueDate,
       description: "Instalación en domicilio",
       service: "Instalación",
       priority: "Media",
@@ -82,7 +85,7 @@ test("la actualización administrativa conserva la normalización de prioridad y
   const payload = parseTaskUpdateInput({
     clientId: "1",
     employeeId: "2",
-    dueDate: "2026-10-27",
+    dueDate: futureDueDate,
     description: "Tarea actualizada",
     service: "Instalación",
     priority: " alta ",
@@ -145,7 +148,7 @@ test("rechaza campos extra en creación de tareas por rol", () => {
       : {
           clientId: "1",
           employeeId: "2",
-          dueDate: "2026-10-26",
+          dueDate: futureDueDate,
           description: "Tarea válida",
           service: "Instalación",
           priority: "Baja",
@@ -166,7 +169,7 @@ test("los payloads antiguos sin detalles siguen siendo válidos y se normalizan 
     {
       clientId: "1",
       employeeId: "2",
-      dueDate: "2026-10-26",
+      dueDate: futureDueDate,
       description: "Tarea anterior",
       service: "Instalación",
       priority: "Baja",
@@ -198,14 +201,14 @@ test("cliente y operador no pueden actualizar serviceDetails", () => {
     { code: "BAD_REQUEST" }
   );
   assert.throws(
-    () => parseTaskUpdateInput({ dueDate: "2026-10-26", status: "En proceso", serviceDetails: installationDetails }, "operador"),
+    () => parseTaskUpdateInput({ dueDate: futureDueDate, status: "En proceso", serviceDetails: installationDetails }, "operador"),
     { code: "BAD_REQUEST" }
   );
   assert.throws(
     () => parseTaskUpdateInput({
       clientId: "1",
       employeeId: "2",
-      dueDate: "2026-10-26",
+      dueDate: futureDueDate,
       description: "Cambio de servicio",
       service: "Reconexión",
       priority: "Baja",
@@ -221,7 +224,7 @@ test("operador no puede crear o editar detalles específicos a través de sus pa
     () => parseTaskCreateInput({
       clientId: "1",
       employeeId: "2",
-      dueDate: "2026-10-26",
+      dueDate: futureDueDate,
       description: "Tarea",
       service: "Instalación",
       serviceDetails: installationDetails,
@@ -229,7 +232,7 @@ test("operador no puede crear o editar detalles específicos a través de sus pa
     { code: "BAD_REQUEST" }
   );
   assert.throws(
-    () => parseTaskUpdateInput({ dueDate: "2026-10-26", status: "En proceso", serviceDetails: installationDetails }, "operador"),
+    () => parseTaskUpdateInput({ dueDate: futureDueDate, status: "En proceso", serviceDetails: installationDetails }, "operador"),
     { code: "BAD_REQUEST" }
   );
 });
@@ -237,14 +240,14 @@ test("operador no puede crear o editar detalles específicos a través de sus pa
 test("operador can update an assigned task with only due date and status", () => {
   const payload = parseTaskUpdateInput(
     {
-      dueDate: "2026-10-06",
+      dueDate: futureDueDate,
       status: "En proceso",
     },
     "operador"
   );
 
   assert.deepEqual(payload, {
-    dueDate: "2026-10-06",
+    dueDate: futureDueDate,
     status: "En proceso",
   });
 });
@@ -253,7 +256,7 @@ test("los payloads reales de TaskForm usan una lista explícita de claves por ro
   const form = {
     clientId: "1",
     employeeId: "2",
-    dueDate: "2026-10-26",
+    dueDate: futureDueDate,
     description: "Trabajo solicitado",
     service: "Instalación",
     priority: "Media",
