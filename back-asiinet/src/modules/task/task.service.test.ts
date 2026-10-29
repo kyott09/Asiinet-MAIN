@@ -376,6 +376,55 @@ test("crear cliente rechaza fecha de visita anterior al día de Buenos Aires", a
   );
 });
 
+test("today predeterminado del servicio usa la fecha de Buenos Aires", async (context) => {
+  const simulatedInstant = new Date("2026-10-30T01:00:00.000Z");
+  context.mock.timers.enable({ apis: ["Date"], now: simulatedInstant });
+
+  const createService = () => createTaskService({
+    tasks: {
+      findAll: async () => [],
+      findById: async () => null,
+      create: async (data: any) => ({ ...structuredClone(data), id: 1 }),
+      save: async (task: any) => task,
+      remove: async (task: any) => task,
+    },
+    users: {
+      findById: async (id: number) => users.get(id) ?? null,
+      findByRoles: async () => [users.get(2)!],
+    },
+  });
+
+  try {
+    assert.equal(new Date().toISOString().slice(0, 10), "2026-10-30");
+    const acceptedInput = parseTaskCreateInput({
+      service: "Instalación",
+      description: "Visita para hoy en Buenos Aires",
+      visitDate: "2026-10-29",
+      visitTimeSlot: "manana",
+    }, "cliente");
+    const accepted = await createService().create(acceptedInput as TaskInput, {
+      id: 1,
+      role: "cliente",
+    });
+
+    assert.equal(accepted.visitDate, "2026-10-29");
+
+    const rejectedInput = parseTaskCreateInput({
+      service: "Instalación",
+      description: "Visita del día anterior",
+      visitDate: "2026-10-28",
+      visitTimeSlot: "manana",
+    }, "cliente");
+
+    await assert.rejects(
+      createService().create(rejectedInput as TaskInput, { id: 1, role: "cliente" }),
+      { statusCode: 400, code: "BAD_REQUEST" }
+    );
+  } finally {
+    context.mock.timers.reset();
+  }
+});
+
 test("visita fechada hoy a las 22:00 de Argentina se acepta al crear y editar", async (context) => {
   const simulatedInstant = new Date("2026-10-30T01:00:00.000Z");
   context.mock.timers.enable({ apis: ["Date"], now: simulatedInstant });
