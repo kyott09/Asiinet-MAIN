@@ -119,7 +119,7 @@ El punto de entrada es `src/main.jsx`; monta `App` dentro de `StrictMode`. `App.
 | `/profile` | Perfil | Requiere sesión; carga y actualiza el perfil por API. |
 | `/users` | Usuarios | Protegida en frontend para `role === "admin"`; permite listar, crear, editar y eliminar cuentas mediante la API. |
 | `/galeria` | Redirección | Redirige a `/`; la galería forma parte de Home pública. |
-| `/tareas` | Tareas/solicitudes | Requiere sesión; CRUD y vistas dependen del rol. |
+| `/tareas` | Tareas/solicitudes | Requiere sesión; CRUD y vistas dependen del rol. El listado pagina en servidor y guarda página, tamaño y filtros en la URL. |
 | `/calendario` | Calendario | Protegida en frontend para `admin`, `supervisor` y `operador`; gestión de eventos con persistencia API. Clientes sin acceso. |
 | `/vehiculos` | Vehículos | Protegida en frontend para `admin`, `supervisor` y `operador`; administra vehículos, modelos y marcas según el rol. Clientes sin acceso. |
 
@@ -144,6 +144,7 @@ Hay una ruta catch-all/404 definida. Los módulos de empleados, roles y document
 - `src/pages/Users.jsx`: gestión administrativa de usuarios, con tabla adaptable, alta, edición de nombre/email/rol y borrado confirmado.
 - `components/gallery/GalleryCarousel.jsx`: carrusel local con `foto1.jpg`, `foto2.jpg` y `foto3.jpg`; controles y puntos se reutilizan dentro de Home.
 - `components/dashboard/DashboardSidebar.jsx` y `AccountActions.jsx`: navegación y cuenta compartidas por las páginas del panel.
+- `components/pagination/Pagination.jsx`: controles accesibles compartidos; en P1 se usa en tareas.
 - Estilos globales en `src/index.css` y `src/App.css`; estilos específicos junto a páginas/componentes. Mantener los patrones CSS existentes antes de sumar un sistema nuevo.
 
 La identidad visual actual usa logos en `src/assets/brand/`, acentos naranjas y superficies claras. Reutilizar los recursos existentes y mantener responsive, estados accesibles, etiquetas, foco visible y controles descriptivos. No inventar listas o resultados persistidos para que una pantalla parezca conectada.
@@ -173,7 +174,7 @@ Todas las rutas, salvo que se indique, están bajo `/api`. Las rutas de usuarios
 | `POST /users` | Sí + `users:write` | Alta administrativa con `{ nombre, email, password, role }`; valida rol y contraseña de 8–72 bytes UTF-8, devuelve `{ user }` sin hash. |
 | `PUT /users/:id` | Sí + `users:write` | Actualiza únicamente `nombre`, `email` y/o `role`; devuelve `{ user }` sin hash. Protege al último admin y los roles compatibles con asignaciones de tareas. |
 | `DELETE /users/:id` | Sí + `users:write` | Elimina un usuario sin tareas asociadas; no permite autoeliminación ni eliminar al último admin. Devuelve `{ message }`. |
-| `GET /tasks` | Sí + `tasks:read` | Devuelve `{ tasks }`, filtradas por visibilidad del rol. |
+| `GET /tasks` | Sí + `tasks:read` | Sin `page` ni `pageSize` conserva `{ tasks }` completo con el alcance del rol. Con paginación admite `page` (predeterminado 1), `pageSize` (predeterminado 20, 1–100), `q` (hasta 100 caracteres) y `status`; devuelve `{ tasks, meta: { page, pageSize, total, totalPages } }`. Valores inválidos o parámetros desconocidos devuelven 400. |
 | `POST /tasks` | Sí + `tasks:create` | Crea tarea/solicitud; cliente y admin/supervisor pueden incluir `visitDate` y `visitTimeSlot` juntos; la visita del cliente es opcional; devuelve `{ task }` con HTTP 201. |
 | `PUT /tasks/:id` | Sí + `tasks:update` + acceso a esa tarea | Actualiza campos permitidos según rol; admin/supervisor pueden conservar, quitar o reprogramar la visita en cualquier estado; devuelve `{ task }`. |
 | `DELETE /tasks/:id` | Sí + `tasks:delete` + acceso | Elimina y devuelve `{ message: "Tarea eliminada" }`. |
@@ -215,6 +216,8 @@ El permiso general no reemplaza las comprobaciones por recurso:
 - **Cliente:** solo ve tareas asociadas a su `clientId`; puede crear una solicitud y editar únicamente la descripción de sus propias solicitudes. No puede eliminarlas.
 
 La API de tareas filtra las listas en el servicio; `requireTaskAccess` además comprueba la tarea concreta al actualizar o borrar. No confiar solo en el filtrado de frontend ni debilitar middleware para resolver un problema visual.
+
+El listado paginado aplica el alcance de admin/supervisor, operador (`employeeId`) o cliente (`clientId`) en la consulta del repositorio antes del conteo y el recorte. El orden es `id ASC`; el filtro de búsqueda y el estado se aplican sobre el conjunto completo antes de paginar. La página puede seleccionar tamaños 10, 20 o 30; el valor predeterminado es 20. La interfaz mantiene página, tamaño y filtros en los parámetros URL para que Atrás/Adelante restaure la vista. Sin `page` ni `pageSize`, la respuesta mantiene exactamente la forma y el contenido anteriores.
 
 El listado administrativo completo usa `users:write` (solo admin); `users:read` no permite enumerar todas las cuentas. `GET /users/assignables` conserva su permiso y contrato actuales.
 

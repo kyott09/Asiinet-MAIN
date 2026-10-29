@@ -97,7 +97,7 @@ Hay una ruta catch-all que muestra la pantalla 404 para direcciones desconocidas
 ### Tareas
 
 - Endpoints autenticados:
-  - `GET /api/tasks` → `{ tasks }`
+  - `GET /api/tasks` → `{ tasks }` sin paginación, para compatibilidad; con `page` o `pageSize`, `{ tasks, meta: { page, pageSize, total, totalPages } }`
   - `POST /api/tasks` → `{ task }`
   - `PUT /api/tasks/:id` → `{ task }`
   - `DELETE /api/tasks/:id` → confirmación de eliminación
@@ -115,6 +115,8 @@ Hay una ruta catch-all que muestra la pantalla 404 para direcciones desconocidas
 - Cliente puede elegir fecha y franja de visita opcionales al crear; si no elige, el formulario y los listados muestran `A coordinar`. La fecha y franja se comparten desde `shared/taskVisitSlots.js`.
 - Los payloads por rol se construyen explícitamente en `shared/taskPayload.js`: cliente crea detalles y visita opcionales y solo edita descripción; operador no escribe detalles ni visita; admin/supervisor pueden gestionar ambos al crear y editar, cualquiera sea el estado.
 - En una edición administrativa, una tarea ya sin operador puede seguir sin asignación mientras el estado resultante sea `Vista`; si pasa a otro estado, el formulario requiere operador. La creación administrativa siempre requiere operador.
+- El listado de tareas pagina en el servidor. La URL conserva `page`, `pageSize`, `q` y `status`; el tamaño inicial es 20 y las opciones son 10, 20 y 30. Búsqueda y estado se filtran antes del recorte, dentro del alcance autorizado por rol. La navegación de páginas usa el componente accesible compartido `components/pagination/Pagination.jsx`; al cambiar un filtro o tamaño vuelve a la primera página.
+- La API limita `pageSize` a 100 y valida estrictamente los parámetros de consulta. Si la página queda fuera de rango por cambios concurrentes o borrado, devuelve una colección vacía con metadata y la interfaz vuelve a la última página válida. El número de una tarea nueva lo asigna el servidor al guardar.
 
 ### Inicio, navegación y galería
 

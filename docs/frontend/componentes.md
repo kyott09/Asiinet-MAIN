@@ -47,6 +47,7 @@ Resume los componentes reutilizables de autenticación, panel, galería y calend
 - `TaskServiceDetailsDisplay` muestra el resumen en un disclosure accesible reutilizado por tabla y tarjetas.
 - La definición compartida en `shared/taskServiceDetails.js` mantiene opciones, etiquetas y límites en un único lugar.
 - `shared/taskVisitSlots.js` comparte franjas, etiquetas, formato de fecha sin conversión local y el texto `A coordinar` para formularios, tabla y tarjetas.
+- `Pagination` es presentacional y recibe el estado desde la página; muestra el rango en `aria-live`, navegación numerada con `aria-current="page"`, nombres accesibles y controles deshabilitados.
 
 ### Elemento de interfaz
 
@@ -86,12 +87,17 @@ El menú móvil, su respuesta a Escape y el uso de teclado de los controles no s
 - `front-asiinet/asiinet/src/components/calendar/CalendarEventModal.jsx`
 - `front-asiinet/asiinet/src/components/ui/ActionButton.css`
 - `front-asiinet/asiinet/src/components/UserList.jsx`
+- `front-asiinet/asiinet/src/components/pagination/Pagination.jsx`
+- `front-asiinet/asiinet/src/components/pagination/Pagination.css`
+- `front-asiinet/asiinet/src/components/pagination/paginationUtils.js`
 - `front-asiinet/asiinet/src/pages/Login.jsx`
 - `front-asiinet/asiinet/src/pages/Register.jsx`
 - `front-asiinet/asiinet/src/pages/Calendar.jsx`
 - `front-asiinet/asiinet/src/pages/Vehiculos/Vehiculos.jsx`
 - `front-asiinet/asiinet/src/pages/Vehiculos/components/`
 - `front-asiinet/asiinet/src/pages/Tareas/index.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/taskPagination.js`
+- `front-asiinet/asiinet/src/pages/Tareas/taskPagination.test.js`
 - `front-asiinet/asiinet/src/pages/Tareas/components/TaskForm.jsx`
 - `front-asiinet/asiinet/src/pages/Tareas/components/TaskTable.jsx`
 - `front-asiinet/asiinet/src/pages/Tareas/components/TaskCards.jsx`
