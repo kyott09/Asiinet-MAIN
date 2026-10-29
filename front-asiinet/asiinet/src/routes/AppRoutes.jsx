@@ -25,17 +25,17 @@ function ProtectedRoute({ children, requireAdmin = false, allowedRoles = null })
 
   if (!user) {
     return <Navigate to="/login" replace />;
-  }
+  } //Si no hay usuario logueado, lo manda a /login
 
   if (requireAdmin && user.role !== "admin") {
     return <Navigate to="/panel" replace />;
-  }
+  } //Si la ruta requiere admin y el usuario no es admin, lo manda a /panel
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/panel" replace />;
-  }
+  } //Si la ruta pide roles específicos y el usuario no tiene uno de esos roles, lo manda a /panel
 
-  return children;
+  return children; //Si pasa todas las validaciones, renderiza el componente hijo
 }
 
 function AppRoutes() {
@@ -53,9 +53,9 @@ function AppRoutes() {
           path="/panel"
           element={
             <ProtectedRoute>
-              <Panel />
+              <Panel /> 
             </ProtectedRoute>
-          }
+          } //Ruta que solo requiere usuario logueado
         />
         <Route path="/home" element={<Navigate to="/panel" replace />} />
 
@@ -71,10 +71,10 @@ function AppRoutes() {
         <Route
           path="/users"
           element={
-            <ProtectedRoute requireAdmin>
+            <ProtectedRoute requireAdmin> 
               <Users />
             </ProtectedRoute>
-          }
+          } //Ruta protegida que solo permite acceso a usuarios con rol "admin". requireAdmin se envía como True
         />
 
         <Route path="/galeria" element={<Navigate to="/" replace />} />
@@ -92,7 +92,7 @@ function AppRoutes() {
             <ProtectedRoute allowedRoles={["admin", "supervisor", "operador"]}>
               <Calendar />
             </ProtectedRoute>
-          }
+          } //Ruta protegida solo para usuarios con rol "admin", "supervisor" o "operador"
         />
         <Route
           path="/vehiculos"
@@ -100,7 +100,7 @@ function AppRoutes() {
             <ProtectedRoute allowedRoles={["admin", "supervisor", "operador"]}>
               <Vehiculos />
             </ProtectedRoute>
-          }
+          } //Ruta protegida solo para usuarios con rol "admin", "supervisor" o "operador"
         />
         <Route path="*" element={<NotFound />} />
       </Routes>
