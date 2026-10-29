@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import bcrypt from "bcrypt";
-import { parseTaskCreateInput, type TaskInput } from "../../modules/task/task.controller.js";
+import { TASK_VISIT_TIME_SLOTS } from "../../../../shared/taskVisitSlots.js";
+import { parseTaskCreateInput } from "../../modules/task/task.controller.js";
 import { createTaskService } from "../../modules/task/task.service.js";
 import {
   buildClientSeedPlan,
   createSeededClientTasks,
+  hashSeedDevPassword,
+  selectClientRequestsToCreate,
   SEED_DEV_PASSWORD,
 } from "./seed-clients.js";
 
@@ -43,8 +46,29 @@ test("las 50 descripciones con marcador y detalles pasan el esquema Zod de clien
 
   for (const { body } of plan.requests) {
     assert.match(body.description, /^\[SEED-DEV\]/);
+    assert.ok(body.description.length <= 500);
     assert.doesNotThrow(() => parseTaskCreateInput(body, "cliente"));
   }
+});
+
+test("reparte 25 visitas futuras y conserva 25 solicitudes sin visita", () => {
+  const { requests } = buildClientSeedPlan(today);
+  const withVisit = requests.filter(({ body }) => "visitDate" in body);
+  const withoutVisit = requests.filter(({ body }) => !("visitDate" in body));
+
+  assert.equal(withVisit.length, 25);
+  assert.equal(withoutVisit.length, 25);
+  for (const { body } of withVisit) {
+    assert.ok(body.visitDate! > today);
+    assert.ok(TASK_VISIT_TIME_SLOTS.some(({ value }) => value === body.visitTimeSlot));
+  }
+});
+
+test("no agrega solicitudes si ya hay alguna solicitud sembrada", () => {
+  const plan = buildClientSeedPlan(today);
+
+  assert.equal(selectClientRequestsToCreate(plan, 0).length, 50);
+  assert.deepEqual(selectClientRequestsToCreate(plan, 1), []);
 });
 
 test("crea las 50 solicitudes mediante el servicio y persiste dueDate null", async () => {
@@ -71,7 +95,7 @@ test("crea las 50 solicitudes mediante el servicio y persiste dueDate null", asy
         return task;
       },
       save: async (task: any) => task,
-      remove: async () => undefined,
+      remove: async () => ({}) as any,
     },
     users: {
       findById: async (id: number) => users.get(id) ?? null,
@@ -90,7 +114,7 @@ test("crea las 50 solicitudes mediante el servicio y persiste dueDate null", asy
 
 test("la contraseña fija satisface el mínimo del formulario y se hashea como en el registro", async () => {
   assert.ok(SEED_DEV_PASSWORD.length >= 6);
-  const hash = await bcrypt.hash(SEED_DEV_PASSWORD, 10);
+  const hash = await hashSeedDevPassword();
   assert.equal(await bcrypt.compare(SEED_DEV_PASSWORD, hash), true);
   assert.notEqual(hash, SEED_DEV_PASSWORD);
 });
