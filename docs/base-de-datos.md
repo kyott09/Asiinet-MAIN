@@ -26,7 +26,7 @@ Las relaciones de las tareas permiten que una cuenta sea cliente o empleado de v
 | Entidad y tabla | Campos declarados | Relaciones y borrado |
 | --- | --- | --- |
 | `User` — `usuarios` | `id`, `nombre`, `email`, `passwordHash`, `role`, `fechaNacimiento`, `domicilio`, `fotoPerfil`, `creadoEn` | `email` es único. No declara relaciones salientes. |
-| `Task` — `tareas` | `id`, `client`, `clientId`, `employee`, `employeeId`, `createdAt`, `dueDate`, `visitDate`, `visitTimeSlot`, `description`, `service`, `serviceDetails`, `priority`, `status` | `serviceDetails` usa `simple-json` nullable; `visitDate` (`date`) y `visitTimeSlot` (`varchar`) son nullable. `clientUser` y `employeeUser` son relaciones opcionales a `User`; ambas declaran `onDelete: SET NULL`. |
+| `Task` — `tareas` | `id`, `client`, `clientId`, `employee`, `employeeId`, `createdAt`, `dueDate`, `visitDate`, `visitTimeSlot`, `description`, `service`, `serviceDetails`, `priority`, `status` | `dueDate` (`date`) es nullable; `serviceDetails` usa `simple-json` nullable; `visitDate` (`date`) y `visitTimeSlot` (`varchar`) son nullable. `clientUser` y `employeeUser` son relaciones opcionales a `User`; ambas declaran `onDelete: SET NULL`. |
 | `Event` — `eventos` | `id`, `titulo`, `tipo`, `fecha`, `descripcion`, `creadorId`, `creadoEn`, `actualizadoEn` | Relación requerida con `User`; declara `onDelete: CASCADE`. |
 | `Brand` — `brands` | `id`, `descripcion` | `descripcion` es única. |
 | `VehicleModel` — `vehicle_models` | `id`, `descripcion` | Relación `ManyToOne` a `Brand`, con columna `brand_id`; no declara una acción `onDelete`. |

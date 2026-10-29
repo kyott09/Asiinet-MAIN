@@ -102,8 +102,9 @@ Hay una ruta catch-all que muestra la pantalla 404 para direcciones desconocidas
   - `PUT /api/tasks/:id` → `{ task }`
   - `DELETE /api/tasks/:id` → confirmación de eliminación
 - Para asignar una tarea se usa `GET /api/users/assignables` → `{ clients, employees }`.
-- Campos de alta/edición: `clientId`, `employeeId`, `dueDate`, `description`, `service`, `priority` y `status`.
-- La fecha de finalización no puede ser anterior a la fecha de creación.
+- Campos de alta/edición administrativa: `clientId`, `employeeId`, `dueDate` (opcional), `description`, `service`, `priority` y `status`.
+- Admin/supervisor pueden omitir la fecha de finalización al crear o editar; operador conserva el PUT `{ dueDate, status }` con `dueDate` opcional. Si se omite o queda vacía, se guarda `null` y no se asigna una fecha automática. `Terminada` no exige plazo.
+- Si se informa `dueDate`, no puede preceder `createdAt`. Formulario, tabla y tarjetas muestran `Sin fecha` cuando está vacía.
 - Servicios válidos: `Instalación`, `Reconexión`, `Servicio técnico`, `Desconexión`.
 - Prioridades: `Baja`, `Media`, `Alta`.
 - Estados: `Vista`, `En proceso`, `Terminada`, `No terminada`.
