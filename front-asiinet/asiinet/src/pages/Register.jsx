@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
 import PasswordField from "../components/auth/PasswordField";
@@ -66,6 +68,11 @@ function Register() {
       }
     >
       <form className="auth-form" onSubmit={handleSubmit}>
+        <Link className="auth-home-link" to="/">
+          <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" />
+          Volver al inicio
+        </Link>
+
         <TextField
           id="register-fullname"
           value={fullName}
