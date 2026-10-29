@@ -22,10 +22,17 @@ Documenta los servicios que agrupan las solicitudes del navegador a las APIs de 
 
 | Función | Solicitud | Resultado |
 | --- | --- | --- |
+| Listar tareas | `GET /api/tasks?page=1&pageSize=20&q=...&status=...` con `credentials: "include"`. `q` y `status` son opcionales. | `{ tasks, meta: { page, pageSize, total, totalPages } }`. |
 | `getEvents(month)` | `GET /api/events?month=...` si recibe mes; sin query si no. | JSON de respuesta. |
 | `createEvent(eventData)` | `POST /api/events`, cuerpo JSON. | JSON del evento creado. |
 | `updateEvent(id, eventData)` | `PUT /api/events/:id`, cuerpo JSON. | JSON del evento actualizado. |
 | `deleteEvent(id)` | `DELETE /api/events/:id`. | `null` cuando la respuesta es 204. |
+
+En `GET /api/tasks`, `page` es un entero positivo y por defecto vale `1`; `pageSize` admite enteros de `1` a `100` y por defecto vale `20`. `q` se recorta y admite hasta 100 caracteres. `status` admite `todos`, `vista`, `en_proceso`, `terminada` o `cancelacion`. Los filtros se aplican en el servidor antes del conteo y de paginar; el total respeta el alcance del rol autenticado.
+
+La query se valida estrictamente con Zod. Valores inválidos, repetidos o parámetros desconocidos producen HTTP `400` con `{ status: "error", code: "BAD_REQUEST", message }`. Si se envía `q` o `status`, también debe enviarse `page` o `pageSize`.
+
+Por compatibilidad, una solicitud sin parámetros devuelve la forma anterior `{ tasks }`, con la colección completa visible para el actor y sin `meta`. Al incluir `page` o `pageSize`, la respuesta incluye `meta`; si solo se indica uno, el otro toma su valor predeterminado.
 
 `vehicleService` expone `getVehicles`, `getVehicleById`, `createVehicle`, `updateVehicle`, `deleteVehicle`, `getBrands`, `createBrand`, `updateBrand`, `deleteBrand`, `getModels`, `createModel`, `updateModel` y `deleteModel`.
 
@@ -50,6 +57,10 @@ La respuesta del servidor puede no incluir JSON, en cuyo caso el payload queda `
 - `front-asiinet/asiinet/src/services/calendarService.js`
 - `front-asiinet/asiinet/src/services/vehicleService.js`
 - `front-asiinet/asiinet/src/pages/Tareas/index.jsx`
+- `back-asiinet/src/modules/task/task.controller.ts`
+- `back-asiinet/src/modules/task/task.repository.ts`
+- `back-asiinet/src/modules/task/task.pagination.test.ts`
+- `back-asiinet/src/modules/task/task.repository.test.ts`
 - `shared/taskPayload.js`
 - `shared/taskServiceDetails.js`
 - `shared/taskVisitSlots.js`
