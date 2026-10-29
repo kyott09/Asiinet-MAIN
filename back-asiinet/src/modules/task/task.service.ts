@@ -241,10 +241,10 @@ const update = async (
       throw AppError.forbidden("Solo puedes modificar tus tareas asignadas.");
     }
 
-    const nextDueDate = input.dueDate ?? task.dueDate;
+    const nextDueDate = input.dueDate ?? null;
     const nextStatus = input.status ?? task.status;
 
-    if (nextDueDate < formatDate(task.createdAt)) {
+    if (nextDueDate !== null && nextDueDate < formatDate(task.createdAt)) {
       throw AppError.badRequest("La fecha de finalización no puede ser anterior a la fecha de creación.");
     }
 
@@ -256,8 +256,8 @@ const update = async (
     return serializeTask(await tasksRepository.save(task));
   }
 
-  const nextDueDate = input.dueDate ?? task.dueDate;
-  if (nextDueDate < formatDate(task.createdAt)) {
+  const nextDueDate = input.dueDate ?? null;
+  if (nextDueDate !== null && nextDueDate < formatDate(task.createdAt)) {
     throw AppError.badRequest("La fecha de finalización no puede ser anterior a la fecha de creación.");
   }
 

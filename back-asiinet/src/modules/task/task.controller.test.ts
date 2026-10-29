@@ -123,6 +123,32 @@ test("administración puede crear con detalles válidos del servicio seleccionad
   assert.deepEqual(payload.serviceDetails, installationDetails);
 });
 
+test("admin y supervisor aceptan dueDate ausente, nulo o vacío al crear sin asignar una fecha automática", () => {
+  const taskFields = {
+    clientId: "1",
+    employeeId: "2",
+    description: "Tarea sin fecha de finalización",
+    service: "Instalación",
+    priority: "Media",
+    status: "Vista",
+  };
+
+  for (const role of ["admin", "supervisor"]) {
+    for (const dueDate of [undefined, null, ""]) {
+      const body = dueDate === undefined ? taskFields : { ...taskFields, dueDate };
+      const payload = parseTaskCreateInput(body, role) as TaskInput;
+
+      assert.equal(payload.dueDate, null, `${role}, dueDate=${String(dueDate)}`);
+    }
+
+    const datedPayload = parseTaskCreateInput({
+      ...taskFields,
+      dueDate: futureDueDate,
+    }, role) as TaskInput;
+    assert.equal(datedPayload.dueDate, futureDueDate, `${role}, fecha válida`);
+  }
+});
+
 test("admin y supervisor pueden crear una visita con fecha y franja compartida", () => {
   for (const role of ["admin", "supervisor"]) {
     const payload = parseTaskCreateInput({
@@ -140,6 +166,67 @@ test("admin y supervisor pueden crear una visita con fecha y franja compartida",
     assert.equal(payload.visitDate, futureVisitDate);
     assert.equal(payload.visitTimeSlot, "noche");
   }
+});
+
+test("el PUT del operador acepta actualizar estado sin fecha y normaliza una fecha vacía a null", () => {
+  assert.deepEqual(parseTaskUpdateInput({ status: "Terminada" }, "operador"), {
+    status: "Terminada",
+  });
+  assert.deepEqual(parseTaskUpdateInput({ dueDate: "", status: "Terminada" }, "operador"), {
+    dueDate: null,
+    status: "Terminada",
+  });
+  assert.deepEqual(parseTaskUpdateInput({ dueDate: null, status: "Terminada" }, "operador"), {
+    dueDate: null,
+    status: "Terminada",
+  });
+});
+
+test("admin y supervisor aceptan dueDate ausente, nulo o vacío al editar", () => {
+  const taskFields = {
+    clientId: "1",
+    employeeId: "2",
+    description: "Tarea sin plazo",
+    service: "Instalación",
+    priority: "Media",
+    status: "Terminada",
+  };
+
+  for (const role of ["admin", "supervisor"]) {
+    for (const dueDate of [null, ""]) {
+      const payload = parseTaskUpdateInput({ ...taskFields, dueDate }, role) as TaskInput;
+      assert.equal(payload.dueDate, null, `${role}, dueDate=${String(dueDate)}`);
+    }
+
+    const withoutDate = parseTaskUpdateInput(taskFields, role) as TaskInput;
+    assert.equal("dueDate" in withoutDate, false, `${role}, dueDate ausente`);
+  }
+});
+
+test("los payloads de frontend mantienen las claves por rol y permiten crear o editar sin dueDate", () => {
+  const form = {
+    clientId: "1",
+    employeeId: "2",
+    dueDate: "",
+    description: "Tarea sin fecha de finalización",
+    service: "Instalación",
+    priority: "Media",
+    status: "Terminada",
+    serviceDetails: null,
+    visitDate: "",
+    visitTimeSlot: "",
+  };
+
+  for (const role of ["admin", "supervisor"]) {
+    const createPayload = buildTaskPayload({ role, editingId: null, form });
+    const updatePayload = buildTaskPayload({ role, editingId: 10, form });
+    assert.equal((parseTaskCreateInput(createPayload, role) as TaskInput).dueDate, null, `${role}: crear`);
+    assert.equal((parseTaskUpdateInput(updatePayload, role) as TaskInput).dueDate, null, `${role}: editar`);
+  }
+
+  const operatorPayload = buildTaskPayload({ role: "operador", editingId: 10, form });
+  assert.deepEqual(Object.keys(operatorPayload).sort(), ["dueDate", "status"]);
+  assert.equal((parseTaskUpdateInput(operatorPayload, "operador") as TaskInput).dueDate, null);
 });
 
 test("la actualización administrativa conserva la normalización de prioridad y estado", () => {
