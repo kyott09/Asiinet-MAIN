@@ -56,6 +56,9 @@ La interfaz `Tareas.jsx` muestra el botón de eliminar a supervisores (`canDelet
 - `back-asiinet/src/modules/task/task.controller.test.ts`
 - `back-asiinet/src/modules/task/task.service.test.ts`
 - `back-asiinet/src/modules/task/task.routes.test.ts`
+- `back-asiinet/src/database/seeds/seed-clients.ts`
+- `back-asiinet/src/database/seeds/seed-clients.test.ts`
+- `back-asiinet/src/database/seeds/run-seed-clients.ts`
 - `shared/taskServiceDetails.js`
 - `shared/taskVisitSlots.js`
 - `shared/taskPayload.js`

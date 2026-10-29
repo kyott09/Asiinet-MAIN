@@ -25,7 +25,7 @@ Asiinet-MAIN/
 ├── CLAUDE_FRONTEND_BRIEF.md
 ├── back-asiinet/
 │   ├── src/
-│   │   ├── database/                 # conexión TypeORM y usuarios iniciales
+│   │   ├── database/                 # conexión TypeORM, usuarios iniciales y seeders de desarrollo
 │   │   ├── middlewares/              # auth, roles, permisos y errores HTTP
 │   │   ├── modules/user/             # entidad, rutas, controlador, servicio y repo de usuarios
 │   │   ├── modules/task/             # entidad, rutas, controlador, servicio y repo de tareas
@@ -71,7 +71,13 @@ npm install
 npm run dev       # nodemon + tsx src/index.ts
 npm test          # pruebas Node ejecutadas con tsx
 npm run typecheck # tsc --noEmit
+npm run seed:clientes       # simulación, no escribe
+npm run seed:flota          # simulación, no escribe
+npm run seed:clientes:clean # simulación de limpieza, no borra
+npm run seed:flota:clean    # simulación de limpieza, no borra
 ```
+
+Los seeders requieren `--apply --confirm-database=<nombre>` para insertar y, para borrar, además `--confirm-cleanup=DELETE-SEED-DATA`. Aplicar se bloquea en `NODE_ENV=production` y si la configuración no apunta a un host local. La contraseña fija de las cuentas semilla es exclusivamente de desarrollo; no se imprime ni se usa en producción. No ejecutar aplicación ni limpieza sin respaldo y autorización explícita.
 
 ```bash
 # Frontend
@@ -92,6 +98,12 @@ Ambos lados usan `http://localhost:8080` como URL API predeterminada. El fronten
 La contraseña predeterminada local `123456` es solo para desarrollo. El arranque de producción falla si `INITIAL_ACCOUNTS_PASSWORD` no está configurada o es `123456`. No documentar ni usar estas cuentas como credenciales de producción.
 
 Los correos anteriores salen del código de sembrado y pueden diferir de los listados en README antiguos; tomar `src/index.ts` y `src/database/seed-default-users.ts` como fuente de verdad.
+
+### Seeders de datos ficticios
+
+`npm run seed:clientes` planifica 20 clientes y 50 solicitudes validadas por el esquema Zod y creadas mediante el servicio de tareas; `npm run seed:flota` planifica cinco marcas, quince modelos y quince vehículos. Ambos comandos simulan por defecto y muestran solo conteos. Las cuentas usan correos `@seed.invalid` y una contraseña fija de desarrollo. Los seeders usan un DataSource independiente con `synchronize: false` y `migrationsRun: false`, y no inicializan `AppDataSource`.
+
+Los modos de limpieza terminan en `:clean`, simulan por defecto y requieren confirmación adicional para borrar únicamente entidades identificadas por el marcador `[SEED-DEV]` y sus claves reservadas. Ver [seeders de desarrollo](./docs/backend/seeders-desarrollo.md) para contratos, guardas y comandos.
 
 ## Frontend: navegación y comportamiento
 
