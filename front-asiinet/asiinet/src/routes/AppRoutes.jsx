@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Home from "../pages/Home";
+import Home from "../pages/Home/Home";
+import Panel from "../pages/Panel";
 import Users from "../pages/Users";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -24,17 +25,17 @@ function ProtectedRoute({ children, requireAdmin = false, allowedRoles = null })
 
   if (!user) {
     return <Navigate to="/login" replace />;
-  }
+  } //Si no hay usuario logueado, lo manda a /login
 
   if (requireAdmin && user.role !== "admin") {
-    return <Navigate to="/home" replace />;
-  }
+    return <Navigate to="/panel" replace />;
+  } //Si la ruta requiere admin y el usuario no es admin, lo manda a /panel
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/home" replace />;
-  }
+    return <Navigate to="/panel" replace />;
+  } //Si la ruta pide roles específicos y el usuario no tiene uno de esos roles, lo manda a /panel
 
-  return children;
+  return children; //Si pasa todas las validaciones, renderiza el componente hijo
 }
 
 function AppRoutes() {
@@ -44,18 +45,19 @@ function AppRoutes() {
         Saltar al contenido principal
       </a>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
         <Route
-          path="/home"
+          path="/panel"
           element={
             <ProtectedRoute>
-              <Home />
+              <Panel /> 
             </ProtectedRoute>
-          }
+          } //Ruta que solo requiere usuario logueado
         />
+        <Route path="/home" element={<Navigate to="/panel" replace />} />
 
         <Route
           path="/profile"
@@ -69,13 +71,13 @@ function AppRoutes() {
         <Route
           path="/users"
           element={
-            <ProtectedRoute requireAdmin>
+            <ProtectedRoute requireAdmin> 
               <Users />
             </ProtectedRoute>
-          }
+          } //Ruta protegida que solo permite acceso a usuarios con rol "admin". requireAdmin se envía como True
         />
 
-        <Route path="/galeria" element={<Navigate to="/home" replace />} />
+        <Route path="/galeria" element={<Navigate to="/" replace />} />
         <Route
           path="/tareas"
           element={
@@ -90,7 +92,7 @@ function AppRoutes() {
             <ProtectedRoute allowedRoles={["admin", "supervisor", "operador"]}>
               <Calendar />
             </ProtectedRoute>
-          }
+          } //Ruta protegida solo para usuarios con rol "admin", "supervisor" o "operador"
         />
         <Route
           path="/vehiculos"
@@ -98,7 +100,7 @@ function AppRoutes() {
             <ProtectedRoute allowedRoles={["admin", "supervisor", "operador"]}>
               <Vehiculos />
             </ProtectedRoute>
-          }
+          } //Ruta protegida solo para usuarios con rol "admin", "supervisor" o "operador"
         />
         <Route path="*" element={<NotFound />} />
       </Routes>

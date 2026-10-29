@@ -8,13 +8,15 @@ Resume el contenido, acceso, llamadas de red y estados visibles de cada página 
 
 | Página y ruta | Acceso de ruta | Qué muestra | Endpoints que llama | Estados visibles principales |
 | --- | --- | --- | --- | --- |
-| Login (`/`, `/login`) | Pública | Formulario de email y contraseña. | `POST /api/users/login` | Envío, error y transición al salir hacia inicio. |
+| Home (`/`) | Pública | Presentación institucional, red de conectividad, tipos de servicio y galería local; saludo y acción principal cambian según la sesión y el rol. | Ninguno | Contenido estático; invitación a iniciar sesión para visitantes, enlace al panel para roles internos y a solicitudes para clientes. |
+| Login (`/login`) | Pública | Formulario de email y contraseña. | `POST /api/users/login` | Envío, error y transición al salir hacia el panel. |
 | Register (`/register`) | Pública | Formulario de nombre, email, contraseña y confirmación. | `POST /api/users/register` | Envío, error por validación/error de servidor; éxito navega a login. |
-| Home (`/home`) | Cualquier sesión local | Presentación de operaciones, tipos de servicio, accesos a tareas y galería integrada para clientes; acción cambia según rol. | Ninguno | Contenido estático; el texto de acción y la galería se adaptan al rol. |
+| Panel (`/panel`) | Cualquier sesión local | Panel interno con navegación operativa, acceso a tareas y galería integrada para clientes. | Ninguno | Contenido estático; el texto de acción y la galería se adaptan al rol. |
 | Profile (`/profile`) | Cualquier sesión local | Datos personales y formulario de nombre, email, fecha, domicilio y foto. | `GET /api/users/me`, `PUT /api/users/me` | Carga inicial, guardado, éxito/error; 401 limpia sesión local y redirige a login. |
 | Users (`/users`) | Solo admin según `ProtectedRoute` | Tabla/lista adaptable de cuentas, roles y acciones de alta, edición y baja. | `GET /api/users`, `POST /api/users`, `PUT /api/users/:id`, `DELETE /api/users/:id` | Carga, error con reintento, lista vacía, aviso de éxito, diálogo y error de formulario. |
-| Gallery (`/galeria`) | Redirección | Redirige a `/home`; el carrusel se muestra dentro de Home solo para clientes. | Ninguno | La galería es un bloque de Home, con navegación local del carrusel. |
-| Tareas (`/tareas`) | Cualquier sesión local | Solicitudes/tareas, formularios por rol y detalles específicos validados según el servicio. Los detalles aparecen en un disclosure en tabla y tarjetas. | `GET /api/tasks`; `GET /api/users/assignables` para admin y supervisor; `POST`, `PUT` y `DELETE /api/tasks/:id` según acción. | Carga, vacío, error, aviso de éxito, guardado/borrado, confirmación, filtros y errores inline en detalles. Un 401 elimina `user` de `sessionStorage` y navega a login. |
+| Compatibilidad (`/home`) | Redirección | Redirige a `/panel`. | Ninguno | Mantiene enlaces antiguos al panel interno. |
+| Gallery (`/galeria`) | Redirección | Redirige a `/`; la galería es parte de Home pública. | Ninguno | El carrusel usa navegación local. |
+| Tareas (`/tareas`) | Cualquier sesión local | Solicitudes o tareas, búsqueda/filtro y formularios según rol. | `GET /api/tasks`; `GET /api/users/assignables` para admin y supervisor; `POST`, `PUT` y `DELETE /api/tasks/:id` según acción. | Carga, vacío, error, aviso de éxito, guardado/borrado, confirmación de eliminación y filtros. Un 401 elimina `user` de `sessionStorage` y navega a login. |
 | Calendar (`/calendario`) | Admin, supervisor u operador según `allowedRoles` | Calendario mensual, leyenda, eventos y diálogo para ver/crear/editar/eliminar. | `GET /api/events?month=YYYY-MM`, `POST /api/events`, `PUT /api/events/:id`, `DELETE /api/events/:id` | Carga, error con reintento, calendario sin/eventos, diálogo, error de operación y aviso de éxito. |
 | Vehículos (`/vehiculos`) | Admin, supervisor u operador según `allowedRoles` | Pestañas de vehículos, modelos y marcas; operadores tienen lectura y admin/supervisor escritura. | `GET`, `POST`, `PUT`, `DELETE` de `/api/vehicles`, `/api/vehicle-models` y `/api/brands` | Carga, error, listas vacías, filtros de marca/modelo, formularios, confirmación y avisos. |
 | NotFound (`*`) | Pública; ruta comodín | Mensaje 404, logo y enlace a login. | Ninguno | Vista 404 estática. |
@@ -45,10 +47,10 @@ Las listas y formularios muestran estados explícitos, pero el tratamiento de 40
 - `front-asiinet/asiinet/src/routes/AppRoutes.jsx`
 - `front-asiinet/asiinet/src/pages/Login.jsx`
 - `front-asiinet/asiinet/src/pages/Register.jsx`
-- `front-asiinet/asiinet/src/pages/Home.jsx`
+- `front-asiinet/asiinet/src/pages/Home/Home.jsx`
 - `front-asiinet/asiinet/src/pages/Profile.jsx`
 - `front-asiinet/asiinet/src/pages/Users.jsx`
-- `front-asiinet/asiinet/src/pages/Home/index.jsx`
+- `front-asiinet/asiinet/src/pages/Panel.jsx`
 - `front-asiinet/asiinet/src/components/gallery/GalleryCarousel.jsx`
 - `front-asiinet/asiinet/src/pages/Tareas/index.jsx`
 - `front-asiinet/asiinet/src/pages/Tareas/index.jsx`

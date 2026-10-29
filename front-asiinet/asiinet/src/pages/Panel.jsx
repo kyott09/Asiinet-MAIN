@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import AccountActions from "../../components/dashboard/AccountActions";
-import DashboardSidebar from "../../components/dashboard/DashboardSidebar";
-import GalleryCarousel from "../../components/gallery/GalleryCarousel";
-import { galleryPhotos } from "../../components/gallery/galleryPhotos";
-import "../Gallery.css";
-import "./Home.css";
-import NetworkDiagram from "./NetworkDiagram";
+import AccountActions from "../components/dashboard/AccountActions";
+import DashboardSidebar from "../components/dashboard/DashboardSidebar";
+import GalleryCarousel from "../components/gallery/GalleryCarousel";
+import { galleryPhotos } from "../components/gallery/galleryPhotos";
+import "./Gallery.css";
+import "./Panel.css";
+import NetworkDiagram from "./Home/NetworkDiagram";
 
 const services = [
   {
@@ -39,7 +39,7 @@ function getUserSession() {
   }
 }
 
-function Home() {
+function Panel() {
   const user = getUserSession();
   const userRole = String(user?.role ?? "cliente").trim().toLowerCase();
   const isClient = userRole === "cliente" || userRole === "user" || userRole === "client";
@@ -121,4 +121,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default Panel;

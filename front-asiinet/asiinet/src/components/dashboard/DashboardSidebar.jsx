@@ -21,7 +21,7 @@ function DashboardSidebar() {
   const isClient = role === "cliente";
 
   const links = [
-    { label: "Inicio", icon: "fa-house", href: "/home" },
+    { label: "Inicio", icon: "fa-house", href: "/panel" },
     { label: isClient ? "Solicitudes" : "Tareas", icon: "fa-list-check", href: "/tareas" },
     ...(!isClient ? [{ label: "Calendario", icon: "fa-calendar-days", href: "/calendario" }] : []),
     ...(!isClient ? [{ label: "Vehículos", icon: "fa-truck", href: "/vehiculos" }] : []),
@@ -54,7 +54,7 @@ function DashboardSidebar() {
 
   return (
     <aside className={`dashboard-sidebar${isMobileMenuOpen ? " mobile-menu-open" : ""}`}>
-      <Link className="sidebar-brand" to="/home" aria-label="Asiinet, ir al inicio">
+      <Link className="sidebar-brand" to="/panel" aria-label="Asiinet, ir al inicio">
         <span className="sidebar-brand-mark" aria-hidden="true">
           <img src={logoAsiinet} alt="" />
         </span>

@@ -38,7 +38,7 @@ function Login() {
 
       setIsLeaving(true);
       await new Promise((resolve) => setTimeout(resolve, 350));
-      navigate("/home", { viewTransition: true });
+      navigate("/panel", { viewTransition: true });
     } catch (err) {
       setError(err.message);
     } finally {

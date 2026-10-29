@@ -6,15 +6,16 @@ Describe el enrutado del cliente, su lectura local de sesión y las restriccione
 
 ## Responsabilidades
 
-`AppRoutes` monta `BrowserRouter` y declara estas rutas: `/` y `/login` muestran Login; `/register` muestra Register; `/home`, `/profile`, `/users`, `/tareas`, `/calendario` y `/vehiculos` muestran sus páginas; `/galeria` redirige a `/home`; la ruta `*`, al final, muestra NotFound.
+`AppRoutes` monta `BrowserRouter` y declara estas rutas: `/` muestra Home pública; `/login` muestra Login; `/register` muestra Register; `/panel`, `/profile`, `/users`, `/tareas`, `/calendario` y `/vehiculos` muestran sus páginas; `/home` redirige a `/panel` para compatibilidad; `/galeria` redirige a `/`; la ruta `*`, al final, muestra NotFound.
 
-`ProtectedRoute` está definido dentro de `AppRoutes.jsx`. `getUserSession` lee y parsea `sessionStorage` bajo la clave `user`; ante ausencia o JSON inválido devuelve `null`. Si no hay usuario, `ProtectedRoute` redirige a `/login`. Si se indica `requireAdmin` y el rol no es exactamente `admin`, o si el rol no está incluido en `allowedRoles`, redirige a `/home`.
+`ProtectedRoute` está definido dentro de `AppRoutes.jsx`. `getUserSession` lee y parsea `sessionStorage` bajo la clave `user`; ante ausencia o JSON inválido devuelve `null`. Si no hay usuario, `ProtectedRoute` redirige a `/login`. Si se indica `requireAdmin` y el rol no es exactamente `admin`, o si el rol no está incluido en `allowedRoles`, redirige a `/panel`.
 
 | Ruta | Condición en frontend |
 | --- | --- |
-| `/`, `/login`, `/register`, `*` | Sin `ProtectedRoute`. |
-| `/home`, `/profile`, `/tareas` | Requiere usuario en `sessionStorage`. |
-| `/galeria` | Redirige a `/home` con `replace`; el destino requiere usuario. |
+| `/`, `/login`, `/register`, `*` | Sin `ProtectedRoute`. Home muestra información institucional y adapta su acción principal a la sesión local. |
+| `/panel`, `/profile`, `/tareas` | Requiere usuario en `sessionStorage`. |
+| `/home` | Redirige a `/panel` con `replace`. |
+| `/galeria` | Redirige a `/` con `replace`; la galería forma parte de Home pública. |
 | `/users` | Requiere usuario y `requireAdmin`. |
 | `/calendario` | `allowedRoles`: `admin`, `supervisor`, `operador`. |
 | `/vehiculos` | `allowedRoles`: `admin`, `supervisor`, `operador`. |
@@ -23,7 +24,7 @@ Describe el enrutado del cliente, su lectura local de sesión y las restriccione
 
 ## Cómo se conecta
 
-El login llama `POST /api/users/login`, guarda `data.user` en `sessionStorage` y navega a `/home` (`Login.jsx`). El perfil actualiza esa entrada y emite el evento de ventana `asiinet:user-updated` después de cargar o guardar datos (`Profile.jsx`). `AccountActions` escucha ese evento y el evento `storage` para actualizar su copia del perfil. Cerrar sesión llama `POST /api/users/logout`, elimina `user` del almacenamiento local y navega a `/login`.
+El login llama `POST /api/users/login`, guarda `data.user` en `sessionStorage` y navega a `/panel` (`Login.jsx`). Home lee `user` para personalizar el saludo y el destino del CTA; el panel interno conserva la navegación operativa. El perfil actualiza la entrada y emite `asiinet:user-updated` después de cargar o guardar datos (`Profile.jsx`). `AccountActions` escucha ese evento y `storage` para actualizar su copia del perfil. Cerrar sesión llama `POST /api/users/logout`, elimina `user` del almacenamiento local y navega a `/login`.
 
 El estado local del frontend solo controla qué componentes se muestran y a qué rutas se permite navegar. La protección real de datos y operaciones está en el backend, que autentica las solicitudes y verifica permisos. Un usuario almacenado localmente no concede autorización al servidor.
 
@@ -31,7 +32,7 @@ El estado local del frontend solo controla qué componentes se muestran y a qué
 
 - Ante una respuesta 401, `Profile.jsx` elimina `user` y redirige a `/login`, tanto al cargar como al guardar el perfil. `handleTaskRequestError` en `Tareas.jsx` también elimina `user` y navega a `/login`.
 - `Users.jsx` y `calendarService.js` convierten respuestas HTTP fallidas en errores de página/solicitud; no se detectó en ellos un tratamiento específico de 401 que borre `sessionStorage`. `Login.jsx` y `Register.jsx` muestran el mensaje de error del servidor.
-- `DashboardSidebar.jsx` lee `user` al renderizar para construir las opciones del menú: Usuarios solo para `admin`, Calendario y Vehículos para todo rol distinto de cliente según esa condición de menú, y tareas/solicitudes con etiqueta dependiente del rol. La galería no tiene enlace propio. Esto no determina la política del servidor.
+- `DashboardSidebar.jsx` lee `user` al renderizar para construir las opciones del menú: Usuarios solo para `admin`, Calendario y Vehículos para todo rol distinto de cliente según esa condición de menú, y tareas/solicitudes con etiqueta dependiente del rol. El inicio de este menú abre `/panel`. Esto no determina la política del servidor.
 - `AppRoutes` incluye al final `<Route path="*" element={<NotFound />} />`, que presenta la página 404 para rutas no declaradas.
 
 ## Reglas de negocio
@@ -50,7 +51,8 @@ El menú móvil, el comportamiento con teclado y la disposición responsive no s
 - `front-asiinet/asiinet/src/pages/Profile.jsx`
 - `front-asiinet/asiinet/src/pages/Tareas.jsx`
 - `front-asiinet/asiinet/src/pages/Users.jsx`
-- `front-asiinet/asiinet/src/pages/Home/index.jsx`
+- `front-asiinet/asiinet/src/pages/Home/Home.jsx`
+- `front-asiinet/asiinet/src/pages/Panel.jsx`
 - `front-asiinet/asiinet/src/components/gallery/GalleryCarousel.jsx`
 - `front-asiinet/asiinet/src/services/calendarService.js`
 - `front-asiinet/asiinet/src/components/dashboard/AccountActions.jsx`
