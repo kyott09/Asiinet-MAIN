@@ -2,6 +2,7 @@ import { normalizeRole } from "../../middlewares/auth.js";
 import { AppError } from "../../middlewares/errors.js";
 import * as userRepository from "../user/user.repository.js";
 import * as taskRepository from "./task.repository.js";
+import type { TaskPageFilters } from "./task.repository.js";
 import type { Task } from "./task.entity.js";
 import type { TaskInput } from "./task.controller.js";
 
@@ -53,7 +54,8 @@ const serializeTask = (task: Task) => ({
   visitTimeSlot: task.visitTimeSlot ?? null,
 });
 
-type TaskRepositoryAdapter = Pick<typeof taskRepository, "findAll" | "findById" | "create" | "save" | "remove">;
+type TaskRepositoryAdapter = Pick<typeof taskRepository, "findAll" | "findById" | "create" | "save" | "remove">
+  & Partial<Pick<typeof taskRepository, "findPage">>;
 type UserRepositoryAdapter = Pick<typeof userRepository, "findById" | "findByRoles">;
 
 export const createTaskService = ({
@@ -91,6 +93,34 @@ const getAll = async (user?: { id: number; role?: string } | null) => {
   }
 
   return [];
+};
+
+const getPage = async (
+  input: { page: number; pageSize: number; filters: TaskPageFilters },
+  user: { id: number; role?: string } | null
+) => {
+  const actor = {
+    id: user?.id ?? 0,
+    role: normalizeRole(user?.role),
+  };
+  const findPage = tasksRepository.findPage;
+  if (!findPage) {
+    throw new Error("El repositorio de tareas no implementa findPage.");
+  }
+  const { tasks, total } = await findPage({
+    ...input,
+    actor,
+  });
+
+  return {
+    tasks: tasks.map(serializeTask),
+    meta: {
+      page: input.page,
+      pageSize: input.pageSize,
+      total,
+      totalPages: Math.ceil(total / input.pageSize),
+    },
+  };
 };
 
 const getDefaultEmployee = async () => {
@@ -319,11 +349,12 @@ const remove = async (id: number) => {
   await tasksRepository.remove(task);
 };
 
-return { getAll, create, update, remove };
+return { getAll, getPage, create, update, remove };
 };
 
 const defaultTaskService = createTaskService();
 export const getAll = defaultTaskService.getAll;
+export const getPage = defaultTaskService.getPage;
 export const create = defaultTaskService.create;
 export const update = defaultTaskService.update;
 export const remove = defaultTaskService.remove;
