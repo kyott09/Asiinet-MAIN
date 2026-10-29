@@ -1,6 +1,12 @@
 import ServiceDetailsFields from "./ServiceDetailsFields";
+import {
+  NO_TASK_VISIT_LABEL,
+  TASK_VISIT_TIME_SLOTS,
+} from "../../../../../../shared/taskVisitSlots.js";
 
-function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails, serviceDetailsErrors, onServiceDetailsChange, tasks, nextTaskNumber, today, clients, employees, loading, handleChange, getTaskStatusLabel, saving, handleSubmit, handleCancel }) {
+function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails, canEditVisit, onClearVisit, serviceDetailsErrors, onServiceDetailsChange, tasks, nextTaskNumber, today, clients, employees, loading, handleChange, getTaskStatusLabel, saving, handleSubmit, handleCancel }) {
+  const employeeRequired = editingId === null || form.status !== "Vista";
+
   return (
         <section className="tasks-panel" aria-labelledby="task-form-title">
           <h2 id="task-form-title">
@@ -57,13 +63,19 @@ function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails
                   Empleado asignado
                   <select
                     name="employeeId"
-                    value={form.employeeId}
+                    value={form.employeeId ?? ""}
                     onChange={handleChange}
-                    required
-                    disabled={loading || employees.length === 0}
+                    required={employeeRequired}
+                    aria-describedby={editingId !== null && employeeRequired && !form.employeeId
+                      ? "employee-assignment-error"
+                      : undefined}
+                    aria-invalid={editingId !== null && employeeRequired && !form.employeeId}
+                    disabled={loading || (employeeRequired && employees.length === 0)}
                   >
-                    <option value="">
-                      {employees.length ? "Selecciona un empleado" : "No hay empleados registrados"}
+                    <option value="" disabled={Boolean(form.employeeId)}>
+                      {editingId !== null && form.status === "Vista" && !form.employeeId
+                        ? "Sin asignar"
+                        : employees.length ? "Selecciona un empleado" : "No hay empleados registrados"}
                     </option>
                     {employees.map((employee) => (
                       <option key={employee.id} value={employee.id}>
@@ -71,6 +83,11 @@ function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails
                       </option>
                     ))}
                   </select>
+                  {editingId !== null && employeeRequired && !form.employeeId && (
+                    <span id="employee-assignment-error" className="tasks-field-error" role="status">
+                      Seleccioná un operador para este estado.
+                    </span>
+                  )}
                 </label>
               </div>
             )}
@@ -231,6 +248,45 @@ function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails
                 disabled={saving}
                 onChange={onServiceDetailsChange}
               />
+            )}
+
+            {canEditVisit && (
+              <fieldset className="tasks-visit" disabled={saving}>
+                <legend>Visita al domicilio</legend>
+                <div className="tasks-form-row tasks-visit-fields">
+                  <label>
+                    Fecha de visita
+                    <input
+                      type="date"
+                      name="visitDate"
+                      value={form.visitDate}
+                      onChange={handleChange}
+                    />
+                  </label>
+                  <label>
+                    Franja horaria
+                    <select
+                      name="visitTimeSlot"
+                      value={form.visitTimeSlot}
+                      onChange={handleChange}
+                    >
+                      <option value="">{NO_TASK_VISIT_LABEL}</option>
+                      {TASK_VISIT_TIME_SLOTS.map((slot) => (
+                        <option key={slot.value} value={slot.value}>{slot.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                {canEditVisit && (form.visitDate || form.visitTimeSlot) && (
+                  <button
+                    className="tasks-button tasks-button-secondary"
+                    type="button"
+                    onClick={onClearVisit}
+                  >
+                    Quitar visita
+                  </button>
+                )}
+              </fieldset>
             )}
 
             {(isEmployee || !isClient) && (
