@@ -2,6 +2,7 @@ import { AppDataSource } from "../../database/data-source.js";
 import { Task } from "./task.entity.js";
 
 const repo = () => AppDataSource.getRepository(Task);
+const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, "\\$&");
 
 export interface TaskPageFilters {
   q?: string;
@@ -53,24 +54,24 @@ export const findPage = async ({
   }
 
   if (filters.q) {
-    const search = `%${filters.q.toLowerCase()}%`;
+    const search = `%${escapeLikePattern(filters.q.toLowerCase())}%`;
     query.andWhere(`(
-      CAST(task.id AS CHAR) LIKE :search
-      OR LOWER(COALESCE(clientUser.nombre, task.client, '')) LIKE :search
-      OR LOWER(COALESCE(employeeUser.nombre, task.employee, '')) LIKE :search
-      OR LOWER(task.service) LIKE :search
-      OR LOWER(task.description) LIKE :search
-      OR LOWER(task.status) LIKE :search
+      CAST(task.id AS CHAR) LIKE :search ESCAPE '\\\\'
+      OR LOWER(COALESCE(clientUser.nombre, task.client, '')) LIKE :search ESCAPE '\\\\'
+      OR LOWER(COALESCE(employeeUser.nombre, task.employee, '')) LIKE :search ESCAPE '\\\\'
+      OR LOWER(task.service) LIKE :search ESCAPE '\\\\'
+      OR LOWER(task.description) LIKE :search ESCAPE '\\\\'
+      OR LOWER(task.status) LIKE :search ESCAPE '\\\\'
       OR LOWER(CASE
         WHEN LOWER(task.status) = 'vista' THEN 'recibido'
         WHEN LOWER(task.status) IN ('terminada', 'finalizada', 'finalizado') THEN 'terminada'
         WHEN LOWER(task.status) IN ('no terminada', 'cancelada', 'cancelado') THEN 'cancelación'
         ELSE task.status
-      END) LIKE :search
-      OR DATE_FORMAT(task.createdAt, '%Y-%m-%d') LIKE :search
-      OR LOWER(COALESCE(DATE_FORMAT(task.dueDate, '%Y-%m-%d'), 'sin fecha')) LIKE :search
-      OR DATE_FORMAT(task.visitDate, '%Y-%m-%d') LIKE :search
-      OR LOWER(task.priority) LIKE :search
+      END) LIKE :search ESCAPE '\\\\'
+      OR DATE_FORMAT(task.createdAt, '%Y-%m-%d') LIKE :search ESCAPE '\\\\'
+      OR LOWER(COALESCE(DATE_FORMAT(task.dueDate, '%Y-%m-%d'), 'sin fecha')) LIKE :search ESCAPE '\\\\'
+      OR DATE_FORMAT(task.visitDate, '%Y-%m-%d') LIKE :search ESCAPE '\\\\'
+      OR LOWER(task.priority) LIKE :search ESCAPE '\\\\'
     )`, { search });
   }
 
