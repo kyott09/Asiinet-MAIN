@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { parseTaskCreateInput, parseTaskUpdateInput, type TaskInput } from "./task.controller.js";
 import { createTaskService } from "./task.service.js";
 import { getBuenosAiresDateOffset } from "./task.test-helpers.js";
 
@@ -19,19 +20,23 @@ const installationDetails = {
 
 function serviceFor(initialTasks: any[] = []) {
   const tasks = new Map<number, any>(initialTasks.map((task) => [task.id, { ...task }]));
+  const writes: any[] = [];
   let nextId = Math.max(0, ...tasks.keys()) + 1;
   const service = createTaskService({
     tasks: {
       findAll: async () => [...tasks.values()],
       findById: async (id: number) => tasks.get(id) ?? null,
       create: async (data: any) => {
-        const task = { ...data, id: nextId++ };
+        const task = { ...structuredClone(data), id: nextId++ };
         tasks.set(task.id, task);
+        writes.push(structuredClone(task));
         return task;
       },
       save: async (task: any) => {
-        tasks.set(task.id, task);
-        return task;
+        const saved = structuredClone(task);
+        tasks.set(task.id, saved);
+        writes.push(saved);
+        return saved;
       },
       remove: async (task: any) => tasks.delete(task.id),
     },
@@ -42,8 +47,40 @@ function serviceFor(initialTasks: any[] = []) {
     today: () => serviceToday,
   } as any);
 
-  return { service, tasks };
+  return { service, tasks, writes };
 }
+
+test("el esquema, el servicio y el repositorio simulado conservan serviceDetails al crear y editar", async () => {
+  const { service, writes } = serviceFor();
+  const actor = { id: 9, role: "admin" };
+  const createInput = parseTaskCreateInput({
+    clientId: "1",
+    employeeId: "2",
+    dueDate: futureDueDate,
+    description: "Instalación solicitada",
+    service: "Instalación",
+    priority: "Media",
+    status: "Vista",
+    serviceDetails: installationDetails,
+  }, actor.role) as TaskInput;
+
+  const created = await service.create(createInput, actor);
+  assert.deepEqual(writes[0].serviceDetails, installationDetails);
+
+  const updateInput = parseTaskUpdateInput({
+    clientId: "1",
+    employeeId: "2",
+    dueDate: futureDueDate,
+    description: "Descripción actualizada",
+    service: "Instalación",
+    priority: "Media",
+    status: "Vista",
+    serviceDetails: installationDetails,
+  }, actor.role) as TaskInput;
+  await service.update(created.id, updateInput, actor);
+
+  assert.deepEqual(writes[1].serviceDetails, installationDetails);
+});
 
 test("al crear como cliente, el serviceDetails guardado pertenece al actor de sesión", async () => {
   const { service, tasks } = serviceFor();
