@@ -225,6 +225,7 @@ test("los payloads de frontend mantienen las claves por rol y permiten crear o e
   }
 
   const operatorPayload = buildTaskPayload({ role: "operador", editingId: 10, form });
+  assert.ok(operatorPayload);
   assert.deepEqual(Object.keys(operatorPayload).sort(), ["dueDate", "status"]);
   assert.equal((parseTaskUpdateInput(operatorPayload, "operador") as TaskInput).dueDate, null);
 });
