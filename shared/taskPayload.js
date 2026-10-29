@@ -28,7 +28,7 @@ export function buildTaskPayload({ role, editingId, form, canWriteVisit = true }
   if (normalizedRole === "operador") {
     if (!isEditing) return null;
     return {
-      dueDate: form.dueDate,
+      dueDate: form.dueDate || null,
       status: form.status,
     };
   }
@@ -40,7 +40,7 @@ export function buildTaskPayload({ role, editingId, form, canWriteVisit = true }
   const payload = {
     clientId: form.clientId,
     employeeId: form.employeeId || null,
-    dueDate: form.dueDate,
+    dueDate: form.dueDate || null,
     description: form.description,
     service: form.service,
     priority: form.priority,

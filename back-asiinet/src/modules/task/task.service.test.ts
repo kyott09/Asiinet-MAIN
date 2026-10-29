@@ -148,6 +148,65 @@ test("crear una tarea administrativa guarda y serializa la visita asignada", asy
   assert.equal(created.visitTimeSlot, "noche");
 });
 
+test("admin y supervisor guardan dueDate nulo cuando crean sin fecha o con el campo vacío", async () => {
+  for (const role of ["admin", "supervisor"]) {
+    for (const dueDate of [undefined, null, ""]) {
+      const { service, writes } = serviceFor();
+      const body = {
+        clientId: "1",
+        employeeId: "2",
+        description: "Tarea sin plazo",
+        service: "Instalación",
+        priority: "Media",
+        status: "Terminada",
+        ...(dueDate === undefined ? {} : { dueDate }),
+      };
+      const input = parseTaskCreateInput(body, role) as TaskInput;
+
+      await service.create(input, { id: 8, role });
+
+      assert.equal(writes[0].dueDate, null, `${role}, dueDate=${String(dueDate)}`);
+    }
+  }
+});
+
+test("admin y supervisor pueden crear con fecha válida y rechazan una fecha anterior a createdAt", async () => {
+  for (const role of ["admin", "supervisor"]) {
+    const { service, writes } = serviceFor();
+    const validInput = parseTaskCreateInput({
+      clientId: "1",
+      employeeId: "2",
+      dueDate: futureDueDate,
+      description: "Tarea con plazo",
+      service: "Instalación",
+      priority: "Media",
+      status: "Vista",
+    }, role) as TaskInput;
+
+    await service.create(validInput, { id: 8, role });
+    assert.equal(writes[0].dueDate, futureDueDate);
+
+    const previousDate = getBuenosAiresDateOffset(-1);
+    const invalidInput = parseTaskCreateInput({
+      clientId: "1",
+      employeeId: "2",
+      dueDate: previousDate,
+      description: "Tarea con plazo anterior",
+      service: "Instalación",
+      priority: "Media",
+      status: "Vista",
+    }, role) as TaskInput;
+
+    await assert.rejects(
+      service.create(invalidInput, { id: 8, role }),
+      {
+        code: "BAD_REQUEST",
+        message: "La fecha de finalización no puede ser anterior a la fecha de creación.",
+      }
+    );
+  }
+});
+
 test("PUT administrativo con ambos campos nulos quita la visita", async () => {
   const { service, tasks } = serviceFor([existingTask(21)]);
   await service.update(21, administrativeUpdate({
@@ -253,6 +312,79 @@ test("una tarea sin operador no puede pasar a un estado que requiere asignación
       { code: "BAD_REQUEST", message: "Selecciona un operador registrado con rol operador." }
     );
   }
+});
+
+test("admin y supervisor limpian dueDate al editar sin fecha y mantienen la validación si se informa", async () => {
+  for (const role of ["admin", "supervisor"]) {
+    const { service, tasks } = serviceFor([existingTask(26)]);
+    const input = parseTaskUpdateInput({
+      clientId: "1",
+      employeeId: "2",
+      description: "Tarea sin plazo",
+      service: "Instalación",
+      priority: "Media",
+      status: "Terminada",
+    }, role);
+
+    await service.update(26, input, { id: 9, role });
+    assert.equal(tasks.get(26).dueDate, null, `${role}: sin fecha`);
+    assert.equal(tasks.get(26).status, "Terminada", `${role}: estado final sin fecha`);
+  }
+
+  const { service } = serviceFor([existingTask(27)]);
+  const beforeCreatedAt = parseTaskUpdateInput({
+    clientId: "1",
+    employeeId: "2",
+    dueDate: getBuenosAiresDateOffset(-1),
+    description: "Fecha inválida",
+    service: "Instalación",
+    priority: "Media",
+    status: "Vista",
+  }, "admin");
+
+  await assert.rejects(
+    service.update(27, beforeCreatedAt, { id: 9, role: "admin" }),
+    {
+      code: "BAD_REQUEST",
+      message: "La fecha de finalización no puede ser anterior a la fecha de creación.",
+    }
+  );
+});
+
+test("operador cambia el estado sin fecha y guarda dueDate null", async () => {
+  const { service, tasks } = serviceFor([existingTask(28)]);
+  const input = parseTaskUpdateInput({ status: "Terminada" }, "operador");
+
+  await service.update(28, input, { id: 2, role: "operador" });
+
+  assert.equal(tasks.get(28).status, "Terminada");
+  assert.equal(tasks.get(28).dueDate, null);
+});
+
+test("una fecha existente continúa funcionando al editar y el operador puede cambiar el estado", async () => {
+  const { service, tasks } = serviceFor([existingTask(29, { dueDate: null })]);
+  const input = parseTaskUpdateInput({
+    dueDate: futureDueDate,
+    status: "En proceso",
+  }, "operador");
+
+  await service.update(29, input, { id: 2, role: "operador" });
+
+  assert.equal(tasks.get(29).dueDate, futureDueDate);
+  assert.equal(tasks.get(29).status, "En proceso");
+});
+
+test("una tarea existente con fecha mantiene la fecha informada al editar", async () => {
+  const { service, tasks } = serviceFor([existingTask(30)]);
+  const input = parseTaskUpdateInput({
+    dueDate: futureDueDate,
+    status: "Terminada",
+  }, "operador");
+
+  await service.update(30, input, { id: 2, role: "operador" });
+
+  assert.equal(tasks.get(30).dueDate, futureDueDate);
+  assert.equal(tasks.get(30).status, "Terminada");
 });
 
 test("no se puede quitar el operador de una tarea ya asignada", async () => {

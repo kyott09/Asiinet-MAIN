@@ -245,7 +245,7 @@ function Tareas() {
         taskStatus,
         translatedStatus,
         task.createdAt,
-        task.dueDate,
+        task.dueDate || "Sin fecha",
         task.visitDate,
         task.priority,
       ]
@@ -300,7 +300,7 @@ function Tareas() {
       ? tasks.find((task) => task.id === editingId)?.createdAt
       : today();
 
-    if (!isClient && form.dueDate < createdAt) {
+    if (!isClient && form.dueDate && form.dueDate < createdAt) {
       setError("La fecha de finalización no puede ser anterior a la fecha de creación.");
       return;
     }
@@ -382,7 +382,7 @@ function Tareas() {
     setForm({
       clientId: task.clientId ? String(task.clientId) : "",
       employeeId: task.employeeId ? String(task.employeeId) : "",
-      dueDate: task.dueDate,
+      dueDate: task.dueDate ?? "",
       description: task.description,
       service: task.service,
       priority: task.priority,

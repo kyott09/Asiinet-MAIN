@@ -197,6 +197,12 @@
   font-weight: 600;
 }
 
+.tasks-field-hint {
+  color: var(--graphite);
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
 .tasks-equipment-list {
   display: grid;
   gap: var(--space-3);

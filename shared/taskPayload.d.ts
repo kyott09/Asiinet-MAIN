@@ -1,7 +1,7 @@
 export type TaskFormPayload = {
   clientId?: string | number;
   employeeId?: string | number | null;
-  dueDate?: string;
+  dueDate?: string | null;
   description: string;
   service: string;
   priority?: string;

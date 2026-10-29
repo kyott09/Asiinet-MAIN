@@ -12,6 +12,14 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }, "La fecha no es válida");
 
+const normalizeDueDateBody = (body: unknown) => {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return body;
+
+  const normalized = { ...(body as Record<string, unknown>) };
+  if (normalized.dueDate === "") normalized.dueDate = null;
+  return normalized;
+};
+
 const normalizePriorityValue = (value: unknown) => {
   if (typeof value !== "string") return value;
 
@@ -142,7 +150,7 @@ const serviceDetailSchemas = {
 const taskFields = {
   clientId: z.coerce.number().int().positive().optional(),
   employeeId: z.coerce.number().int().positive().optional(),
-  dueDate: dateSchema.optional(),
+  dueDate: dateSchema.nullable().optional(),
   description: z.string().trim().min(1),
   priority: z.enum(["Baja", "Media", "Alta"]).optional(),
   status: z.enum(["Vista", "En proceso", "Terminada", "No terminada"]).optional(),
@@ -190,13 +198,9 @@ const operatorCreateSchema = z.object({
 export type TaskInput = z.infer<typeof administrativeTaskSchema>;
 export type ClientTaskRequest = z.infer<typeof clientRequestSchema>;
 
-const getTodayDate = () => new Date().toLocaleDateString("en-CA");
-
 export const parseTaskCreateInput = (body: unknown, role?: string | null): TaskInput | ClientTaskRequest => {
   const normalizedRole = normalizeRole(role);
-  const normalizedBody = typeof body === "object" && body !== null && !Array.isArray(body)
-    ? { ...(body as Record<string, unknown>) }
-    : body;
+  const normalizedBody = normalizeDueDateBody(body);
 
   if (normalizedBody && typeof normalizedBody === "object") {
     const bodyRecord = normalizedBody as Record<string, unknown>;
@@ -233,7 +237,7 @@ export const parseTaskCreateInput = (body: unknown, role?: string | null): TaskI
   const parsed = result.data as TaskInput;
   return {
     ...parsed,
-    dueDate: parsed.dueDate ?? getTodayDate(),
+    dueDate: parsed.dueDate ?? null,
     priority: parsed.priority ?? "Baja",
     status: parsed.status ?? "Vista",
     serviceDetails: parsed.serviceDetails ?? null,
@@ -243,7 +247,8 @@ export const parseTaskCreateInput = (body: unknown, role?: string | null): TaskI
 };
 
 export const parseTaskUpdateInput = (body: unknown, role?: string | null) => {
-  if (normalizeRole(role) === "cliente") {
+  const normalizedRole = normalizeRole(role);
+  if (normalizedRole === "cliente") {
     const updateSchema = z.object({
       description: z.string().trim().min(1),
     }).strict();
@@ -256,22 +261,19 @@ export const parseTaskUpdateInput = (body: unknown, role?: string | null) => {
     return result.data;
   }
 
-  const normalizedRole = normalizeRole(role);
+  const normalizedBody = normalizeDueDateBody(body);
   if (normalizedRole === "operador") {
     const updateSchema = z.object({
-      dueDate: dateSchema.optional(),
+      dueDate: dateSchema.nullable().optional(),
       status: z.enum(["Vista", "En proceso", "Terminada", "No terminada"]).optional(),
     }).strict();
-    const result = updateSchema.safeParse(body);
+    const result = updateSchema.safeParse(normalizedBody);
     if (!result.success) {
       throw AppError.badRequest(result.error.issues[0]?.message ?? "Datos de actualización no válidos");
     }
     return result.data;
   }
 
-  const normalizedBody = typeof body === "object" && body !== null && !Array.isArray(body)
-    ? { ...(body as Record<string, unknown>) }
-    : body;
   if (normalizedBody && typeof normalizedBody === "object") {
     const bodyRecord = normalizedBody as Record<string, unknown>;
     if (Object.prototype.hasOwnProperty.call(bodyRecord, "priority")) {

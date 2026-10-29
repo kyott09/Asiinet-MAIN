@@ -125,13 +125,18 @@ function TaskForm({ form, editingId, isClient, isEmployee, canEditServiceDetails
                   <input
                     type="date"
                     name="dueDate"
-                    value={form.dueDate}
+                    value={form.dueDate ?? ""}
                     min={editingId !== null
                       ? tasks.find((task) => task.id === editingId)?.createdAt ?? today()
                       : today()}
                     onChange={handleChange}
-                    required
+                    aria-describedby={!form.dueDate ? "due-date-hint" : undefined}
                   />
+                  {!form.dueDate && (
+                    <span id="due-date-hint" className="tasks-field-hint">
+                      Sin fecha
+                    </span>
+                  )}
                 </label>
 
                 {!isEmployee && (

@@ -31,6 +31,8 @@ Documenta los servicios que agrupan las solicitudes del navegador a las APIs de 
 
 Los payloads de tarea se validan en el backend con schemas Zod estrictos. El frontend solo limita los campos de interfaz y no sustituye permisos ni validación del servidor.
 
+`dueDate` se incluye explícitamente en los payloads administrativos y en el PUT del operador, pero es opcional. Si el campo está vacío o ausente se envía como `null`; si se informa, el backend exige que sea igual o posterior a `createdAt`. El cliente no incluye este campo en su payload de edición.
+
 El cliente puede enviar visita opcional al crear, pero su `PUT` sigue limitado a `{ description }`; operador no puede escribir visita ni detalles. Admin/supervisor pueden gestionar visitas y detalles al crear y editar, cualquiera sea el estado. En una actualización administrativa, omitir ambas claves de visita conserva la pareja, `null` en ambas la quita, y ambas completas la asignan o reprograman. Sin visita se presenta `A coordinar`; la fecha `YYYY-MM-DD` se formatea como cadena para evitar conversiones de zona horaria.
 
 Para otras respuestas, `request` intenta parsear JSON; si el cuerpo no es JSON usa `null`. En respuestas no exitosas, el mensaje proviene de `data.message` o de un texto genérico, y se adjuntan el status HTTP y el payload al error.

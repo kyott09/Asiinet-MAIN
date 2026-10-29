@@ -84,6 +84,25 @@ test("payload administrativo mantiene claves explícitas y employeeId nulo sin s
   ]);
 });
 
+test("los payloads de admin, supervisor y operador mantienen dueDate explícita como null si está vacío o ausente", () => {
+  for (const role of ["admin", "supervisor", "operador"]) {
+    for (const formValue of [
+      { ...form, dueDate: "" },
+      Object.fromEntries(Object.entries(form).filter(([key]) => key !== "dueDate")),
+    ]) {
+      const payload = buildTaskPayload({ role, editingId: 4, form: formValue });
+
+      assert.equal(payload.dueDate, null, `${role}, ${"dueDate" in formValue ? "vacía" : "ausente"}`);
+      assert.deepEqual(
+        Object.keys(payload).sort(),
+        role === "operador"
+          ? ["dueDate", "status"]
+          : ["clientId", "description", "dueDate", "employeeId", "priority", "service", "serviceDetails", "status", "visitDate", "visitTimeSlot"],
+      );
+    }
+  }
+});
+
 test("las fechas de visita se presentan desde YYYY-MM-DD sin conversión a zona local", () => {
   assert.equal(formatTaskVisitDate("2026-10-31"), "31/10/2026");
 });

@@ -41,7 +41,8 @@ Resume los componentes reutilizables de autenticación, panel, galería y calend
 
 ### Tareas
 
-- `TaskForm` adapta la asignación y edición al rol. Cliente ve visita opcional solo al crear; admin/supervisor pueden gestionarla en cualquier estado. Una tarea sin operador puede permanecer así en `Vista`; si cambia a otro estado, el formulario solicita un operador.
+- `TaskForm` adapta la asignación y edición al rol. La fecha de finalización es opcional para admin/supervisor al crear y editar, y para el operador al actualizar; el formulario indica `Sin fecha` si no hay valor. Cliente ve visita opcional solo al crear; admin/supervisor pueden gestionarla en cualquier estado. Una tarea sin operador puede permanecer así en `Vista`; si cambia a otro estado, el formulario solicita un operador.
+- `TaskTable` y `TaskCards` muestran `Sin fecha` cuando `dueDate` es null o vacío.
 - `ServiceDetailsFields` presenta los campos del servicio dentro de un `fieldset` y `legend`; recibe valor, errores y callbacks desde `Tareas/index.jsx`.
 - `TaskServiceDetailsDisplay` muestra el resumen en un disclosure accesible reutilizado por tabla y tarjetas.
 - La definición compartida en `shared/taskServiceDetails.js` mantiene opciones, etiquetas y límites en un único lugar.

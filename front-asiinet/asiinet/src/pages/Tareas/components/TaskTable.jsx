@@ -28,7 +28,7 @@ function TaskTable({ filteredTasks, isClient, getTaskStatusLabel, canClientEditT
                       <td>{task.client}</td>
                       {!isClient && <td>{task.employee || "Sin asignar"}</td>}
                       <td>{task.createdAt}</td>
-                      {!isClient && <td>{task.dueDate}</td>}
+                      {!isClient && <td>{task.dueDate || "Sin fecha"}</td>}
                       <td>{task.service}</td>
                       {!isClient && (
                         <td>

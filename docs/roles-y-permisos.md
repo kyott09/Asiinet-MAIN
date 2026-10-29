@@ -47,7 +47,7 @@ Los roles canónicos que reconoce el código son:
 | Rol canónico | Alcance principal |
 | --- | --- |
 | `cliente` | Consulta las tareas asociadas a su cuenta, crea solicitudes y actualiza la descripción de sus propias solicitudes. No tiene permisos de calendario ni de administración global. |
-| `operador` | Consulta las tareas que tiene asignadas, puede crear tareas según el endpoint y actualizar fecha de finalización y estado de las tareas que tiene asignadas. Puede leer y gestionar eventos de calendario, con la restricción de propiedad para modificarlos o borrarlos. |
+| `operador` | Consulta las tareas que tiene asignadas, puede crear tareas según el endpoint y actualizar la fecha de finalización opcional y el estado de las tareas que tiene asignadas. Puede leer y gestionar eventos de calendario, con la restricción de propiedad para modificarlos o borrarlos. |
 | `supervisor` | Acceso amplio a lectura y gestión de tareas, salvo el borrado. Puede consultar y gestionar eventos de calendario, siempre sujeto a la regla de que cada evento solo lo modifica o elimina su creador. No administra el listado completo de usuarios. |
 | `admin` | Acceso global a los permisos declarados, incluida la administración de usuarios y el borrado de tareas. En eventos, el rol admin no anula la regla de propiedad: solo el creador puede modificar o eliminar un evento. |
 

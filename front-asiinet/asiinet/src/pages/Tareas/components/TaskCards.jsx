@@ -41,7 +41,7 @@ function TaskCards({ filteredTasks, pageTitle, isClient, getTaskStatusLabel, can
                           </div>
                           <div>
                             <dt>Finalización</dt>
-                            <dd>{task.dueDate}</dd>
+                            <dd>{task.dueDate || "Sin fecha"}</dd>
                           </div>
                           <div>
                             <dt>Empleado asignado</dt>

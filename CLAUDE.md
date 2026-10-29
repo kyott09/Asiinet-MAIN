@@ -199,7 +199,7 @@ El permiso general no reemplaza las comprobaciones por recurso:
 
 - **Admin:** puede acceder a cualquier tarea y eliminarla.
 - **Supervisor:** puede leer/actualizar tareas; no puede eliminarlas.
-- **Operador:** solo puede leer tareas asignadas a su `employeeId`; actualiza solo las que tiene asignadas y puede cambiar únicamente fecha de finalización y estado.
+- **Operador:** solo puede leer tareas asignadas a su `employeeId`; actualiza solo las que tiene asignadas y puede cambiar únicamente fecha de finalización (opcional) y estado.
 - **Cliente:** solo ve tareas asociadas a su `clientId`; puede crear una solicitud y editar únicamente la descripción de sus propias solicitudes. No puede eliminarlas.
 
 La API de tareas filtra las listas en el servicio; `requireTaskAccess` además comprueba la tarea concreta al actualizar o borrar. No confiar solo en el filtrado de frontend ni debilitar middleware para resolver un problema visual.
@@ -221,14 +221,15 @@ Entidad TypeORM `Task` en tabla `tareas`. Campos principales: `id`, texto `clien
 - Prioridad: `Baja`, `Media`, `Alta`.
 - Estados usados por la UI/API: `Vista`, `En proceso`, `Terminada`, `No terminada`. La API normaliza algunos alias heredados como `finalizada`/`finalizado` a `Terminada`.
 - Fechas de API son cadenas `YYYY-MM-DD`; Zod valida que sean fechas reales.
-- Fecha de finalización no puede anteceder a la fecha de creación.
+- Si se informa, la fecha de finalización no puede anteceder a la fecha de creación.
 - Para cliente, la creación fija el propio `clientId`, estado inicial `Vista`, prioridad `Baja` y deja `employeeId`/`dueDate` sin asignar; no se asigna automáticamente un operador.
+- `dueDate` es opcional para admin/supervisor al crear y editar, y para el operador en su `PUT` de `{ dueDate, status }`. Si se omite o viene vacío, se guarda como `null`; no hay fecha automática y `Terminada` no requiere plazo. Si se informa, no puede preceder a `createdAt`.
 - Un cliente no puede mantener dos solicitudes activas del mismo servicio. El backend considera finalizados los estados `terminada`, `finalizada` y `finalizado`.
 - Supervisor/admin crean tareas seleccionando un usuario cliente y un operador existentes. El servicio comprueba roles válidos (`cliente` y `operador`).
 - Para operador, el backend exige asignación del cliente y del empleado al crear; no obstante, la interfaz actual no ofrece creación de tarea a operadores.
 - El listado serializado expone `id` y `number` (ambos basados en el ID), cliente/empleado, IDs, fechas y detalles de tarea.
 
-Las validaciones por rol difieren: todos los cuerpos se validan con schemas Zod estrictos y los payloads se construyen con listas explícitas en `shared/taskPayload.js`. Cliente crea con `description`, `service`, `serviceDetails?` y una visita opcional completa; edita solo `description`. Operador edita `dueDate` y `status` sin `serviceDetails` ni visita; admin/supervisor usan campos administrativos y pueden administrar detalles compatibles con el servicio y la visita.
+Las validaciones por rol difieren: todos los cuerpos se validan con schemas Zod estrictos y los payloads se construyen con listas explícitas en `shared/taskPayload.js`. Cliente crea con `description`, `service`, `serviceDetails?` y una visita opcional completa; edita solo `description`. Operador edita solo `{ dueDate, status }`, con `dueDate` opcional y sin detalles ni visita; admin/supervisor pueden omitir o vaciar `dueDate` al crear/editar. Si la fecha se informa, debe ser igual o posterior a `createdAt`. Tabla, tarjetas y formulario muestran `Sin fecha` cuando no hay plazo.
 
 ## Base de datos y modelo de usuario
 
