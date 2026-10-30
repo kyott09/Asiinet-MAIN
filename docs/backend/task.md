@@ -8,11 +8,11 @@ Gestiona las solicitudes de servicio y tareas asignadas, con permisos por rol y 
 
 `task.routes.ts` define `GET /` (`tasks:read`), `POST /` (`tasks:create`), `PUT /:id` (`tasks:update` y acceso de recurso para actualizar) y `DELETE /:id` (`tasks:delete` y acceso de recurso para borrar). Todas requieren sesión.
 
-`getAll`, `create`, `update` y `remove` en `task.controller.ts` validan/ejecutan la operación y responden respectivamente con `{ tasks }`, `{ task }`, `{ task }` y `{ message }` (altas con 201; las demás con 200). `parseTaskCreateInput` y `parseTaskUpdateInput` definen los campos aceptados según rol.
+`getAll`, `create`, `update` y `remove` en `task.controller.ts` validan/ejecutan la operación y responden respectivamente con `{ tasks }`, `{ task }`, `{ task }` y `{ message }` (altas con 201; las demás con 200). `parseTaskCreateInput` y `parseTaskUpdateInput` definen los campos aceptados según rol. `parseTaskListQuery` valida con Zod estricto los parámetros del listado paginado.
 
 ## Cómo se conecta
 
-El middleware `requirePermission` consulta la matriz de `ROLE_PERMISSIONS`; `requireTaskAccess` carga la tarea y aplica `canAccessTask` en `middlewares/auth.ts`. `task.service.ts` filtra listas, valida asignaciones y serializa el resultado. Los campos persistidos y las relaciones están en [base de datos](../base-de-datos.md).
+El middleware `requirePermission` consulta la matriz de `ROLE_PERMISSIONS`; `requireTaskAccess` carga la tarea y aplica `canAccessTask` en `middlewares/auth.ts`. `task.service.ts` valida asignaciones y serializa el resultado; `task.repository.ts` aplica alcance, filtros, conteo y recorte para la lista paginada. Los campos persistidos y las relaciones están en [base de datos](../base-de-datos.md).
 
 ## Contratos
 
@@ -24,6 +24,12 @@ El middleware `requirePermission` consulta la matriz de `ROLE_PERMISSIONS`; `req
 | Cliente | Sus solicitudes | Sí | Propias; descripción | No |
 
 El acceso de recurso para actualización permite admin y supervisor en cualquier tarea, operador únicamente si coincide `employeeId`, y cliente únicamente si coincide `clientId`. Para borrado, `canAccessTask` da acceso al admin, pero la ruta también exige `tasks:delete`, que solo tiene admin en la matriz actual. La lectura individual de `requireTaskAccess` permite operador si coincide `employeeId` o `clientId`, y cliente si coincide `clientId`; la lista de operador, en `getAll`, se filtra por `employeeId`.
+
+### Listado y paginación
+
+`GET /api/tasks` conserva sin parámetros la respuesta `{ tasks }` completa dentro del alcance del rol. Al recibir `page` o `pageSize`, responde `{ tasks, meta: { page, pageSize, total, totalPages } }`; por defecto usa página 1 y tamaño 20, con máximo 100. `q` busca en los campos del listado y `status` acepta `todos`, `vista`, `en_proceso`, `terminada` o `cancelacion`. Los filtros requieren activar paginación. Todos los parámetros se validan con Zod estricto: claves extra, valores repetidos o valores inválidos producen 400 con `{ status, code, message }`.
+
+El repositorio aplica primero la visibilidad del actor (admin/supervisor, todas; operador, solo `employeeId` propio; cliente, solo `clientId` propio), luego los filtros, el conteo y `skip/take`. El orden estable es `id ASC`. Una página válida pero fuera del rango responde 200 con una lista vacía y metadata; `totalPages` es 0 cuando el resultado total es 0.
 
 Al crear, el cliente queda fijado a la identidad de sesión; la solicitud del cliente se crea sin empleado asignado, con prioridad `Baja` y estado `Vista`. Cliente puede incluir opcionalmente una pareja completa de visita; si no la envía, ambos campos quedan `null`. Se rechaza otra solicitud activa del mismo servicio para ese cliente. Para admin/supervisor, la creación sigue exigiendo un empleado y valida que cliente y empleado tengan roles cliente y operador. `dueDate` es opcional: si se omite o llega vacío se guarda como `null`, sin fecha automática; si se informa, no puede preceder `createdAt`.
 
@@ -38,6 +44,7 @@ Los estados finales reconocidos al comprobar solicitudes activas son `terminada`
 ## Reglas de negocio
 
 - `getAll` en `task.service.ts` limita resultados por rol como se detalla en Contratos y serializa identificadores, nombres y campos de la tarea.
+- `getPage` solicita al repositorio resultados y conteo ya acotados por actor y filtros; no calcula metadata global para clientes u operadores.
 - `create` aplica valores predeterminados y asociación de cliente/operador según rol; `getAssignees` verifica ambos roles.
 - `update` permite al cliente cambiar solo la descripción de su solicitud, al operador la fecha y estado de su tarea asignada, y a admin/supervisor los campos generales y la visita con validación de asignaciones y estado.
 - `requireTaskAccess` en `auth.ts` responde según la existencia e identidad de la tarea; la verificación de permiso de ruta se aplica además a la operación.
@@ -56,6 +63,7 @@ La interfaz `Tareas.jsx` muestra el botón de eliminar a supervisores (`canDelet
 - `back-asiinet/src/modules/task/task.controller.test.ts`
 - `back-asiinet/src/modules/task/task.service.test.ts`
 - `back-asiinet/src/modules/task/task.routes.test.ts`
+- `back-asiinet/src/modules/task/task.pagination.test.ts`
 - `back-asiinet/src/database/seeds/seed-clients.ts`
 - `back-asiinet/src/database/seeds/seed-clients.test.ts`
 - `back-asiinet/src/database/seeds/run-seed-clients.ts`
@@ -63,5 +71,9 @@ La interfaz `Tareas.jsx` muestra el botón de eliminar a supervisores (`canDelet
 - `shared/taskVisitSlots.js`
 - `shared/taskPayload.js`
 - `front-asiinet/asiinet/src/pages/Tareas/index.jsx`
+- `front-asiinet/asiinet/src/pages/Tareas/taskPagination.js`
+- `front-asiinet/asiinet/src/pages/Tareas/taskPagination.test.js`
+- `front-asiinet/asiinet/src/components/pagination/Pagination.jsx`
+- `front-asiinet/asiinet/src/components/pagination/paginationUtils.js`
 - `front-asiinet/asiinet/src/pages/Tareas/components/ServiceDetailsFields.jsx`
 - `front-asiinet/asiinet/src/pages/Tareas/components/TaskServiceDetailsDisplay.jsx`

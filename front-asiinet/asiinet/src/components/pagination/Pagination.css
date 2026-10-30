@@ -1,0 +1,88 @@
+.pagination {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  margin-top: var(--space-4);
+}
+
+.pagination-range {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.pagination-controls,
+.pagination-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.pagination-controls {
+  justify-content: space-between;
+}
+
+.pagination-size {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--graphite);
+  font-size: 0.875rem;
+}
+
+.pagination-size select,
+.pagination-nav button {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--graphite);
+  font: inherit;
+}
+
+.pagination-size select {
+  padding: 0 var(--space-2);
+}
+
+.pagination-nav button {
+  min-width: 40px;
+  padding: 0 var(--space-2);
+  cursor: pointer;
+}
+
+.pagination-nav button[aria-current="page"] {
+  border-color: var(--orange-dark);
+  background: var(--orange-dark);
+  color: var(--white);
+}
+
+.pagination-nav button:disabled,
+.pagination-size select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pagination-nav button:focus-visible,
+.pagination-size select:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .pagination-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination-nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .pagination-nav button {
+    min-width: 0;
+    padding-inline: var(--space-1);
+  }
+}

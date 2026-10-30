@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AccountActions from "../../components/dashboard/AccountActions";
 import DashboardSidebar from "../../components/dashboard/DashboardSidebar";
 import "./Tareas.css";
@@ -9,8 +9,11 @@ import TaskFilters from "./components/TaskFilters";
 import TaskTable from "./components/TaskTable";
 import TaskCards from "./components/TaskCards";
 import TaskForm from "./components/TaskForm";
+import Pagination from "../../components/pagination/Pagination";
+import { getValidPage } from "../../components/pagination/paginationUtils.js";
 import { buildTaskPayload } from "../../../../../shared/taskPayload.js";
 import { validateTaskServiceDetails } from "../../../../../shared/taskServiceDetails.js";
+import { buildTaskListQuery, readTaskPaginationState } from "./taskPagination.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 const TASKS_URL = `${API_BASE_URL}/api/tasks`;
@@ -132,27 +135,9 @@ function canClientEditTask(task) {
   return !["en proceso", "terminada", "finalizada", "finalizado", "no terminada", "cancelada", "cancelado"].includes(normalized);
 }
 
-function normalizeTaskStatusValue(status) {
-  const normalized = String(status ?? "").trim().toLowerCase();
-
-  if (normalized === "vista") return "vista";
-  if (normalized === "en proceso") return "en_proceso";
-  if (["terminada", "finalizada", "finalizado"].includes(normalized)) return "terminada";
-  if (["no terminada", "no_terminada"].includes(normalized)) return "cancelacion";
-  if (["cancelada", "cancelado"].includes(normalized)) return "cancelacion";
-
-  return normalized;
-}
-
-function isAssignedTaskForUser(task, user) {
-  const taskEmployeeIds = [task?.employeeId, task?.employeeUser?.id, task?.employeeUserId]
-    .filter((value) => value !== null && value !== undefined && value !== "");
-
-  return taskEmployeeIds.some((id) => Number(id) === Number(user?.id));
-}
-
 function Tareas() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const user = getUserSession();
   const userRole = normalizeRoleName(user?.role);
   const isClient = userRole === "cliente";
@@ -160,7 +145,11 @@ function Tareas() {
   const canCreateRequest = !isEmployee;
   const canDeleteTask = !isClient && !isEmployee;
   const pageTitle = isClient ? "Solicitudes" : "Tareas";
+  const { page, pageSize, q: searchTerm, status: statusFilter } =
+    readTaskPaginationState(searchParams);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [tasks, setTasks] = useState([]);
+  const [taskMeta, setTaskMeta] = useState(null);
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -170,14 +159,15 @@ function Tareas() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [assignablesLoading, setAssignablesLoading] = useState(!isClient && !isEmployee);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("todos");
+  const [refreshKey, setRefreshKey] = useState(0);
   const deleteDialogRef = useRef(null);
   const deleteTriggerRef = useRef(null);
   const newTaskButtonRef = useRef(null);
+  const searchEditStartedRef = useRef(false);
 
   useEffect(() => {
     const dialog = deleteDialogRef.current;
@@ -188,26 +178,45 @@ function Tareas() {
   }, [taskToDelete]);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearchTerm(searchTerm), 250);
+    return () => window.clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
     let isActive = true;
 
     async function loadTasks() {
+      if (searchTerm !== debouncedSearchTerm) {
+        setLoading(true);
+        return;
+      }
+
+      setLoading(true);
+      setError("");
       try {
-        const taskPayload = await requestTasks();
+        const query = buildTaskListQuery({
+          page,
+          pageSize,
+          q: debouncedSearchTerm,
+          status: statusFilter,
+        });
+        const taskPayload = await requestTasks(`?${query}`);
         if (!isActive) return;
 
-        setTasks(taskPayload.tasks ?? []);
-
-        if (isEmployee || isClient) {
-          setClients([]);
-          setEmployees([]);
-          setLoading(false);
-          return;
+        if (!Array.isArray(taskPayload.tasks) || !taskPayload.meta) {
+          throw new Error("La respuesta del servidor no contiene una página válida de tareas.");
         }
 
-        const userPayload = await requestAssignableUsers();
-        if (isActive) {
-          setClients(userPayload.clients ?? []);
-          setEmployees(userPayload.employees ?? []);
+        setTasks(taskPayload.tasks);
+        setTaskMeta(taskPayload.meta);
+
+        const lastValidPage = getValidPage(page, taskPayload.meta.totalPages);
+        if (page !== lastValidPage) {
+          setSearchParams((current) => {
+            const next = new URLSearchParams(current);
+            next.set("page", String(lastValidPage));
+            return next;
+          }, { replace: true });
         }
       } catch (requestError) {
         if (isActive) handleTaskRequestError(requestError, navigate, setError);
@@ -220,47 +229,77 @@ function Tareas() {
     return () => {
       isActive = false;
     };
+  }, [
+    navigate,
+    page,
+    pageSize,
+    searchTerm,
+    debouncedSearchTerm,
+    statusFilter,
+    refreshKey,
+    setSearchParams,
+  ]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadAssignableUsers() {
+      if (isClient || isEmployee) {
+        setClients([]);
+        setEmployees([]);
+        setAssignablesLoading(false);
+        return;
+      }
+
+      try {
+        const userPayload = await requestAssignableUsers();
+        if (!isActive) return;
+        setClients(userPayload.clients ?? []);
+        setEmployees(userPayload.employees ?? []);
+      } catch (requestError) {
+        if (isActive) handleTaskRequestError(requestError, navigate, setError);
+      } finally {
+        if (isActive) setAssignablesLoading(false);
+      }
+    }
+
+    loadAssignableUsers();
+    return () => {
+      isActive = false;
+    };
   }, [navigate, isClient, isEmployee]);
 
-  const roleFilteredTasks = tasks.filter((task) => {
-    if (isClient) return Number(task.clientId) === Number(user?.id);
-    if (isEmployee) return isAssignedTaskForUser(task, user);
-    return true;
-  });
+  const filteredTasks = tasks;
 
-  const filteredTasks = roleFilteredTasks.filter((task) => {
-    const searchValue = searchTerm.trim().toLowerCase();
-    const taskStatus = String(task.status ?? "").trim();
-    const translatedStatus = getTaskStatusLabel(taskStatus);
-    const normalizedStatus = normalizeTaskStatusValue(taskStatus);
+  function updateListParams(updates, { replace = false, resetPage = true } = {}) {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === null || value === undefined || value === "") {
+          next.delete(key);
+        } else {
+          next.set(key, String(value));
+        }
+      }
+      if (resetPage) next.set("page", "1");
+      return next;
+    }, { replace });
+  }
 
-    const matchesSearch =
-      searchValue.length === 0 ||
-      [
-        task.number,
-        task.client,
-        task.employee,
-        task.service,
-        task.description,
-        taskStatus,
-        translatedStatus,
-        task.createdAt,
-        task.dueDate || "Sin fecha",
-        task.visitDate,
-        task.priority,
-      ]
-        .filter((value) => value !== null && value !== undefined)
-        .join(" ")
-        .toLowerCase()
-        .includes(searchValue);
+  function handleSearchTermChange(value) {
+    updateListParams({ q: value.trim() ? value : null }, {
+      replace: searchEditStartedRef.current,
+    });
+    searchEditStartedRef.current = true;
+  }
 
-    const matchesStatus = statusFilter === "todos" || statusFilter === normalizedStatus;
+  function handlePageChange(nextPage) {
+    updateListParams({ page: nextPage }, { resetPage: false });
+  }
 
-    return matchesSearch && matchesStatus;
-  });
-
-  const nextTaskNumber =
-    filteredTasks.reduce((max, task) => Math.max(max, task.number), 0) + 1;
+  function handlePageSizeChange(nextPageSize) {
+    updateListParams({ pageSize: nextPageSize });
+  }
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -349,21 +388,18 @@ function Tareas() {
         return;
       }
 
-      const payload = await requestTasks(editingId !== null ? `/${editingId}` : "", {
+      await requestTasks(editingId !== null ? `/${editingId}` : "", {
         method: editingId !== null ? "PUT" : "POST",
         body: JSON.stringify(payloadBody),
       });
 
       if (editingId !== null) {
-        setTasks((current) => current.map((task) => (
-          task.id === editingId ? payload.task : task
-        )));
         setMessage(isEmployee ? "Estado actualizado exitosamente." : "Solicitud actualizada exitosamente.");
       } else {
-        setTasks((current) => [...current, payload.task]);
         setMessage(isClient ? "Solicitud enviada exitosamente." : "Tarea registrada exitosamente.");
       }
 
+      setRefreshKey((current) => current + 1);
       resetForm();
       setShowForm(false);
     } catch (requestError) {
@@ -406,8 +442,8 @@ function Tareas() {
 
     try {
       await requestTasks(`/${task.id}`, { method: "DELETE" });
-      setTasks((current) => current.filter((currentTask) => currentTask.id !== task.id));
       setMessage("Tarea eliminada.");
+      setRefreshKey((current) => current + 1);
       setTaskToDelete(null);
       window.requestAnimationFrame(() => newTaskButtonRef.current?.focus());
     } catch (requestError) {
@@ -489,11 +525,10 @@ function Tareas() {
           serviceDetailsErrors={serviceDetailsErrors}
           onServiceDetailsChange={handleServiceDetailsChange}
           tasks={tasks}
-          nextTaskNumber={nextTaskNumber}
           today={today}
           clients={clients}
           employees={employees}
-          loading={loading}
+          loading={loading || assignablesLoading}
           handleChange={handleChange}
           getTaskStatusLabel={getTaskStatusLabel}
           saving={saving}
@@ -516,13 +551,23 @@ function Tareas() {
             )}
           </div>
 
-          <TaskFilters isClient={isClient} searchTerm={searchTerm} setSearchTerm={setSearchTerm} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
+          <TaskFilters
+            isClient={isClient}
+            searchTerm={searchTerm}
+            setSearchTerm={handleSearchTermChange}
+            statusFilter={statusFilter}
+            setStatusFilter={(value) => updateListParams({ status: value === "todos" ? null : value })}
+            onSearchFocus={() => { searchEditStartedRef.current = false; }}
+            onSearchBlur={() => { searchEditStartedRef.current = false; }}
+          />
 
           {loading ? (
             <TaskSkeleton />
           ) : error ? null : filteredTasks.length === 0 ? (
             <p className="tasks-empty">
-              {isClient ? "Todavía no tenés solicitudes registradas." : "Todavía no hay tareas registradas."}
+              {searchTerm || statusFilter !== "todos"
+                ? "No hay tareas que coincidan con los filtros."
+                : isClient ? "Todavía no tenés solicitudes registradas." : "Todavía no hay tareas registradas."}
             </p>
           ) : (
             <>
@@ -530,6 +575,18 @@ function Tareas() {
 
               <TaskCards filteredTasks={filteredTasks} pageTitle={pageTitle} isClient={isClient} getTaskStatusLabel={getTaskStatusLabel} canClientEditTask={canClientEditTask} handleEdit={handleEdit} canDeleteTask={canDeleteTask} requestDelete={requestDelete} deletingId={deletingId} />
             </>
+          )}
+          {!loading && !error && taskMeta && (
+            <Pagination
+              ariaLabel="Paginación de tareas"
+              page={page}
+              pageSize={pageSize}
+              total={taskMeta.total}
+              totalPages={taskMeta.totalPages}
+              loading={loading}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
           )}
         </section>
       )}

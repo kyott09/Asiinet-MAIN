@@ -1,4 +1,12 @@
-function TaskFilters({ isClient, searchTerm, setSearchTerm, statusFilter, setStatusFilter }) {
+function TaskFilters({
+  isClient,
+  searchTerm,
+  setSearchTerm,
+  statusFilter,
+  setStatusFilter,
+  onSearchFocus,
+  onSearchBlur,
+}) {
   return (
           <div className="tasks-filter-bar">
             <label className="tasks-filter-field">
@@ -8,6 +16,8 @@ function TaskFilters({ isClient, searchTerm, setSearchTerm, statusFilter, setSta
                 type="text"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
+                onFocus={onSearchFocus}
+                onBlur={onSearchBlur}
                 placeholder={isClient ? "Buscar por servicio, descripción o estado" : "Buscar por cliente, servicio o estado"}
               />
             </label>

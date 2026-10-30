@@ -12,6 +12,41 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }, "La fecha no es válida");
 
+const queryInteger = z.string()
+  .regex(/^[1-9]\d*$/, "Debe ser un entero positivo")
+  .transform(Number)
+  .pipe(z.number().int().max(Number.MAX_SAFE_INTEGER));
+
+const taskListQuerySchema = z.object({
+  page: queryInteger
+    .pipe(z.number().int().max(Math.floor(Number.MAX_SAFE_INTEGER / 100)))
+    .optional(),
+  pageSize: queryInteger.pipe(z.number().int().min(1).max(100)).optional(),
+  q: z.string().trim().max(100).optional(),
+  status: z.enum(["todos", "vista", "en_proceso", "terminada", "cancelacion"]).optional(),
+}).strict().superRefine((query, context) => {
+  if (
+    (query.q !== undefined || query.status !== undefined)
+    && query.page === undefined
+    && query.pageSize === undefined
+  ) {
+    context.addIssue({
+      code: "custom",
+      message: "Los filtros requieren parámetros de paginación.",
+    });
+  }
+});
+
+export function parseTaskListQuery(query: unknown) {
+  const result = taskListQuerySchema.safeParse(query);
+  if (!result.success) {
+    throw AppError.badRequest(
+      result.error.issues[0]?.message ?? "Parámetros de consulta no válidos"
+    );
+  }
+  return result.data;
+}
+
 const normalizeDueDateBody = (body: unknown) => {
   if (typeof body !== "object" || body === null || Array.isArray(body)) return body;
 
@@ -305,10 +340,32 @@ const parseTaskId = (rawId: string | string[]) => {
   return id;
 };
 
-export const getAll = asyncHandler(async (req: Request, res: Response) => {
+type TaskListService = Pick<typeof taskService, "getAll" | "getPage">;
+
+export const createGetAllTasksController = (
+  service: TaskListService = taskService
+) => asyncHandler(async (req: Request, res: Response) => {
   const user = (req as AuthenticatedRequest).user;
-  res.status(200).json({ tasks: await taskService.getAll(user) });
+  const query = parseTaskListQuery(req.query);
+  const paginated = query.page !== undefined || query.pageSize !== undefined;
+
+  if (!paginated) {
+    res.status(200).json({ tasks: await service.getAll(user) });
+    return;
+  }
+
+  const result = await service.getPage({
+    page: query.page ?? 1,
+    pageSize: query.pageSize ?? 20,
+    filters: {
+      ...(query.q ? { q: query.q } : {}),
+      ...(query.status ? { status: query.status } : {}),
+    },
+  }, user ?? null);
+  res.status(200).json(result);
 });
+
+export const getAll = createGetAllTasksController();
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const user = (req as AuthenticatedRequest).user;
